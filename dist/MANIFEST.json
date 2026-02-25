@@ -1,0 +1,17 @@
+{
+  "generated_at_utc": "2026-02-25T21:04:09Z",
+  "files": [
+    {
+      "path": "dist/MANIFEST.json",
+      "sha256": "20a37f32cf74628b1d6110fd3447ae822522a5d508b58854163c07cee4d5b38c"
+    },
+    {
+      "path": "source/BORT_CAPABILITIES.md",
+      "sha256": "089ab9915ffec50c4c851ee61c1b4f3ab40c09efa889b9a248372cbe0afda397"
+    },
+    {
+      "path": "source/bort_registry.snapshot.json",
+      "sha256": "aa9cc7b1745d2b41172560c3c8eb0ef3378ee56e1c36cecea0d6e85289ec259c"
+    }
+  ]
+}

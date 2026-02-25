@@ -1,6 +1,201 @@
 {
   "version": 1,
   "generated_at_utc": "2026-02-25T20:45:00Z",
+  "deployment": {
+    "openclaw_gateway": {
+      "public_ip": "138.68.246.107",
+      "note": "Public IP for accessing the OpenClaw gateway (if exposed).",
+      "base_url": "unknown"
+    }
+  },
+  "commands": [
+    {
+      "name": "node scripts/arch-drift-check.mjs",
+      "description": "Classify documentation/architecture drift (cosmetic/structural/behavioral) and enforce HIGH-severity behavior (emit [BORT_ARCH_DRIFT] and block auto-export).",
+      "args_schema": {
+        "--force-export": {
+          "type": "boolean",
+          "required": false,
+          "description": "Force normal export when not in HIGH severity."
+        }
+      },
+      "examples": [
+        "node /root/.openclaw/workspace/scripts/arch-drift-check.mjs"
+      ],
+      "side_effects": [
+        "Writes/updates project_source/.arch_drift_baseline.json",
+        "On HIGH severity: appends a Drift Report to project_source/CHANGELOG_AUTOGEN.md",
+        "On HIGH severity: prepends notification to memory/to_upload.md",
+        "On non-HIGH severity: may invoke export-project-source.mjs (which writes hashes and EXPORT_LATEST.md)"
+      ],
+      "safety_constraints": [
+        "Does not modify routing logic; it only reads and compares.",
+        "Blocks auto-export when behavioral drift is detected."
+      ]
+    },
+    {
+      "name": "node scripts/export-project-source.mjs",
+      "description": "Compute sha256 per canonical project_source file; generate EXPORT_LATEST.md bundle; emit [BORT_SOURCE_UPDATE] when changed; log notification into memory/to_upload.md.",
+      "args_schema": {
+        "--force": {
+          "type": "boolean",
+          "required": false,
+          "description": "Force export even if no changes detected."
+        },
+        "--quiet": {
+          "type": "boolean",
+          "required": false,
+          "description": "Suppress most output (still writes state)."
+        },
+        "--quiet-no-changes": {
+          "type": "boolean",
+          "required": false,
+          "description": "Suppress only the 'no changes' message."
+        }
+      },
+      "examples": [
+        "node /root/.openclaw/workspace/scripts/export-project-source.mjs",
+        "node /root/.openclaw/workspace/scripts/export-project-source.mjs --force"
+      ],
+      "side_effects": [
+        "Writes/updates project_source/.hashes.json",
+        "Writes project_source/EXPORT_LATEST.md when forced or changed",
+        "Prepends [BORT_SOURCE_UPDATE] block to memory/to_upload.md when changed"
+      ],
+      "safety_constraints": [
+        "Exporter may include only the last 200 lines of CHANGELOG_AUTOGEN.md in EXPORT_LATEST.md (by design).",
+        "Exporter should not be used to silently reconcile HIGH-severity behavioral drift (enforced by arch-drift-check.mjs)."
+      ]
+    },
+    {
+      "name": "npm run dev (bort-ui)",
+      "description": "Start Bort Control Panel UI (Vite) + local API server (Express) with predev port cleanup.",
+      "args_schema": {},
+      "examples": [
+        "cd /root/.openclaw/workspace/bort-ui && npm run dev"
+      ],
+      "side_effects": [
+        "Kills listeners on ports 18888 and 18790 (predev)",
+        "Starts Vite on 0.0.0.0:18888",
+        "Starts Express API on 127.0.0.1:18790"
+      ],
+      "safety_constraints": [
+        "Port cleanup targets only 18888/18790 (bort-ui/scripts/free-ports.mjs).",
+        "UI binding to 0.0.0.0 should be used with tunnel-only access (no firewall changes implied)."
+      ]
+    },
+    {
+      "name": "openclaw gateway status",
+      "description": "Show OpenClaw gateway daemon service status.",
+      "args_schema": {},
+      "examples": [
+        "openclaw gateway status"
+      ],
+      "side_effects": [
+        "Reads status only"
+      ],
+      "safety_constraints": [
+        "Read-only"
+      ]
+    },
+    {
+      "name": "openclaw gateway restart",
+      "description": "Restart the OpenClaw gateway daemon service.",
+      "args_schema": {},
+      "examples": [
+        "openclaw gateway restart"
+      ],
+      "side_effects": [
+        "Restarts gateway process"
+      ],
+      "safety_constraints": [
+        "Requires explicit approval before use (operational risk)."
+      ]
+    },
+    {
+      "name": "ssh tunnel: dashboard",
+      "description": "Open an SSH local tunnel to access the dashboard via localhost.",
+      "args_schema": {
+        "<VPS_IP>": {
+          "type": "string",
+          "required": true,
+          "description": "Server IP or hostname"
+        }
+      },
+      "examples": [
+        "ssh -L 18888:127.0.0.1:18888 root@<VPS_IP>"
+      ],
+      "side_effects": [
+        "Creates local port forward from laptop localhost:18888 to VPS loopback:18888"
+      ],
+      "safety_constraints": [
+        "Does not open firewall ports; tunnel-only."
+      ]
+    }
+  ],
+  "hats": [
+    {
+      "name": "inbox",
+      "purpose": "Gmail/inbox triage workflows (see SOP.md).",
+      "constraints": [
+        "identityContext must be human (os/preflight.js hat allowlist constraints)",
+        "Signup/register actions require identityContext=agent unless explicitly instructed (os/preflight.js inbox hard rule)",
+        "externalStateChange=true requires approvalNeeded=true"
+      ],
+      "allowed_tools": "unknown (not explicitly encoded per-hat in this repository)",
+      "allowed_commands": "unknown (not explicitly encoded per-hat in this repository)",
+      "allowed_sops": [
+        "gmail_daily_summary",
+        "gmail_inbox_triage"
+      ],
+      "output_contract": "unknown (not explicitly defined per-hat; see os/preflight.js executionHeader + sensitivity suppression)"
+    },
+    {
+      "name": "ops-core",
+      "purpose": "Operational maintenance, diagnostics, and code/ops tasks.",
+      "constraints": [
+        "identityContext allowed: human or agent (os/preflight.js)",
+        "externalStateChange=true requires approvalNeeded=true"
+      ],
+      "allowed_tools": "unknown (not explicitly encoded per-hat in this repository)",
+      "allowed_commands": [
+        "node scripts/arch-drift-check.mjs",
+        "node scripts/export-project-source.mjs",
+        "node scripts/run-project-source-check.mjs"
+      ],
+      "allowed_sops": [
+        "documentation_drift_handling",
+        "project_source_export"
+      ],
+      "output_contract": "When dataSensitivity=high, output may be suppressed by os/preflight.js enforceHighSensitivityOutput blocklist."
+    },
+    {
+      "name": "resale",
+      "purpose": "Resale-related research/workflows.",
+      "constraints": [
+        "identityContext must be agent (os/preflight.js)",
+        "externalStateChange=true requires approvalNeeded=true"
+      ],
+      "allowed_tools": "unknown",
+      "allowed_commands": "unknown",
+      "allowed_sops": "unknown",
+      "output_contract": "unknown"
+    },
+    {
+      "name": "web",
+      "purpose": "Web research / browsing / fetch workflows.",
+      "constraints": [
+        "identityContext must be agent (os/preflight.js)",
+        "externalStateChange=true requires approvalNeeded=true"
+      ],
+      "allowed_tools": "unknown",
+      "allowed_commands": "unknown",
+      "allowed_sops": [
+        "web_research"
+      ],
+      "output_contract": "unknown"
+    }
+  ],
   "prompt_template_schema": {
     "name": "Task Envelope (workspace os/preflight.js)",
     "source": "/root/.openclaw/workspace/os/preflight.js",
@@ -129,192 +324,37 @@
       }
     ]
   },
-  "hats": [
+  "skills": [
     {
-      "name": "inbox",
-      "purpose": "Gmail/inbox triage workflows (see SOP.md).",
-      "constraints": [
-        "identityContext must be human (os/preflight.js hat allowlist constraints)",
-        "Signup/register actions require identityContext=agent unless explicitly instructed (os/preflight.js inbox hard rule)",
-        "externalStateChange=true requires approvalNeeded=true"
-      ],
-      "allowed_tools": "unknown (not explicitly encoded per-hat in this repository)",
-      "allowed_commands": "unknown (not explicitly encoded per-hat in this repository)",
-      "allowed_sops": [
-        "gmail_daily_summary",
+      "name": "inbox_daily_triage",
+      "description": "Lightweight script for inbox daily triage (read-only-by-default per skills/README.md).",
+      "mapped_commands": "unknown",
+      "mapped_sops": [
+        "gmail_inbox_triage",
+        "gmail_daily_summary"
+      ]
+    },
+    {
+      "name": "inbox_daily_triage_wrapper",
+      "description": "Wrapper entrypoint for inbox daily triage.",
+      "mapped_commands": "unknown",
+      "mapped_sops": [
         "gmail_inbox_triage"
-      ],
-      "output_contract": "unknown (not explicitly defined per-hat; see os/preflight.js executionHeader + sensitivity suppression)"
-    },
-    {
-      "name": "ops-core",
-      "purpose": "Operational maintenance, diagnostics, and code/ops tasks.",
-      "constraints": [
-        "identityContext allowed: human or agent (os/preflight.js)",
-        "externalStateChange=true requires approvalNeeded=true"
-      ],
-      "allowed_tools": "unknown (not explicitly encoded per-hat in this repository)",
-      "allowed_commands": [
-        "node scripts/arch-drift-check.mjs",
-        "node scripts/export-project-source.mjs",
-        "node scripts/run-project-source-check.mjs"
-      ],
-      "allowed_sops": [
-        "documentation_drift_handling",
-        "project_source_export"
-      ],
-      "output_contract": "When dataSensitivity=high, output may be suppressed by os/preflight.js enforceHighSensitivityOutput blocklist."
-    },
-    {
-      "name": "resale",
-      "purpose": "Resale-related research/workflows.",
-      "constraints": [
-        "identityContext must be agent (os/preflight.js)",
-        "externalStateChange=true requires approvalNeeded=true"
-      ],
-      "allowed_tools": "unknown",
-      "allowed_commands": "unknown",
-      "allowed_sops": "unknown",
-      "output_contract": "unknown"
-    },
-    {
-      "name": "web",
-      "purpose": "Web research / browsing / fetch workflows.",
-      "constraints": [
-        "identityContext must be agent (os/preflight.js)",
-        "externalStateChange=true requires approvalNeeded=true"
-      ],
-      "allowed_tools": "unknown",
-      "allowed_commands": "unknown",
-      "allowed_sops": [
-        "web_research"
-      ],
-      "output_contract": "unknown"
-    }
-  ],
-  "commands": [
-    {
-      "name": "node scripts/arch-drift-check.mjs",
-      "description": "Classify documentation/architecture drift (cosmetic/structural/behavioral) and enforce HIGH-severity behavior (emit [BORT_ARCH_DRIFT] and block auto-export).",
-      "args_schema": {
-        "--force-export": {
-          "type": "boolean",
-          "required": false,
-          "description": "Force normal export when not in HIGH severity."
-        }
-      },
-      "examples": [
-        "node /root/.openclaw/workspace/scripts/arch-drift-check.mjs"
-      ],
-      "side_effects": [
-        "Writes/updates project_source/.arch_drift_baseline.json",
-        "On HIGH severity: appends a Drift Report to project_source/CHANGELOG_AUTOGEN.md",
-        "On HIGH severity: prepends notification to memory/to_upload.md",
-        "On non-HIGH severity: may invoke export-project-source.mjs (which writes hashes and EXPORT_LATEST.md)"
-      ],
-      "safety_constraints": [
-        "Does not modify routing logic; it only reads and compares.",
-        "Blocks auto-export when behavioral drift is detected."
       ]
     },
     {
-      "name": "node scripts/export-project-source.mjs",
-      "description": "Compute sha256 per canonical project_source file; generate EXPORT_LATEST.md bundle; emit [BORT_SOURCE_UPDATE] when changed; log notification into memory/to_upload.md.",
-      "args_schema": {
-        "--force": {
-          "type": "boolean",
-          "required": false,
-          "description": "Force export even if no changes detected."
-        },
-        "--quiet": {
-          "type": "boolean",
-          "required": false,
-          "description": "Suppress most output (still writes state)."
-        },
-        "--quiet-no-changes": {
-          "type": "boolean",
-          "required": false,
-          "description": "Suppress only the 'no changes' message."
-        }
-      },
-      "examples": [
-        "node /root/.openclaw/workspace/scripts/export-project-source.mjs",
-        "node /root/.openclaw/workspace/scripts/export-project-source.mjs --force"
-      ],
-      "side_effects": [
-        "Writes/updates project_source/.hashes.json",
-        "Writes project_source/EXPORT_LATEST.md when forced or changed",
-        "Prepends [BORT_SOURCE_UPDATE] block to memory/to_upload.md when changed"
-      ],
-      "safety_constraints": [
-        "Exporter may include only the last 200 lines of CHANGELOG_AUTOGEN.md in EXPORT_LATEST.md (by design).",
-        "Exporter should not be used to silently reconcile HIGH-severity behavioral drift (enforced by arch-drift-check.mjs)."
+      "name": "web_repo_audit",
+      "description": "Repository auditing helpers.",
+      "mapped_commands": "unknown",
+      "mapped_sops": [
+        "documentation_drift_handling"
       ]
     },
     {
-      "name": "npm run dev (bort-ui)",
-      "description": "Start Bort Control Panel UI (Vite) + local API server (Express) with predev port cleanup.",
-      "args_schema": {},
-      "examples": [
-        "cd /root/.openclaw/workspace/bort-ui && npm run dev"
-      ],
-      "side_effects": [
-        "Kills listeners on ports 18888 and 18790 (predev)",
-        "Starts Vite on 0.0.0.0:18888",
-        "Starts Express API on 127.0.0.1:18790"
-      ],
-      "safety_constraints": [
-        "Port cleanup targets only 18888/18790 (bort-ui/scripts/free-ports.mjs).",
-        "UI binding to 0.0.0.0 should be used with tunnel-only access (no firewall changes implied)."
-      ]
-    },
-    {
-      "name": "openclaw gateway status",
-      "description": "Show OpenClaw gateway daemon service status.",
-      "args_schema": {},
-      "examples": [
-        "openclaw gateway status"
-      ],
-      "side_effects": [
-        "Reads status only"
-      ],
-      "safety_constraints": [
-        "Read-only"
-      ]
-    },
-    {
-      "name": "openclaw gateway restart",
-      "description": "Restart the OpenClaw gateway daemon service.",
-      "args_schema": {},
-      "examples": [
-        "openclaw gateway restart"
-      ],
-      "side_effects": [
-        "Restarts gateway process"
-      ],
-      "safety_constraints": [
-        "Requires explicit approval before use (operational risk)."
-      ]
-    },
-    {
-      "name": "ssh tunnel: dashboard",
-      "description": "Open an SSH local tunnel to access the dashboard via localhost.",
-      "args_schema": {
-        "<VPS_IP>": {
-          "type": "string",
-          "required": true,
-          "description": "Server IP or hostname"
-        }
-      },
-      "examples": [
-        "ssh -L 18888:127.0.0.1:18888 root@<VPS_IP>"
-      ],
-      "side_effects": [
-        "Creates local port forward from laptop localhost:18888 to VPS loopback:18888"
-      ],
-      "safety_constraints": [
-        "Does not open firewall ports; tunnel-only."
-      ]
+      "name": "weekly_healthcheck",
+      "description": "Weekly healthcheck routine.",
+      "mapped_commands": "unknown",
+      "mapped_sops": "unknown"
     }
   ],
   "sops": [
@@ -406,39 +446,6 @@
       "success_criteria": [
         "Important items surfaced; noise reduced; unsubscribe actions tracked"
       ]
-    }
-  ],
-  "skills": [
-    {
-      "name": "inbox_daily_triage",
-      "description": "Lightweight script for inbox daily triage (read-only-by-default per skills/README.md).",
-      "mapped_commands": "unknown",
-      "mapped_sops": [
-        "gmail_inbox_triage",
-        "gmail_daily_summary"
-      ]
-    },
-    {
-      "name": "inbox_daily_triage_wrapper",
-      "description": "Wrapper entrypoint for inbox daily triage.",
-      "mapped_commands": "unknown",
-      "mapped_sops": [
-        "gmail_inbox_triage"
-      ]
-    },
-    {
-      "name": "web_repo_audit",
-      "description": "Repository auditing helpers.",
-      "mapped_commands": "unknown",
-      "mapped_sops": [
-        "documentation_drift_handling"
-      ]
-    },
-    {
-      "name": "weekly_healthcheck",
-      "description": "Weekly healthcheck routine.",
-      "mapped_commands": "unknown",
-      "mapped_sops": "unknown"
     }
   ]
 }

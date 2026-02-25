@@ -1,10 +1,8 @@
 # BORT_CAPABILITIES.md
 
-Generated: 2026-02-25 (UTC)
+Generated from snapshot: `/root/.openclaw/workspace/source/bort_registry.snapshot.json`
 
-This is a human-readable summary of the deterministic capabilities registry snapshot.
-For canonical truth, see:
-
+Canonical truth:
 - `source/bort_registry.snapshot.json`
 
 ---
@@ -15,83 +13,98 @@ Hats are enforced by the workspace preflight allowlist in:
 
 - `/root/.openclaw/workspace/os/preflight.js`
 
-Available hats (allowlist):
+Available hats (alphabetical):
 
-- `inbox` — inbox/Gmail triage workflows
-- `ops-core` — operational maintenance, diagnostics, and code/ops tasks
-- `resale` — resale-related tasks
-- `web` — web research
+- `inbox` — Gmail/inbox triage workflows (see SOP.md).
+- `ops-core` — Operational maintenance, diagnostics, and code/ops tasks.
+- `resale` — Resale-related research/workflows.
+- `web` — Web research / browsing / fetch workflows.
 
-Important:
+Notes:
 
-- Conversational directives may mention `Hat: os`, but **`os` is not an enforced hat** in `os/preflight.js`.
-
----
+- If anything is unknown, it is recorded as `unknown` in the JSON snapshot rather than guessed.
 
 ## Command quick reference
 
-### Documentation / integrity
+### node scripts/arch-drift-check.mjs
 
-- Drift classifier (blocks auto-export on HIGH behavioral drift):
-  - `node /root/.openclaw/workspace/scripts/arch-drift-check.mjs`
+Classify documentation/architecture drift (cosmetic/structural/behavioral) and enforce HIGH-severity behavior (emit [BORT_ARCH_DRIFT] and block auto-export).
 
-- Export canonical Source-of-Truth bundle:
-  - `node /root/.openclaw/workspace/scripts/export-project-source.mjs`
-  - `node /root/.openclaw/workspace/scripts/export-project-source.mjs --force`
+Examples:
 
-### Dashboard (Bort Control Panel)
+- `node /root/.openclaw/workspace/scripts/arch-drift-check.mjs`
 
-- Start UI + API:
-  - `cd /root/.openclaw/workspace/bort-ui && npm run dev`
+### node scripts/export-project-source.mjs
 
-- Tunnel access (laptop → VPS loopback):
-  - `ssh -L 18888:127.0.0.1:18888 root@<VPS_IP>`
-  - open: `http://127.0.0.1:18888`
+Compute sha256 per canonical project_source file; generate EXPORT_LATEST.md bundle; emit [BORT_SOURCE_UPDATE] when changed; log notification into memory/to_upload.md.
 
-### OpenClaw gateway
+Examples:
 
-- Status:
-  - `openclaw gateway status`
+- `node /root/.openclaw/workspace/scripts/export-project-source.mjs`
+- `node /root/.openclaw/workspace/scripts/export-project-source.mjs --force`
 
-- Restart (requires explicit approval):
-  - `openclaw gateway restart`
+### npm run dev (bort-ui)
+
+Start Bort Control Panel UI (Vite) + local API server (Express) with predev port cleanup.
+
+Examples:
+
+- `cd /root/.openclaw/workspace/bort-ui && npm run dev`
+
+### openclaw gateway restart
+
+Restart the OpenClaw gateway daemon service.
+
+Examples:
+
+- `openclaw gateway restart`
+
+### openclaw gateway status
+
+Show OpenClaw gateway daemon service status.
+
+Examples:
+
+- `openclaw gateway status`
+
+### ssh tunnel: dashboard
+
+Open an SSH local tunnel to access the dashboard via localhost.
+
+Examples:
+
+- `ssh -L 18888:127.0.0.1:18888 root@<VPS_IP>`
 
 ---
 
 ## SOP index
 
-SOPs are explicitly listed in the registry snapshot.
-
-- `documentation_drift_handling` — respond to `[BORT_ARCH_DRIFT]` and enforce review
-- `project_source_export` — generate `project_source/EXPORT_LATEST.md` for upload
-- `ui_tunnel_access` — view dashboard via SSH tunnel
-- `web_research` — use web_search/web_fetch/browser as appropriate
-- `gmail_daily_summary` — scheduled Gmail summary (documented in SOP.md)
-- `gmail_inbox_triage` — manual/interactive Gmail triage
+- `documentation_drift_handling` — When implementation may have diverged from project_source documentation, especially if [BORT_ARCH_DRIFT] is emitted.
+- `gmail_daily_summary` — Daily summary of Gmail inbox; scheduled automation described in SOP.md.
+- `gmail_inbox_triage` — When manually triaging the signup/required Gmail inbox with noise reduction.
+- `project_source_export` — When canonical project_source files have changed and you need a single bundle for upload into external threads.
+- `ui_tunnel_access` — When viewing the Bort Control Panel from Bryan’s laptop without opening public ports.
+- `web_research` — When tasks require web search or URL fetching.
 
 ---
 
 ## Template schema overview
 
-The “Task Envelope” schema is enforced by `os/preflight.js`.
+Schema source: /root/.openclaw/workspace/os/preflight.js
 
-Required fields:
+Required fields (alphabetical):
 
-- `hat` (enum: inbox | web | resale | ops-core)
-- `intent` (string; common values documented in preflight template)
-- `taskType` (enum: classify | summarize | code | spec | research | ops)
-- `taskSize` (enum: small | medium | large)
-- `risk` (enum: low | medium | high)
-- `dataSensitivity` (enum: low | medium | high)
-- `externalStateChange` (boolean)
-- `identityContext` (enum: human | agent)
 - `actions` (string[])
-- `approvalNeeded` (boolean)
+- `approvalNeeded` (boolean) enum=true|false
+- `dataSensitivity` (string) enum=high|low|medium
+- `externalStateChange` (boolean) enum=true|false
+- `hat` (string) enum=inbox|ops-core|resale|web
+- `identityContext` (string) enum=agent|human
+- `intent` (string) enum=audit|backup|build|diagnose|maintain|report|research|restore|triage
+- `risk` (string) enum=high|low|medium
+- `taskSize` (string) enum=large|medium|small
+- `taskType` (string) enum=classify|code|ops|research|spec|summarize
 
-Notes:
+Optional fields (alphabetical):
 
-- If `externalStateChange=true`, `approvalNeeded` must be `true`.
-- Optional field observed in routing (not required by preflight):
-  - `preferredModel` (string) — used by `os/model-routing.js` if present.
-
-If anything is missing/unknown, it is recorded as `unknown` in `bort_registry.snapshot.json` rather than guessed.
+- `preferredModel` (string) enum=unknown
