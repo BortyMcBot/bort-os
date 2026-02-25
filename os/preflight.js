@@ -1,6 +1,26 @@
 // Project 1: Router Enforcement (lightweight)
 // Preflight MUST run before any hat executes.
 // No OpenClaw core changes; this is a workspace-level enforcement layer.
+//
+// Also: Source-of-truth change surfacing.
+// If project_source files changed since last run, emit a [BORT_SOURCE_UPDATE] block and
+// generate project_source/EXPORT_LATEST.md for Bryan to upload into external threads.
+
+const { spawnSync } = require('child_process');
+
+function runProjectSourceCheck() {
+  try {
+    // Quiet when no changes; prints the update block only if changes are detected.
+    spawnSync('node', ['/root/.openclaw/workspace/scripts/run-project-source-check.mjs'], {
+      stdio: 'inherit',
+    });
+  } catch {
+    // Never block preflight on source check.
+  }
+}
+
+// Run before any hat executes.
+runProjectSourceCheck();
 
 const HATS = {
   inbox: {
