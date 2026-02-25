@@ -13,3 +13,15 @@ Note: This is not an OpenClaw core patch; it’s an in-workspace enforcement lay
 ## X API rule
 
 All X API calls must go through `os/x_call.js` (budget preflight + queue + ledger).
+
+## Dashboard v1 (local)
+
+The dashboard binds to loopback only.
+
+Access via SSH tunnel:
+
+```bash
+ssh -L 18888:127.0.0.1:18888 root@<VPS_IP>
+# then open:
+# http://127.0.0.1:18888
+```

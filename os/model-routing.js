@@ -1,56 +1,55 @@
-// Project 1: Deterministic task-based model routing (design + enforcement helper)
+// Deterministic task-based model routing (workspace OS layer)
 //
-// Goals:
-// - taskType + taskSize in Task Envelope
-// - deterministic routing
-// - availability gating via verified provider/model table
-// - silent fallback to OpenAI chain; log warnings to hat memory file
-// - research: require Brave web_search first, then synthesize
+// Design goals:
+// - Deterministic routing from Task Envelope fields (taskType/taskSize/etc.)
+// - Codex-first for code/ops whenever available
+// - Cheapest model that is still expected to succeed for a task class
+// - Explicit allowlist + availability gating
+// - Safe, best-effort logging (routing must never throw)
+// - No mutation of the input envelope
 
 const { appendHatLog, nowUtcStamp } = require('./memory-log');
 
-// Providers/models that are configured + verified.
-// Keep conservative: only mark verified=true when we have a working auth profile + probe.
+/* ------------------------------
+   Provider / Model Health Tables
+-------------------------------- */
+
+// NOTE: These tables are a conservative allowlist.
+// Only list models we explicitly intend to route to.
 const providerHealth = {
   openai: { configured: true, verified: true },
   'openai-codex': { configured: true, verified: true },
-
-  // OpenRouter (single key) provides access to Claude/Gemini/Grok/etc.
   openrouter: { configured: true, verified: true },
-
-  // Placeholders (not wired here):
-  anthropic: { configured: false, verified: false },
-  google: { configured: false, verified: false },
-  xai: { configured: false, verified: false },
 };
 
-// Explicit blacklist: if referenced anywhere, treat as unavailable and fall back silently.
-const blacklistedModels = new Set([
-  'openrouter/openrouter/auto',
-  'openrouter/auto',
-]);
+// Explicit blacklist: if referenced, treat as unavailable.
+const blacklistedModels = new Set(['openrouter/openrouter/auto', 'openrouter/auto']);
 
-// Model availability table (explicit allowlist).
-// Only list models we know the runtime can call.
 const modelHealth = {
-  // OpenAI / Codex
+  // Codex-first for code/ops
   'openai-codex/gpt-5.2': { provider: 'openai-codex', verified: true },
+  'openai-codex/gpt-5.2-codex': { provider: 'openai-codex', verified: true },
+
+  // OpenAI general
+  'openai/codex-mini-latest': { provider: 'openai', verified: true },
+  'openai/gpt-5.2': { provider: 'openai', verified: true },
   'openai/gpt-5.2-pro': { provider: 'openai', verified: true },
   'openai/gpt-5.2-chat-latest': { provider: 'openai', verified: true },
+  'openai/gpt-4.1': { provider: 'openai', verified: true },
+  'openai/gpt-4.1-mini': { provider: 'openai', verified: true },
+  'openai/gpt-4.1-nano': { provider: 'openai', verified: true },
 
-  // OpenRouter verified starters (explicit; no auto routing)
+  // OpenRouter (use when cheaper or when explicitly requested)
   'openrouter/google/gemini-2.5-flash-lite': { provider: 'openrouter', verified: true },
   'openrouter/anthropic/claude-3.7-sonnet': { provider: 'openrouter', verified: true },
   'openrouter/openai/o3-mini-high': { provider: 'openrouter', verified: true },
 };
 
-const openaiFallbackChain = [
-  'openai-codex/gpt-5.2',
-  'openai/gpt-5.2-pro',
-  'openai/gpt-5.2-chat-latest',
-];
+/* ------------------------------
+   Helpers
+-------------------------------- */
 
-function isModelAvailable(modelId, { dataSensitivity }) {
+function isModelAvailable(modelId, envelope = {}) {
   if (!modelId) return false;
   if (blacklistedModels.has(modelId)) return false;
 
@@ -60,13 +59,8 @@ function isModelAvailable(modelId, { dataSensitivity }) {
   const p = providerHealth[m.provider];
   if (!p || !p.configured) return false;
 
-  // For high-sensitivity, only allow non-OpenAI providers if provider verified=true.
-  if (dataSensitivity === 'high') {
-    const isOpenAIish = m.provider === 'openai' || m.provider === 'openai-codex';
-    if (!isOpenAIish && !p.verified) return false;
-  }
-
-  // Model itself must be marked verified.
+  // If you later want to enforce stricter rules based on dataSensitivity,
+  // do it here deterministically (do not infer from prompt text).
   return m.verified === true;
 }
 
@@ -77,68 +71,156 @@ function pickFirstAvailable(models, envelope) {
   return null;
 }
 
-function routeModel(envelope) {
-  // Envelope required fields are validated in preflight.
-  const { hat, taskType, taskSize, dataSensitivity } = envelope;
+function safeHatLog(envelope, heading, lines) {
+  const hat = envelope?.hat;
+  const dataSensitivity = envelope?.dataSensitivity;
+  if (!hat || !dataSensitivity) return;
 
-  // preferredModel override (availability gated). If unavailable, silently fall back.
-  if (envelope.preferredModel) {
-    if (isModelAvailable(envelope.preferredModel, envelope)) {
-      return { model: envelope.preferredModel, reason: 'preferredModel' };
-    }
-
-    appendHatLog({
-      hat,
-      dataSensitivity,
-      heading: `${nowUtcStamp()} — model routing warning`,
-      lines: [`preferredModel unavailable → falling back (model id suppressed)`],
-    });
+  try {
+    appendHatLog({ hat, dataSensitivity, heading, lines });
+  } catch {
+    // Best-effort only: routing must never throw.
   }
-
-  // code|ops: keep Codex as primary.
-  if (taskType === 'code' || taskType === 'ops') {
-    return { model: 'openai-codex/gpt-5.2', reason: 'code/ops default' };
-  }
-
-  // summarize|classify → Gemini flash-lite (if verified) else fallback.
-  if (taskType === 'summarize' || taskType === 'classify') {
-    const model =
-      pickFirstAvailable(['openrouter/google/gemini-2.5-flash-lite'], envelope) ||
-      pickFirstAvailable(['openai/gpt-5.2-chat-latest'], envelope) ||
-      'openai/gpt-5.2-chat-latest';
-    return { model, reason: 'summarize/classify' };
-  }
-
-  // spec → Claude (especially for large) else OpenAI pro.
-  if (taskType === 'spec') {
-    const preferred = pickFirstAvailable(['openrouter/anthropic/claude-3.7-sonnet'], envelope);
-    if (preferred) {
-      return { model: preferred, reason: taskSize === 'large' ? 'spec large' : 'spec' };
-    }
-    const model = pickFirstAvailable(['openai/gpt-5.2-pro'], envelope) || 'openai/gpt-5.2-pro';
-    return { model, reason: 'spec fallback' };
-  }
-
-  // research → ALWAYS web_search first, then synthesize with o3-mini-high (if verified)
-  if (taskType === 'research') {
-    const model =
-      pickFirstAvailable(['openrouter/openai/o3-mini-high'], envelope) ||
-      pickFirstAvailable(['openai/gpt-5.2-pro'], envelope) ||
-      'openai/gpt-5.2-pro';
-    return { model, reason: 'research synth', requiresWebSearch: true };
-  }
-
-  // Catch-all
-  return { model: 'openai-codex/gpt-5.2', reason: 'fallback' };
 }
 
-function inventory() {
-  const providers = Object.entries(providerHealth).map(([k, v]) => ({ provider: k, ...v }));
-  const models = Object.entries(modelHealth).map(([id, v]) => ({ id, ...v }));
+function normalizeTaskType(taskType) {
+  if (!taskType) return 'unknown';
+  return String(taskType).toLowerCase();
+}
+
+function normalizeTaskSize(taskSize) {
+  if (!taskSize) return 'unknown';
+  return String(taskSize).toLowerCase();
+}
+
+function isExplicitOpenRouterOpenAIRequest(envelope = {}) {
+  return (
+    typeof envelope.preferredModel === 'string' &&
+    envelope.preferredModel.startsWith('openrouter/openai/')
+  );
+}
+
+/* ------------------------------
+   Routing Table (single source of truth)
+-------------------------------- */
+
+const ROUTES = {
+  // Codex-first unless unavailable.
+  code_ops: [
+    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.2-codex',
+    'openai/codex-mini-latest',
+    'openai/gpt-5.2',
+    'openai/gpt-5.2-pro',
+    'openrouter/anthropic/claude-3.7-sonnet',
+  ],
+
+  // Cheap-first for high-volume, low-risk.
+  lightweight: [
+    'openrouter/google/gemini-2.5-flash-lite',
+    'openai/gpt-4.1-nano',
+    'openai/gpt-4.1-mini',
+    'openai/gpt-5.2-chat-latest',
+  ],
+
+  // Capability-first, minimize retries.
+  research_web: [
+    'openai/gpt-5.2-pro',
+    'openai/gpt-5.2',
+    // Only selected if explicitly requested; otherwise skipped.
+    'openrouter/openai/o3-mini-high',
+    'openrouter/anthropic/claude-3.7-sonnet',
+  ],
+
+  social_drafting: [
+    'openai/gpt-5.2-chat-latest',
+    'openrouter/google/gemini-2.5-flash-lite',
+    'openai/gpt-4.1-mini',
+  ],
+
+  spec_large: [
+    'openai/gpt-5.2-pro',
+    'openai/gpt-5.2',
+    'openrouter/anthropic/claude-3.7-sonnet',
+  ],
+
+  default: ['openai/gpt-5.2-chat-latest', 'openai/gpt-5.2', 'openai/gpt-4.1-mini'],
+};
+
+function routeCategory(envelope = {}) {
+  const t = normalizeTaskType(envelope.taskType);
+  const s = normalizeTaskSize(envelope.taskSize);
+
+  if (t === 'code' || t === 'ops') return { category: 'code_ops', requiresWebSearch: false };
+
+  if (t === 'summarize' || t === 'classify' || t === 'triage') {
+    return { category: 'lightweight', requiresWebSearch: false };
+  }
+
+  if (t === 'research' || t === 'web') return { category: 'research_web', requiresWebSearch: true };
+
+  if (t === 'social' || t === 'draft' || t === 'copy') {
+    return { category: 'social_drafting', requiresWebSearch: false };
+  }
+
+  if (t === 'spec' || s === 'large') return { category: 'spec_large', requiresWebSearch: false };
+
+  return { category: 'default', requiresWebSearch: false };
+}
+
+/* ------------------------------
+   Deterministic Routing
+-------------------------------- */
+
+function routeModel(envelope = {}) {
+  const { category, requiresWebSearch } = routeCategory(envelope);
+
+  // 1) Preferred override (only if available).
+  if (envelope.preferredModel && isModelAvailable(envelope.preferredModel, envelope)) {
+    safeHatLog(envelope, `${nowUtcStamp()} — model selection`, [
+      `category: ${category}`,
+      `model: ${envelope.preferredModel} (preferredModel)`,
+    ]);
+
+    return {
+      model: envelope.preferredModel,
+      reason: 'preferredModel',
+      requiresWebSearch,
+    };
+  }
+
+  // 2) Deterministic category route.
+  const route = ROUTES[category] || ROUTES.default;
+
+  // Enforce the rule: only consider OpenRouter OpenAI models when explicitly requested.
+  const filteredRoute = isExplicitOpenRouterOpenAIRequest(envelope)
+    ? route
+    : route.filter((m) => !String(m).startsWith('openrouter/openai/'));
+
+  const model = pickFirstAvailable(filteredRoute, envelope) || pickFirstAvailable(ROUTES.default, envelope);
+
+  safeHatLog(envelope, `${nowUtcStamp()} — model selection`, [
+    `category: ${category}`,
+    `model: ${model || '(none available)'} (${category})`,
+    `requiresWebSearch: ${requiresWebSearch}`,
+  ]);
+
   return {
-    providers,
-    models,
-    openaiFallbackChain,
+    model: model || 'openai/gpt-5.2-chat-latest',
+    reason: category,
+    requiresWebSearch,
+  };
+}
+
+/* ------------------------------
+   Inventory
+-------------------------------- */
+
+function inventory() {
+  return {
+    providers: Object.entries(providerHealth).map(([k, v]) => ({ provider: k, ...v })),
+    models: Object.entries(modelHealth).map(([id, v]) => ({ id, ...v })),
+    routes: ROUTES,
     blacklistedModels: Array.from(blacklistedModels),
   };
 }
@@ -146,7 +228,6 @@ function inventory() {
 module.exports = {
   providerHealth,
   modelHealth,
-  openaiFallbackChain,
   blacklistedModels,
   isModelAvailable,
   routeModel,
