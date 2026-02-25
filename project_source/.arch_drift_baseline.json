@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "updatedPhoenix": "Feb 25, 2026 • 9:28 AM",
+  "topLevelDirs": [
+    "assets",
+    "bort-ui",
+    "drafts",
+    "integrations",
+    "memory",
+    "os",
+    "project_source",
+    "scripts",
+    "skills"
+  ],
+  "impl": {
+    "os/preflight.js": {
+      "sha256": "bec973a6c170841711365344fe8ff5cd5bfcf0ddd9c00abe4104881b5a8f83c8",
+      "hatAllowlist": [
+        "inbox",
+        "ops-core",
+        "resale",
+        "web"
+      ]
+    },
+    "os/model-routing.js": {
+      "sha256": "8750d5dc361bf6f07826ed3846d8b9cd4711f8398308f0ac82ef360bdf597c52",
+      "routing": {
+        "categories": [
+          "code_ops",
+          "lightweight",
+          "research_web",
+          "social_drafting",
+          "spec_large"
+        ],
+        "routes": {
+          "code_ops": [
+            "openai-codex/gpt-5.2",
+            "openai-codex/gpt-5.2-codex",
+            "openai/codex-mini-latest",
+            "openai/gpt-5.2",
+            "openai/gpt-5.2-pro",
+            "openrouter/anthropic/claude-3.7-sonnet"
+          ],
+          "lightweight": [
+            "openrouter/google/gemini-2.5-flash-lite",
+            "openai/gpt-4.1-nano",
+            "openai/gpt-4.1-mini",
+            "openai/gpt-5.2-chat-latest"
+          ],
+          "research_web": [
+            "openai/gpt-5.2-pro",
+            "openai/gpt-5.2",
+            "openrouter/openai/o3-mini-high",
+            "openrouter/anthropic/claude-3.7-sonnet"
+          ],
+          "social_drafting": [
+            "openai/gpt-5.2-chat-latest",
+            "openrouter/google/gemini-2.5-flash-lite",
+            "openai/gpt-4.1-mini"
+          ],
+          "spec_large": [
+            "openai/gpt-5.2-pro",
+            "openai/gpt-5.2",
+            "openrouter/anthropic/claude-3.7-sonnet"
+          ]
+        },
+        "fallbackModel": "openai/gpt-5.2-chat-latest"
+      }
+    },
+    "bort-ui/vite.config.ts": {
+      "sha256": "6e4791e610d9e53ad87267f2b7fc24337edf56ced10086a174b1eb140756f985",
+      "vite": {
+        "host": "0.0.0.0",
+        "port": 18888,
+        "strictPort": true,
+        "proxyTarget": "http://127.0.0.1:18790"
+      }
+    },
+    "bort-ui/scripts/free-ports.mjs": {
+      "sha256": "71b9695b86941a07c6ad2f842209aa18e177c71bbee1cc61f21bc1daf0d0b043",
+      "ports": [
+        18790,
+        18888
+      ]
+    }
+  },
+  "projectSource": [
+    {
+      "file": "project_source/FILE_INDEX.md",
+      "rawSha256": "fa44f4a94d4f7818cf3f40cde8203dfac11d199939c63ab668e061cdbba39064",
+      "normalizedSha256": "fa44f4a94d4f7818cf3f40cde8203dfac11d199939c63ab668e061cdbba39064"
+    },
+    {
+      "file": "project_source/SYSTEM_CONTEXT.md",
+      "rawSha256": "b6f771d596f0e0cdc4cd0df0c735de85abf060e78ce92692ca58f697b668ec81",
+      "normalizedSha256": "b6f771d596f0e0cdc4cd0df0c735de85abf060e78ce92692ca58f697b668ec81"
+    },
+    {
+      "file": "project_source/ARCHITECTURE_SUMMARY.md",
+      "rawSha256": "969cbd3100eaf96c5ebac19b70b463efe003b8cc872a7625b815f6d00e46763b",
+      "normalizedSha256": "969cbd3100eaf96c5ebac19b70b463efe003b8cc872a7625b815f6d00e46763b"
+    },
+    {
+      "file": "project_source/ROUTING_STATE.md",
+      "rawSha256": "d214595ad4bedc220cc862b8c4498e215aadf344199f312c4c11beac162d799e",
+      "normalizedSha256": "d214595ad4bedc220cc862b8c4498e215aadf344199f312c4c11beac162d799e"
+    },
+    {
+      "file": "project_source/OPERATIONS_STATE.md",
+      "rawSha256": "77ce558d23d705640b70e87c55497cf9830c4662cbbfd99dd52f4ad013d409db",
+      "normalizedSha256": "77ce558d23d705640b70e87c55497cf9830c4662cbbfd99dd52f4ad013d409db"
+    },
+    {
+      "file": "project_source/CHANGELOG_AUTOGEN.md",
+      "rawSha256": "a9adaaf75371a7f1cbb85b2538a00f3216d1925ec45d1edc45e728134750695e",
+      "normalizedSha256": "a9adaaf75371a7f1cbb85b2538a00f3216d1925ec45d1edc45e728134750695e"
+    }
+  ]
+}
