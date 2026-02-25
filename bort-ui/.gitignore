@@ -1,0 +1,15 @@
+# Local build outputs
+/dist
+/.vite
+
+# Local env
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
