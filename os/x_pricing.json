@@ -1,0 +1,10 @@
+{
+  "pricing_last_checked": "2026-02-24T23:37:58.018Z",
+  "parse_status": "manual_required",
+  "reason": "Pricing page content could not be extracted via non-JS fetcher (returned title only). Browser rendering unavailable on this VPS, so pricing tables/credits cannot be deterministically parsed without manual source (e.g., exported pricing/usage docs or console data).",
+  "source_urls": [
+    "https://developer.x.com/#pricing",
+    "https://developer.x.com/en/pricing",
+    "https://docs.x.com/overview"
+  ]
+}

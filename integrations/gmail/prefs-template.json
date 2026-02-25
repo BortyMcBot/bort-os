@@ -1,0 +1,32 @@
+{
+  "account": "you@gmail.com",
+  "archiveAfterUnsubscribe": {
+    "enabled": true,
+    "senders": []
+  },
+  "unimportant": {
+    "senderBlocklist": []
+  },
+  "important": {
+    "senderAllowlist": [],
+    "subjectKeywords": [
+      "invoice",
+      "receipt",
+      "payment",
+      "deposit",
+      "withdraw",
+      "statement",
+      "tax",
+      "1099",
+      "2fa",
+      "verification",
+      "verify",
+      "password",
+      "security",
+      "login",
+      "confirm",
+      "confirmation",
+      "reset"
+    ]
+  }
+}

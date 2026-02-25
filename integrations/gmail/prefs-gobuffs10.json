@@ -1,0 +1,73 @@
+{
+  "account": "gobuffs10@gmail.com",
+  "archiveAfterUnsubscribe": {
+    "enabled": true,
+    "senders": [
+      "acerewards@e1.acehardware.com",
+      "arizonafinancialtheatre@eml.livenation.com",
+      "bestbuy@email.bestbuy.com",
+      "cameo@m.cameo.com",
+      "development@marinemammalcare.org",
+      "email@ma.sb.fanduel.com",
+      "hello@news.gemini.com",
+      "help@duckcamp.com",
+      "help@e.microperfumes.com",
+      "help@parachutehome.com",
+      "info@shrimpybusiness.com",
+      "insider@naturalnews.com",
+      "mail@eg.hotels.com",
+      "marketing@experience.cosm.com",
+      "marketing@naturallife.com",
+      "me-januaryblack.com@shared1.ccsend.com",
+      "messages+5c2zr5r9fdb7f@squaremktg.com",
+      "newsletter@notifications.lumosity.com",
+      "no-reply@emails.skims.com",
+      "no-reply@youtube.com",
+      "noreply@hello.klarna.com",
+      "noreply@marketing.torchystacos.com",
+      "noreply@skims.com",
+      "noreply@theprimeleaf.com",
+      "norwegiancruiseline@e.ncl.com",
+      "notice@servicing.synchronyfinancial.com",
+      "notification@service.tiktok.com",
+      "service@mail2.bovada.lv",
+      "southwestairlines@iluv.southwest.com",
+      "sprouts@em.sprouts.com",
+      "sproutsrewards@rewards.sprouts.com",
+      "support@dreamhost.com",
+      "theathletic@e1.theathletic.com",
+      "thecenterdish-gmail.com@shared1.ccsend.com",
+      "tickets@live.vividseats.com",
+      "walgreens@eml.walgreens.com",
+      "wiltern.news@eml.livenation.com"
+    ]
+  },
+  "unimportant": {
+    "senderBlocklist": [
+      "support@s.usa.experian.com"
+    ]
+  },
+  "important": {
+    "senderAllowlist": [],
+    "subjectKeywords": [
+      "alert",
+      "invoice",
+      "receipt",
+      "payment",
+      "deposit",
+      "withdraw",
+      "statement",
+      "tax",
+      "1099",
+      "2fa",
+      "verification",
+      "verify",
+      "password",
+      "security",
+      "login",
+      "confirm",
+      "confirmation",
+      "reset"
+    ]
+  }
+}

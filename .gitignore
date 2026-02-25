@@ -1,0 +1,17 @@
+# Secrets / env
+.env
+openclaw.json
+*.pem
+*.key
+
+# Workspace memory/logs
+memory/
+*.log
+*.log.*
+*.md.log
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
