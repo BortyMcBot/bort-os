@@ -2,15 +2,21 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { spawnSync } from 'child_process'
 
 const PROJECT_SOURCE_DIR = '/root/.openclaw/workspace/project_source'
 const HASHES_PATH = path.join(PROJECT_SOURCE_DIR, '.hashes.json')
 const EXPORT_PATH = path.join(PROJECT_SOURCE_DIR, 'EXPORT_LATEST.md')
 const TO_UPLOAD_PATH = '/root/.openclaw/workspace/memory/to_upload.md'
+const DIST_DIR = '/root/.openclaw/workspace/dist'
+const BUNDLE_PATH = '/root/.openclaw/workspace/dist/bort_source_bundle.tgz'
 
 const CANONICAL_FILES = [
   'FILE_INDEX.md',
   'SYSTEM_CONTEXT.md',
+  'STATE_OF_BORT.md',
+  'PROMPT_TEMPLATES.md',
+  'HAT_STATE.md',
   'ARCHITECTURE_SUMMARY.md',
   'ROUTING_STATE.md',
   'OPERATIONS_STATE.md',
@@ -113,6 +119,14 @@ function prependUniqueToUpload(block) {
   return true
 }
 
+function buildTgzBundle() {
+  fs.mkdirSync(DIST_DIR, { recursive: true })
+  const include = [...CANONICAL_FILES, 'EXPORT_LATEST.md']
+  const args = ['-czf', BUNDLE_PATH, '-C', PROJECT_SOURCE_DIR, ...include]
+  const r = spawnSync('tar', args, { stdio: 'pipe' })
+  return (r.status ?? 1) === 0
+}
+
 function main() {
   const args = new Set(process.argv.slice(2))
   const force = args.has('--force')
@@ -169,6 +183,7 @@ function main() {
 
   const exportMd = buildExportMd({ changedFiles: changed, fileContentsByName: contents })
   fs.writeFileSync(EXPORT_PATH, exportMd, 'utf8')
+  buildTgzBundle()
 
   if (changed.length > 0) {
     const block = notificationBlock(changed)

@@ -15,3 +15,12 @@ node_modules/
 
 # OS
 .DS_Store
+
+# OpenClaw local runtime state
+.openclaw/
+
+# Generated export artifacts
+/dist/
+project_source/EXPORT_LATEST.md
+project_source/.hashes.json
+project_source/.arch_drift_baseline.json

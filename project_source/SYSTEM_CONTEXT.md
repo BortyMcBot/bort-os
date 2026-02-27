@@ -8,15 +8,17 @@ The `project_source/` directory is the **canonical “Source of Truth”** for t
 
 ### What BORT does (automatic)
 
-- BORT may update `project_source/*` as part of normal work.
-- On each normal run cycle (workspace preflight), BORT checks a fixed set of canonical files for changes by computing **sha256** hashes.
-- If any canonical file changed since the last check, BORT will:
-  1) Generate a single upload bundle:
-     - `/root/.openclaw/workspace/project_source/EXPORT_LATEST.md`
-  2) Print a concise notification block:
-     - `[BORT_SOURCE_UPDATE] ...`
-  3) Record the same notification into:
-     - `/root/.openclaw/workspace/memory/to_upload.md` (newest first, no duplicates)
+- Preflight path runs **drift check only** via:
+  - `/root/.openclaw/workspace/scripts/run-project-source-check.mjs`
+  - `/root/.openclaw/workspace/scripts/arch-drift-check.mjs`
+- Scheduled refresh (twice daily) updates generated docs only (no export):
+  - `/root/.openclaw/workspace/scripts/refresh-project-source.mjs`
+- Export is **on request** and always refreshes first via:
+  - `/root/.openclaw/workspace/scripts/export-bort-source.sh`
+- Export writes:
+  1) `/root/.openclaw/workspace/project_source/EXPORT_LATEST.md`
+  2) `/root/.openclaw/workspace/dist/bort_source_bundle.tgz`
+  3) `[BORT_SOURCE_UPDATE]` notification block + memory/to_upload.md entry
 
 ### What Bryan should do when notified
 
@@ -37,6 +39,9 @@ node /root/.openclaw/workspace/scripts/export-project-source.mjs --force
 
 - `FILE_INDEX.md`
 - `SYSTEM_CONTEXT.md`
+- `STATE_OF_BORT.md`
+- `PROMPT_TEMPLATES.md`
+- `HAT_STATE.md`
 - `ARCHITECTURE_SUMMARY.md`
 - `ROUTING_STATE.md`
 - `OPERATIONS_STATE.md`

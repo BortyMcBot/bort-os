@@ -2,8 +2,7 @@
 import { spawnSync } from 'child_process'
 
 // Thin wrapper used by workspace-level hooks (no systemd).
-// Enforces documentation integrity by classifying drift (cosmetic/structural/behavioral)
-// and blocking silent reconciliation on HIGH-severity behavioral drift.
+// Preflight mode: drift-check only (no refresh/export side effects).
 const r = spawnSync('node', ['/root/.openclaw/workspace/scripts/arch-drift-check.mjs'], {
   stdio: 'inherit',
 })

@@ -8,6 +8,8 @@
 // - Safe, best-effort logging (routing must never throw)
 // - No mutation of the input envelope
 
+const fs = require('fs');
+const path = require('path');
 const { appendHatLog, nowUtcStamp } = require('./memory-log');
 
 /* ------------------------------
@@ -27,6 +29,7 @@ const blacklistedModels = new Set(['openrouter/openrouter/auto', 'openrouter/aut
 
 const modelHealth = {
   // Codex-first for code/ops
+  'openai-codex/gpt-5.3-codex': { provider: 'openai-codex', verified: true },
   'openai-codex/gpt-5.2': { provider: 'openai-codex', verified: true },
   'openai-codex/gpt-5.2-codex': { provider: 'openai-codex', verified: true },
 
@@ -98,6 +101,23 @@ function isExplicitOpenRouterOpenAIRequest(envelope = {}) {
     typeof envelope.preferredModel === 'string' &&
     envelope.preferredModel.startsWith('openrouter/openai/')
   );
+}
+
+function loadHatProfiles() {
+  try {
+    const p = path.join(__dirname, 'hat-profiles.json');
+    const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+    return j?.hats || {};
+  } catch {
+    return {};
+  }
+}
+
+function hatDefaultChain(envelope = {}) {
+  if (!envelope?.hat) return [];
+  const hats = loadHatProfiles();
+  const chain = hats?.[envelope.hat]?.defaultModelChain;
+  return Array.isArray(chain) ? chain : [];
 }
 
 /* ------------------------------
@@ -189,7 +209,24 @@ function routeModel(envelope = {}) {
     };
   }
 
-  // 2) Deterministic category route.
+  // 2) Hat-level default chain preference (from os/hat-profiles.json).
+  const hatChain = hatDefaultChain(envelope);
+  if (hatChain.length > 0) {
+    const hatModel = pickFirstAvailable(hatChain, envelope);
+    if (hatModel) {
+      safeHatLog(envelope, `${nowUtcStamp()} — model selection`, [
+        `category: ${category}`,
+        `model: ${hatModel} (hat_default_chain)` ,
+      ]);
+      return {
+        model: hatModel,
+        reason: 'hat_default_chain',
+        requiresWebSearch,
+      };
+    }
+  }
+
+  // 3) Deterministic category route.
   const route = ROUTES[category] || ROUTES.default;
 
   // Enforce the rule: only consider OpenRouter OpenAI models when explicitly requested.
