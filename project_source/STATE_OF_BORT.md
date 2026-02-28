@@ -1,15 +1,15 @@
 # STATE_OF_BORT.md
 
-Generated: Feb 27, 2026, 6:00 PM (America/Phoenix)
+Generated: Feb 28, 2026, 6:00 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.3-codex
 - model_resolved_default: openai-codex/gpt-5.3-codex
 - model_fallbacks: openrouter/nvidia/nemotron-nano-9b-v2:free
 - allowed_model_count: 6
-- cron_job_count: 2
+- cron_job_count: 4
 - workspace_top_level_dirs: 14
-- workspace_file_count_recursive: 17905
+- workspace_file_count_recursive: 17916
 
 ## Allowed model IDs
 - openrouter/auto
@@ -54,6 +54,8 @@ Generated: Feb 27, 2026, 6:00 PM (America/Phoenix)
 ## Scheduled jobs (cron)
 - Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
 - Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
+- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
+- X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
 
 ## Export artifacts
 - project_source/EXPORT_LATEST.md
