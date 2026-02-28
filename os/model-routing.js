@@ -45,6 +45,7 @@ const modelHealth = {
   // OpenRouter (use when cheaper or when explicitly requested)
   'openrouter/google/gemini-2.5-flash-lite': { provider: 'openrouter', verified: true },
   'openrouter/anthropic/claude-3.7-sonnet': { provider: 'openrouter', verified: true },
+  'openrouter/anthropic/claude-opus-4.1': { provider: 'openrouter', verified: true },
   'openrouter/openai/o3-mini-high': { provider: 'openrouter', verified: true },
 };
 
@@ -127,44 +128,50 @@ function hatDefaultChain(envelope = {}) {
 const ROUTES = {
   // Codex-first unless unavailable.
   code_ops: [
-    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.3-codex',
     'openai-codex/gpt-5.2-codex',
-    'openai/codex-mini-latest',
-    'openai/gpt-5.2',
-    'openai/gpt-5.2-pro',
-    'openrouter/anthropic/claude-3.7-sonnet',
+    'openai-codex/gpt-5.2',
+    'openrouter/nvidia/nemotron-nano-9b-v2:free',
   ],
 
-  // Cheap-first for high-volume, low-risk.
+  // Cheap-first while staying on Codex by default.
   lightweight: [
-    'openrouter/google/gemini-2.5-flash-lite',
-    'openai/gpt-4.1-nano',
-    'openai/gpt-4.1-mini',
-    'openai/gpt-5.2-chat-latest',
+    'openai-codex/gpt-5.2-codex',
+    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.3-codex',
+    'openrouter/nvidia/nemotron-nano-9b-v2:free',
   ],
 
-  // Capability-first, minimize retries.
+  // Capability-first, codex primary, openrouter fallback.
   research_web: [
-    'openai/gpt-5.2-pro',
-    'openai/gpt-5.2',
-    // Only selected if explicitly requested; otherwise skipped.
-    'openrouter/openai/o3-mini-high',
+    'openai-codex/gpt-5.3-codex',
+    'openai-codex/gpt-5.2-codex',
+    'openai-codex/gpt-5.2',
     'openrouter/anthropic/claude-3.7-sonnet',
+    'openrouter/nvidia/nemotron-nano-9b-v2:free',
   ],
 
   social_drafting: [
-    'openai/gpt-5.2-chat-latest',
-    'openrouter/google/gemini-2.5-flash-lite',
-    'openai/gpt-4.1-mini',
+    'openai-codex/gpt-5.2-codex',
+    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.3-codex',
+    'openrouter/nvidia/nemotron-nano-9b-v2:free',
   ],
 
   spec_large: [
-    'openai/gpt-5.2-pro',
-    'openai/gpt-5.2',
-    'openrouter/anthropic/claude-3.7-sonnet',
+    'openai-codex/gpt-5.3-codex',
+    'openai-codex/gpt-5.2-codex',
+    'openai-codex/gpt-5.2',
+    'openrouter/anthropic/claude-opus-4.1',
+    'openrouter/nvidia/nemotron-nano-9b-v2:free',
   ],
 
-  default: ['openai/gpt-5.2-chat-latest', 'openai/gpt-5.2', 'openai/gpt-4.1-mini'],
+  default: [
+    'openai-codex/gpt-5.2-codex',
+    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.3-codex',
+    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+  ],
 };
 
 function routeCategory(envelope = {}) {
@@ -209,7 +216,35 @@ function routeModel(envelope = {}) {
     };
   }
 
-  // 2) Hat-level default chain preference (from os/hat-profiles.json).
+  // 2) Very complex coding path: codex first, then Claude Opus fallback.
+  const isComplexCode =
+    category === 'code_ops' &&
+    (String(envelope.taskSize || '').toLowerCase() === 'large' ||
+      ['high', 'xhigh'].includes(String(envelope.thinking || '').toLowerCase()));
+
+  if (isComplexCode) {
+    const complexChain = [
+      'openai-codex/gpt-5.3-codex',
+      'openrouter/anthropic/claude-opus-4.1',
+      'openai-codex/gpt-5.2-codex',
+      'openai-codex/gpt-5.2',
+      'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    ];
+    const complexModel = pickFirstAvailable(complexChain, envelope);
+    if (complexModel) {
+      safeHatLog(envelope, `${nowUtcStamp()} — model selection`, [
+        `category: ${category}`,
+        `model: ${complexModel} (complex_code_chain)`,
+      ]);
+      return {
+        model: complexModel,
+        reason: 'complex_code_chain',
+        requiresWebSearch,
+      };
+    }
+  }
+
+  // 3) Hat-level default chain preference (from os/hat-profiles.json).
   const hatChain = hatDefaultChain(envelope);
   if (hatChain.length > 0) {
     const hatModel = pickFirstAvailable(hatChain, envelope);

@@ -1,6 +1,6 @@
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Feb 28, 2026, 6:00 AM (America/Phoenix)
+Generated: Feb 28, 2026, 1:59 PM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
