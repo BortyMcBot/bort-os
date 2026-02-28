@@ -1,6 +1,6 @@
 # OPERATIONS_STATE.md
 
-Generated: Feb 28, 2026, 1:59 PM (America/Phoenix)
+Generated: Feb 28, 2026, 2:10 PM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.

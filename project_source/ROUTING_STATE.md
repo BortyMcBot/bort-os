@@ -1,6 +1,6 @@
 # ROUTING_STATE.md
 
-Generated: Feb 28, 2026, 1:59 PM (America/Phoenix)
+Generated: Feb 28, 2026, 2:10 PM (America/Phoenix)
 
 ## Global configured defaults
 - primary: openai-codex/gpt-5.2-codex
@@ -24,7 +24,6 @@ Generated: Feb 28, 2026, 1:59 PM (America/Phoenix)
 - openai-codex/gpt-5.3-codex
 - openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
-- openrouter/anthropic/claude-3.7-sonnet
 - openrouter/nvidia/nemotron-nano-9b-v2:free
 
 ### social_drafting
@@ -37,7 +36,6 @@ Generated: Feb 28, 2026, 1:59 PM (America/Phoenix)
 - openai-codex/gpt-5.3-codex
 - openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
-- openrouter/anthropic/claude-opus-4.1
 - openrouter/nvidia/nemotron-nano-9b-v2:free
 
 ### default
