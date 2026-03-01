@@ -23,7 +23,7 @@ function parseUntilArg() {
   return args[idx + 1]
 }
 
-function main() {
+async function main() {
   const until = parseUntilArg()
   if (!until) {
     console.error('Usage: autonomous_start.mjs until HH:MM')
@@ -41,7 +41,16 @@ function main() {
 
   const log = `## ${nowPhoenixIso()} — autonomous start\n- stopAtPhoenix: ${until}\n- hat: autonomous\n`
   fs.appendFileSync(LOG_PATH, log + '\n')
+
+  // Start guard process (self-terminates after stop time)
+  const { spawn } = await import('child_process')
+  const guard = spawn('node', ['/root/.openclaw/workspace/scripts/autonomous_guard.mjs'], {
+    detached: true,
+    stdio: 'ignore',
+  })
+  guard.unref()
+
   console.log('autonomous mode started')
 }
 
-main()
+main().catch(() => process.exit(1))
