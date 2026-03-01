@@ -5,6 +5,13 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { xCall } = require('./x_call');
 
+function notify(message) {
+  execSync(
+    `openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(message)}`,
+    { stdio: 'inherit' }
+  );
+}
+
 const WORKSPACE = process.cwd();
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'x_daily_post.log.md');
 const RESULTS_PATH = path.join(WORKSPACE, 'memory', 'x_post_results.log.md');
@@ -114,6 +121,7 @@ async function main() {
   if (!res.ok && res.blocked) {
     appendLog([`## ${ts}`, '- status: blocked_by_budget', '- reason: blocked_by_budget']);
     console.log('x_daily_post: blocked_by_budget');
+    notify('X daily post failed: blocked_by_budget.');
     return;
   }
 
@@ -125,6 +133,9 @@ async function main() {
     `- tweet_url: ${id !== '(none)' ? `https://x.com/BortyMcBot/status/${id}` : '(none)'}`,
   ]);
   console.log(`x_daily_post: status=${res.status} tweet_id=${id}`);
+  if (res.status !== 201) {
+    notify(`X daily post failed: status=${res.status}.`);
+  }
 }
 
 main().catch(() => process.exit(1));

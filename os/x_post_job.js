@@ -13,6 +13,14 @@ const path = require('path');
 
 const { xCall } = require('./x_call');
 
+function notify(message) {
+  const { execSync } = require('child_process');
+  execSync(
+    `openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(message)}`,
+    { stdio: 'inherit' }
+  );
+}
+
 const DIGEST_PATH = path.join(process.cwd(), 'memory', 'x_digest.log.md');
 const QUEUE_PATH = path.join(process.cwd(), 'memory', 'x_post_queue.md');
 const RESULTS_PATH = path.join(process.cwd(), 'memory', 'x_post_results.log.md');
@@ -384,11 +392,15 @@ async function main() {
 
   if (!res.ok && res.blocked) {
     appendResult({ ts, status: 'blocked_by_budget', tweetId: null, skipped: 'blocked_by_budget' });
+    notify('X digest post blocked_by_budget (no tweet sent).');
     return;
   }
 
   const tweetId = res.extracted?.['data.id'] || null;
   appendResult({ ts, status: res.status, tweetId, skipped: null });
+  if (res.status !== 201) {
+    notify(`X digest post failed: status=${res.status}.`);
+  }
 }
 
 main().catch(() => process.exit(1));
