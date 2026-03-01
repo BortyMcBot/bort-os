@@ -16,7 +16,7 @@ function nowPhoenixIso() {
   return dtf.format(new Date()).replace(',', '')
 }
 
-function main() {
+async function main() {
   if (fs.existsSync(STATE_PATH)) {
     const cur = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'))
     cur.active = false
@@ -28,10 +28,10 @@ function main() {
   fs.appendFileSync(LOG_PATH, log + '\n')
 
   // Generate report at stop
-  const { spawnSync } = require('child_process')
+  const { spawnSync } = await import('child_process')
   spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_report.mjs'], { stdio: 'inherit' })
 
   console.log('autonomous mode stopped')
 }
 
-main()
+main().catch(() => process.exit(1))
