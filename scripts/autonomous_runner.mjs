@@ -46,7 +46,15 @@ function ensureQueue() {
   fs.writeFileSync(RUN_QUEUE, seed + '\n')
 }
 
-function main() {
+function mainLoop() {
+  const state = readState()
+  if (!state || state.active !== true) return
+
+  runOnce()
+  setInterval(runOnce, 10 * 60 * 1000)
+}
+
+function runOnce() {
   const state = readState()
   if (!state || state.active !== true) return
 
@@ -60,4 +68,5 @@ function main() {
   spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_execute_queue.mjs'], { stdio: 'inherit' })
 }
 
-main()
+
+mainLoop()
