@@ -41,7 +41,7 @@ function main() {
     fs.appendFileSync(LOG_PATH, `\n## report generated\n- path: ${REPORT_PATH}\n`)
   }
 
-  const msg = `Autonomous run completed. PR report generated at ${REPORT_PATH}.`
+  const msg = `Autonomous run completed. PR report:\n\nBort‑OS PRs:\n${prs.bort}\n\nPersonal‑website PRs:\n${prs.site}`
   run(`openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(msg)}`, WORKSPACE)
 }
 

@@ -56,6 +56,32 @@ async function main() {
   })
   runner.unref()
 
+  // Hard stop timer (guaranteed stop + report)
+  const secs = (() => {
+    const [h, m] = until.split(':').map((v) => parseInt(v, 10))
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return 0
+    const now = new Date()
+    const phx = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Phoenix',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(now)
+    const [ch, cm] = phx.split(':').map((v) => parseInt(v, 10))
+    const nowMin = ch * 60 + cm
+    const stopMin = h * 60 + m
+    const deltaMin = Math.max(0, stopMin - nowMin)
+    return deltaMin * 60
+  })()
+
+  if (secs > 0) {
+    const stop = spawn('bash', ['-lc', `sleep ${secs}; node /root/.openclaw/workspace/scripts/autonomous_stop.mjs`], {
+      detached: true,
+      stdio: 'ignore',
+    })
+    stop.unref()
+  }
+
   console.log('autonomous mode started')
 }
 
