@@ -26,6 +26,11 @@ function main() {
 
   const log = `## ${nowPhoenixIso()} — autonomous stop\n`
   fs.appendFileSync(LOG_PATH, log + '\n')
+
+  // Generate report at stop
+  const { spawnSync } = require('child_process')
+  spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_report.mjs'], { stdio: 'inherit' })
+
   console.log('autonomous mode stopped')
 }
 

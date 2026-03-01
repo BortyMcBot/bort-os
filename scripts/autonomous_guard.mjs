@@ -59,7 +59,7 @@ function tick() {
 
 function main() {
   tick()
-  setInterval(tick, 60 * 1000)
+  setInterval(tick, 5 * 60 * 1000)
 }
 
 main()
