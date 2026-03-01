@@ -50,13 +50,13 @@ function main() {
   const state = readState()
   if (!state || state.active !== true) return
 
+  // Generate a fresh queue at start of each autonomous window
+  spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_generate_queue.mjs'], { stdio: 'inherit' })
+
   ensureQueue()
   log(`## ${nowPhoenix()} — autonomous runner tick`)
-  log('- status: queued')
-  log('- note: runner is a placeholder until tasks are explicitly defined')
-
-  // Placeholder: intentionally does not execute work automatically yet.
-  // This runner exists to wire the lifecycle and avoid doing unapproved work.
+  log('- status: queue_generated')
+  log('- note: execution will be added to consume queue without human prompts')
 }
 
 main()

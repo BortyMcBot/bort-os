@@ -33,8 +33,8 @@ autonomous stop
 ## Runner
 
 - `scripts/autonomous_runner.mjs` is invoked at start.
-- It reads `memory/autonomous_state.json` and a simple queue file.
-- This is the execution hook for future autonomous tasks.
+- It generates a work queue via `scripts/autonomous_generate_queue.mjs`.
+- It will consume that queue during autonomous windows (PRs only).
 
 ## State tracking (local)
 
