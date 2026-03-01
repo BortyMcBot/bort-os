@@ -12,6 +12,7 @@ const crypto = require('crypto');
 const xb = require('./x_budget');
 
 const X_BASE = 'https://api.x.com';
+const TOKEN_URL = 'https://api.x.com/2/oauth2/token';
 
 function loadOpenClawEnvVars() {
   const p = '/root/.openclaw/openclaw.json';
@@ -23,6 +24,21 @@ function loadOpenClawEnvVars() {
   } catch {
     return {};
   }
+}
+
+function updateOpenClawEnvVars(patch) {
+  const p = '/root/.openclaw/openclaw.json';
+  const raw = fs.readFileSync(p, 'utf8');
+  const cfg = JSON.parse(raw);
+  cfg.env = cfg.env || {};
+  cfg.env.vars = cfg.env.vars || {};
+
+  for (const [k, v] of Object.entries(patch)) {
+    if (v == null) continue;
+    cfg.env.vars[k] = String(v);
+  }
+
+  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
 }
 
 function mergedEnv() {
@@ -106,8 +122,7 @@ function extractJson(obj, paths) {
 }
 
 function pctEncode(s) {
-  return encodeURIComponent(String(s))
-    .replace(/[!*()']/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+  return encodeURIComponent(String(s)).replace(/[!*()']/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 }
 
 function collectQueryParams(urlObj) {
@@ -154,14 +169,59 @@ function buildOAuthHeader({ method, urlObj, consumerKey, consumerSecret, token, 
   return header;
 }
 
+async function refreshAccessToken(envObj) {
+  const refreshToken = envObj.X_REFRESH_TOKEN;
+  const clientId = envObj.X_CLIENT_ID;
+  const clientSecret = envObj.X_CLIENT_SECRET;
+
+  if (!refreshToken || !clientId) return { ok: false, status: 0 };
+
+  const form = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    client_id: clientId,
+  });
+
+  const headers = {
+    'content-type': 'application/x-www-form-urlencoded',
+  };
+
+  if (clientSecret) {
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    headers.authorization = `Basic ${basic}`;
+  }
+
+  const res = await fetch(TOKEN_URL, { method: 'POST', headers, body: form.toString() });
+  const text = await res.text();
+  if (!res.ok) return { ok: false, status: res.status };
+
+  try {
+    const j = JSON.parse(text);
+    const access = j.access_token;
+    const refresh = j.refresh_token || refreshToken;
+    if (access) {
+      updateOpenClawEnvVars({ X_ACCESS_TOKEN: access, X_REFRESH_TOKEN: refresh });
+      return { ok: true, status: res.status };
+    }
+  } catch {
+    // ignore
+  }
+
+  return { ok: false, status: res.status };
+}
+
 async function doRequest({ actionType, method, endpoint, body, extractJsonPaths, envObj, estimateUsd }) {
   const m = String(method || 'GET').toUpperCase();
   const ep = normalizeEndpoint(endpoint);
   const urlObj = new URL(X_BASE + ep);
 
   const headers = {};
+  const accessToken = envObj.X_ACCESS_TOKEN;
+  const url = X_BASE + ep;
 
-  if (m === 'GET') {
+  if (accessToken) {
+    headers.authorization = `Bearer ${accessToken}`;
+  } else if (m === 'GET') {
     const bearer = must(envObj, 'X_BEARER_TOKEN');
     headers.authorization = `Bearer ${bearer}`;
   } else if (m === 'POST' || m === 'DELETE') {
@@ -193,7 +253,7 @@ async function doRequest({ actionType, method, endpoint, body, extractJsonPaths,
   let extracted = null;
 
   try {
-    const res = await fetch(urlObj.toString(), { method: m, headers, body: requestBody });
+    const res = await fetch(accessToken ? url : urlObj.toString(), { method: m, headers, body: requestBody });
     executed = true;
     status = res.status;
 
@@ -244,7 +304,7 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
 
   const envObj = mergedEnv();
 
-  const { status, extracted } = await doRequest({
+  let { status, extracted } = await doRequest({
     actionType,
     method: m,
     endpoint: ep,
@@ -253,6 +313,34 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
     envObj,
     estimateUsd,
   });
+
+  if (status === 401) {
+    const refreshed = await refreshAccessToken(envObj);
+    if (refreshed.ok) {
+      const retryGate = xb.guardOrQueue({
+        actionType: `${actionType || 'other'}:retry`,
+        method: m,
+        endpoint: ep,
+        details: 'retry-after-refresh',
+      });
+      if (!retryGate.ok) {
+        return { ok: false, blocked: true, reason: 'blocked_by_budget', estimateUsd, actionId };
+      }
+
+      const envObjRetry = mergedEnv();
+      const retry = await doRequest({
+        actionType,
+        method: m,
+        endpoint: ep,
+        body,
+        extractJsonPaths,
+        envObj: envObjRetry,
+        estimateUsd,
+      });
+      status = retry.status;
+      extracted = retry.extracted;
+    }
+  }
 
   return { ok: true, status, estimateUsd, actionId, extracted };
 }
