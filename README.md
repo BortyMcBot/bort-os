@@ -8,6 +8,7 @@ This repo is the workspace-level “operating system” we’re building around 
 - strict secrets hygiene
 - budget enforcement for external APIs
 - scheduled, logged jobs (digest → optional post)
+- automated state export bundle for external planning/ideation
 
 ## Principles
 
@@ -23,18 +24,24 @@ Bort is operated via chat prompts (e.g., Telegram) and a small set of scripts.
 
 Key components:
 - **Task Envelope** (required fields like `hat`, `taskType`, `risk`, `dataSensitivity`, `externalStateChange`)
+- **Hat profiles** (`os/hat-profiles.json`) as source-of-truth for policy + model chains
 - **Deterministic model routing** (task-type based, explicit allowlists/blacklists)
 - **X/Twitter integration**
   - a canonical API wrapper (`x_call`) that enforces budget before calling X
-  - scheduled digest + optional post jobs
+  - scheduled digest + daily post jobs
+  - failure notifications on post attempts
+- **State export pipeline** (`project_source/` + export scripts)
 
 ## Repo layout
 
 - `os/` — core scripts/modules (routing, preflight, X wrappers, scheduled jobs)
+- `scripts/` — export/refresh utilities for project_source
+- `project_source/` — generated state docs + export artifacts (shareable bundle)
 - `skills/` — lightweight skill entrypoints/wrappers used by the agent
 - `integrations/` — external system integrations (e.g., Gmail)
 - `drafts/` — drafts, profiles, and scratch notes meant to be shareable
 - `memory/` — local agent memory/logs (intentionally **git-ignored**)
+- `REPO_POLICY.md` — standing repo ownership + PR policy
 
 ## Operating model (approvals)
 
