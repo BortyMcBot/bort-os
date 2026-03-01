@@ -56,7 +56,8 @@ function main() {
   ensureQueue()
   log(`## ${nowPhoenix()} — autonomous runner tick`)
   log('- status: queue_generated')
-  log('- note: execution will be added to consume queue without human prompts')
+
+  spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_execute_queue.mjs'], { stdio: 'inherit' })
 }
 
 main()
