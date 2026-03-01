@@ -24,3 +24,7 @@ node_modules/
 project_source/EXPORT_LATEST.md
 project_source/.hashes.json
 project_source/.arch_drift_baseline.json
+
+# Local clones in workspace
+/personal-website/
+/external/

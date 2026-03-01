@@ -23,3 +23,7 @@
 - Bryan wants a standing backlog flow for deferred tasks.
 - When asked to “remember” a task, Bort should run a short intake (ask only missing fields), then store a refined entry in `TASK_BACKLOG.md`.
 - Bort may rewrite task phrasing/structure to maximize future executability.
+
+## Codex quota alert preference
+
+- Alert Bryan when Codex remaining quota gets close to **25% remaining**.
