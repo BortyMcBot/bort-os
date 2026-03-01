@@ -1,0 +1,18 @@
+{
+  "prCap": 3,
+  "requireTests": true,
+  "noTouch": [
+    "/root/.openclaw/openclaw.json",
+    "/root/.openclaw/**",
+    "/root/.config/**",
+    "/root/.ssh/**",
+    "/root/.openclaw/secrets/**",
+    "/root/.openclaw/workspace/memory/**",
+    "/root/.openclaw/workspace/project_source/**"
+  ],
+  "scoringWeights": {
+    "impact": 0.5,
+    "risk": 0.3,
+    "effort": 0.2
+  }
+}

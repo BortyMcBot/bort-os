@@ -33,12 +33,29 @@ function ensureQueue() {
   try { return JSON.parse(fs.readFileSync(QUEUE_PATH, 'utf8')) } catch { return null }
 }
 
+function readPolicy() {
+  const p = path.join(WORKSPACE, 'autonomous_policy.json')
+  if (!fs.existsSync(p)) {
+    return { prCap: 3, requireTests: true, noTouch: [], scoringWeights: { impact: 0.5, risk: 0.3, effort: 0.2 } }
+  }
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')) } catch {
+    return { prCap: 3, requireTests: true, noTouch: [], scoringWeights: { impact: 0.5, risk: 0.3, effort: 0.2 } }
+  }
+}
+
+function scoreTask(task, weights) {
+  const impact = task.impact ?? 0.5
+  const risk = task.risk ?? 0.5
+  const effort = task.effort ?? 0.5
+  return impact * weights.impact - risk * weights.risk - effort * weights.effort
+}
+
 function writePRBody({ summary, testing }) {
   const body = `## Summary\n${summary}\n\n## Testing\n${testing || 'Not run.'}\n`
   fs.writeFileSync(PR_BODY_PATH, body)
 }
 
-function execBortOsTask(task) {
+function execBortOsTask(task, policy) {
   if (task.id === 'bort-os:secrets-policy') {
     const repo = WORKSPACE
     run('git checkout -b autonomous/secrets-policy', repo)
@@ -64,6 +81,11 @@ function execBortOsTask(task) {
 
     run('git add SECRETS.md SECURITY.md', repo)
     run('git commit -m "docs(security): add secrets handling policy"', repo)
+
+    if (policy.requireTests) {
+      // docs-only; no tests required
+    }
+
     run('git push -u origin autonomous/secrets-policy', repo)
 
     writePRBody({
@@ -75,7 +97,7 @@ function execBortOsTask(task) {
   }
 }
 
-function execPersonalWebsiteTask(task) {
+function execPersonalWebsiteTask(task, policy) {
   const repo = path.join(WORKSPACE, 'external', 'personal-website')
   if (task.id === 'personal-website:now-section') {
     run('git checkout -b autonomous/now-section', repo)
@@ -107,6 +129,11 @@ function execPersonalWebsiteTask(task) {
 
     run('git add src/components/home/nowSection.tsx src/lib/site.ts src/app/page.tsx', repo)
     run('git commit -m "feat(ui): add configurable Now section"', repo)
+
+    if (policy.requireTests) {
+      // UI-only; no tests required
+    }
+
     run('git push -u origin autonomous/now-section', repo)
 
     writePRBody({
@@ -121,11 +148,21 @@ function main() {
   const queue = ensureQueue()
   if (!queue || !Array.isArray(queue.tasks)) return
 
+  const policy = readPolicy()
+  const weights = policy.scoringWeights || { impact: 0.5, risk: 0.3, effort: 0.2 }
+
+  const tasks = queue.tasks
+    .map((t) => ({ ...t, _score: scoreTask(t, weights) }))
+    .sort((a, b) => b._score - a._score)
+    .slice(0, policy.prCap || 3)
+
   log(`## ${nowPhoenix()} — autonomous execute queue`)
-  for (const task of queue.tasks) {
+  log(`- prCap: ${policy.prCap || 3}`)
+
+  for (const task of tasks) {
     log(`- executing: ${task.id}`)
-    if (task.repo === 'bort-os') execBortOsTask(task)
-    if (task.repo === 'personal-website') execPersonalWebsiteTask(task)
+    if (task.repo === 'bort-os') execBortOsTask(task, policy)
+    if (task.repo === 'personal-website') execPersonalWebsiteTask(task, policy)
   }
 }
 

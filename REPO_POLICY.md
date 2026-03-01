@@ -30,6 +30,7 @@ Open a PR when review is desirable, including:
 - policy changes that alter agent behavior/governance
 - anything explicitly requested for review
 - **all work during autonomous mode** (no direct pushes to main)
+- PRs must include **tests/checks when applicable** and be merge‑ready
 
 For PRs, Bort should:
 

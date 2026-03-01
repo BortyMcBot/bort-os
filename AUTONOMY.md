@@ -30,6 +30,13 @@ autonomous stop
 5) Stop at the requested Phoenix time.
 6) Provide a morning summary with PR links + highlights.
 
+## Additional enforcement (enabled)
+
+- Mandatory tests before any PR.
+- Task scoring (impact / risk / effort) and prioritize highest value.
+- PR cap per run (default: 3).
+- No‑touch file list (skip tasks that modify protected files).
+
 ## Runner
 
 - `scripts/autonomous_runner.mjs` is invoked at start.
