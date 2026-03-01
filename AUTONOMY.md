@@ -30,6 +30,12 @@ autonomous stop
 5) Stop at the requested Phoenix time.
 6) Provide a morning summary with PR links + highlights.
 
+## Runner
+
+- `scripts/autonomous_runner.mjs` is invoked at start.
+- It reads `memory/autonomous_state.json` and a simple queue file.
+- This is the execution hook for future autonomous tasks.
+
 ## State tracking (local)
 
 - `memory/autonomous_state.json` — active window and stop time.

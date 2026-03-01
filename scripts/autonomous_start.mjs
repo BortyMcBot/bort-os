@@ -50,6 +50,12 @@ async function main() {
   })
   guard.unref()
 
+  const runner = spawn('node', ['/root/.openclaw/workspace/scripts/autonomous_runner.mjs'], {
+    detached: true,
+    stdio: 'ignore',
+  })
+  runner.unref()
+
   console.log('autonomous mode started')
 }
 
