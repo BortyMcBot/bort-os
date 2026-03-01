@@ -1,5 +1,5 @@
 {
-  "prCap": 3,
+  "prCap": 6,
   "requireTests": true,
   "noTouch": [
     "/root/.openclaw/openclaw.json",
