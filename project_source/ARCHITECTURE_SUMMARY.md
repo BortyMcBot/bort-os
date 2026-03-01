@@ -1,6 +1,6 @@
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Feb 28, 2026, 6:00 PM (America/Phoenix)
+Generated: Mar 01, 2026, 12:10 AM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -9,7 +9,7 @@ Generated: Feb 28, 2026, 6:00 PM (America/Phoenix)
 - scripts/export-project-source.mjs creates EXPORT_LATEST.md and dist/bort_source_bundle.tgz.
 
 ## Enforcement highlights
-- hats allowlist: inbox, ops-core, resale, web
+- hats allowlist: autonomous, inbox, ops-core, resale, web
 - required envelope fields: hat, intent, taskType, taskSize, risk, dataSensitivity, externalStateChange, identityContext, actions, approvalNeeded
 - externalStateChange=true requires approvalNeeded=true.
 - high sensitivity output suppression is enforced by explicit blocklist patterns in os/preflight.js.

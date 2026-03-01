@@ -1,11 +1,21 @@
 # HAT_STATE.md
 
-Generated: Feb 28, 2026, 6:00 PM (America/Phoenix)
+Generated: Mar 01, 2026, 12:10 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
-- hat_count: 4
+- hat_count: 5
 
 ## Hat profiles
+
+### autonomous
+- description: Autonomous overnight mode for stability/automation work and PR creation (no main merges)
+- allowedIdentityContexts: agent
+- allowedTaskTypes: ops, research, spec, code, summarize
+- defaultDataSensitivity: low
+- allowedSkills: project_source_export, documentation_drift_handling
+- allowedCommands: git status | git diff | git add | git commit | git push | gh pr create | gh pr edit
+- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- outputStyle: engineering_brief
 
 ### inbox
 - description: Gmail/inbox triage and summaries

@@ -2,6 +2,29 @@
   "version": 1,
   "updatedAt": "2026-02-27",
   "hats": {
+    "autonomous": {
+      "description": "Autonomous overnight mode for stability/automation work and PR creation (no main merges)",
+      "allowedIdentityContexts": ["agent"],
+      "allowedTaskTypes": ["ops", "research", "spec", "code", "summarize"],
+      "defaultDataSensitivity": "low",
+      "allowedSkills": ["project_source_export", "documentation_drift_handling"],
+      "allowedCommands": [
+        "git status",
+        "git diff",
+        "git add",
+        "git commit",
+        "git push",
+        "gh pr create",
+        "gh pr edit"
+      ],
+      "defaultModelChain": [
+        "openai-codex/gpt-5.2-codex",
+        "openai-codex/gpt-5.2",
+        "openai-codex/gpt-5.3-codex",
+        "openrouter/nvidia/nemotron-nano-9b-v2:free"
+      ],
+      "outputStyle": "engineering_brief"
+    },
     "inbox": {
       "description": "Gmail/inbox triage and summaries",
       "allowedIdentityContexts": [

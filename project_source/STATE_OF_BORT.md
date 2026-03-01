@@ -1,15 +1,15 @@
 # STATE_OF_BORT.md
 
-Generated: Feb 28, 2026, 6:00 PM (America/Phoenix)
+Generated: Mar 01, 2026, 12:10 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.2-codex
 - model_resolved_default: openai-codex/gpt-5.2-codex
 - model_fallbacks: openai-codex/gpt-5.2, openrouter/nvidia/nemotron-nano-9b-v2:free
 - allowed_model_count: 6
-- cron_job_count: 5
-- workspace_top_level_dirs: 13
-- workspace_file_count_recursive: 2767
+- cron_job_count: 0
+- workspace_top_level_dirs: 14
+- workspace_file_count_recursive: 2918
 
 ## Allowed model IDs
 - openrouter/auto
@@ -52,11 +52,7 @@ Generated: Feb 28, 2026, 6:00 PM (America/Phoenix)
 - openai-whisper-api
 
 ## Scheduled jobs (cron)
-- X daily watchdog (alert if no post) (cron: 0 18 * * * America/Phoenix)
-- Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
-- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
-- Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
-- X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
+- (none)
 
 ## Export artifacts
 - project_source/EXPORT_LATEST.md
