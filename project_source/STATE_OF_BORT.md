@@ -1,6 +1,6 @@
 # STATE_OF_BORT.md
 
-Generated: Mar 01, 2026, 12:10 AM (America/Phoenix)
+Generated: Mar 01, 2026, 8:36 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.2-codex
@@ -9,7 +9,7 @@ Generated: Mar 01, 2026, 12:10 AM (America/Phoenix)
 - allowed_model_count: 6
 - cron_job_count: 0
 - workspace_top_level_dirs: 14
-- workspace_file_count_recursive: 2918
+- workspace_file_count_recursive: 2964
 
 ## Allowed model IDs
 - openrouter/auto
