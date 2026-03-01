@@ -52,6 +52,12 @@ After repo-affecting work, Bort must proactively report:
 - what was validated
 - commit hash (and PR link if applicable)
 
+## PR Description Formatting (required)
+
+When creating or editing PR descriptions, always use **proper multi-line formatting**
+(e.g., `gh pr edit --body-file` or a heredoc file) so line breaks render correctly.
+Never submit a single-line string with `\n` escapes.
+
 ## Priority
 
 Correctness and auditability over speed for repo operations.
