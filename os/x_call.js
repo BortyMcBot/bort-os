@@ -12,6 +12,7 @@ const crypto = require('crypto');
 const xb = require('./x_budget');
 
 const X_BASE = 'https://api.x.com';
+const TOKEN_URL = 'https://api.x.com/2/oauth2/token';
 
 function loadOpenClawEnvVars() {
   const p = '/root/.openclaw/openclaw.json';
@@ -23,6 +24,21 @@ function loadOpenClawEnvVars() {
   } catch {
     return {};
   }
+}
+
+function updateOpenClawEnvVars(patch) {
+  const p = '/root/.openclaw/openclaw.json';
+  const raw = fs.readFileSync(p, 'utf8');
+  const cfg = JSON.parse(raw);
+  cfg.env = cfg.env || {};
+  cfg.env.vars = cfg.env.vars || {};
+
+  for (const [k, v] of Object.entries(patch)) {
+    if (v == null) continue;
+    cfg.env.vars[k] = String(v);
+  }
+
+  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
 }
 
 function mergedEnv() {
@@ -105,6 +121,93 @@ function extractJson(obj, paths) {
   return out;
 }
 
+async function refreshAccessToken(envObj) {
+  const refreshToken = envObj.X_REFRESH_TOKEN;
+  const clientId = envObj.X_CLIENT_ID;
+  const clientSecret = envObj.X_CLIENT_SECRET;
+
+  if (!refreshToken || !clientId) return { ok: false, status: 0 };
+
+  const form = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    client_id: clientId,
+  });
+
+  const headers = {
+    'content-type': 'application/x-www-form-urlencoded',
+  };
+
+  if (clientSecret) {
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    headers.authorization = `Basic ${basic}`;
+  }
+
+  const res = await fetch(TOKEN_URL, { method: 'POST', headers, body: form.toString() });
+  const text = await res.text();
+  if (!res.ok) return { ok: false, status: res.status };
+
+  try {
+    const j = JSON.parse(text);
+    const access = j.access_token;
+    const refresh = j.refresh_token || refreshToken;
+    if (access) {
+      updateOpenClawEnvVars({ X_ACCESS_TOKEN: access, X_REFRESH_TOKEN: refresh });
+      return { ok: true, status: res.status };
+    }
+  } catch {
+    // ignore
+  }
+
+  return { ok: false, status: res.status };
+}
+
+async function doRequest({ actionType, method, endpoint, body, extractJsonPaths, envObj, estimateUsd }) {
+  const m = String(method || 'GET').toUpperCase();
+  const ep = normalizeEndpoint(endpoint);
+
+  const token = must(envObj, 'X_ACCESS_TOKEN');
+  const url = X_BASE + ep;
+  const headers = { authorization: `Bearer ${token}` };
+
+  let requestBody;
+  if (body !== undefined && body !== null) {
+    headers['content-type'] = 'application/json';
+    requestBody = JSON.stringify(body);
+  }
+
+  let status = 0;
+  let executed = false;
+  let extracted = null;
+
+  try {
+    const res = await fetch(url, { method: m, headers, body: requestBody });
+    executed = true;
+    status = res.status;
+
+    if (extractJsonPaths && extractJsonPaths.length) {
+      try {
+        const j = await res.json();
+        extracted = extractJson(j, extractJsonPaths);
+      } catch {
+        extracted = null;
+      }
+    }
+  } catch {
+    executed = true;
+    status = 0;
+  } finally {
+    if (executed) {
+      xb.recordSpend({
+        amount: estimateUsd,
+        metadata: { actionId: newActionId(), actionType: actionType || 'other', method: m, endpoint: ep, status },
+      });
+    }
+  }
+
+  return { status, extracted };
+}
+
 async function xCall({ actionType, method, endpoint, body, details, costUsdOverride, extractJsonPaths }) {
   const actionId = newActionId();
 
@@ -128,51 +231,42 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
   }
 
   const envObj = mergedEnv();
-  const token = must(envObj, 'X_ACCESS_TOKEN');
 
-  const url = X_BASE + ep;
-  const headers = {
-    authorization: `Bearer ${token}`,
-  };
+  let { status, extracted } = await doRequest({
+    actionType,
+    method: m,
+    endpoint: ep,
+    body,
+    extractJsonPaths,
+    envObj,
+    estimateUsd,
+  });
 
-  let requestBody;
-  if (body !== undefined && body !== null) {
-    headers['content-type'] = 'application/json';
-    requestBody = JSON.stringify(body);
-  }
-
-  let status = 0;
-  let executed = false;
-  let extracted = null;
-
-  try {
-    const res = await fetch(url, {
-      method: m,
-      headers,
-      body: requestBody,
-    });
-    executed = true;
-    status = res.status;
-
-    if (extractJsonPaths && extractJsonPaths.length) {
-      // Parse JSON but only retain selected fields; never print body.
-      try {
-        const j = await res.json();
-        extracted = extractJson(j, extractJsonPaths);
-      } catch {
-        extracted = null;
-      }
-    }
-  } catch {
-    // network error; still considered executed attempt
-    executed = true;
-    status = 0;
-  } finally {
-    if (executed) {
-      xb.recordSpend({
-        amount: estimateUsd,
-        metadata: { actionId, actionType: actionType || 'other', method: m, endpoint: ep, status },
+  if (status === 401) {
+    const refreshed = await refreshAccessToken(envObj);
+    if (refreshed.ok) {
+      const retryGate = xb.guardOrQueue({
+        actionType: `${actionType || 'other'}:retry`,
+        method: m,
+        endpoint: ep,
+        details: 'retry-after-refresh',
       });
+      if (!retryGate.ok) {
+        return { ok: false, blocked: true, reason: 'blocked_by_budget', estimateUsd, actionId };
+      }
+
+      const envObjRetry = mergedEnv();
+      const retry = await doRequest({
+        actionType,
+        method: m,
+        endpoint: ep,
+        body,
+        extractJsonPaths,
+        envObj: envObjRetry,
+        estimateUsd,
+      });
+      status = retry.status;
+      extracted = retry.extracted;
     }
   }
 
