@@ -51,6 +51,13 @@ Many actions are approval-gated. Typical pattern:
 2) Operator responds with an explicit approval token like `approve_<thing>: yes`.
 3) Agent executes and reports `executed/blocked/queued`.
 
+## Autonomous mode
+
+- Start: `autonomous start until HH:MM` (Phoenix time)
+- Stop: `autonomous stop`
+- During autonomous mode: PRs only (no direct main pushes)
+- See `AUTONOMY.md`
+
 ## Basic checks
 
 - Run preflight tests:

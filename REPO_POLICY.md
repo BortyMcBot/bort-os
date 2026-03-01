@@ -29,6 +29,7 @@ Open a PR when review is desirable, including:
 - large refactors
 - policy changes that alter agent behavior/governance
 - anything explicitly requested for review
+- **all work during autonomous mode** (no direct pushes to main)
 
 For PRs, Bort should:
 
