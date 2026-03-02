@@ -8,5 +8,15 @@ if [ -z "$STATUS" ]; then
   exit 0
 fi
 
-MSG=$'Repo hygiene check: uncommitted changes detected.\n\n'"$STATUS"
-openclaw message send --channel telegram --target 8374853956 --message "$MSG"
+# Auto-commit hygiene drift
+DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+MESSAGE="chore(repo): automated hygiene sync (${DATE})"
+
+git -C "$REPO" add -A
+if git -C "$REPO" commit -m "$MESSAGE"; then
+  git -C "$REPO" push origin main
+  openclaw message send --channel telegram --target 8374853956 --message "Repo hygiene: auto-committed and pushed."
+else
+  MSG=$'Repo hygiene check: uncommitted changes detected.\n\n'"$STATUS"
+  openclaw message send --channel telegram --target 8374853956 --message "$MSG"
+fi
