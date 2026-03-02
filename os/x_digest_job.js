@@ -100,6 +100,26 @@ async function main() {
     skipped: 0,
   };
 
+  // Preflight auth check (attempt refresh via xCall if needed)
+  const health = await xCall({
+    actionType: 'lookup',
+    method: 'GET',
+    endpoint: '/2/users/me',
+    details: 'preflight auth check',
+    costUsdOverride: 0.005,
+  });
+  if (health.status === 401) {
+    appendDigest({
+      ts_phoenix: nowPhoenixStamp(),
+      endpoints: ['/2/users/me'],
+      statusCodes: [401],
+      ingested: 0,
+      skipped: 0,
+    }, acct, []);
+    writeJsonAtomic(STATE_PATH, { nextIndex });
+    return;
+  }
+
   // Budget target: only 1 account per run.
   // Step A: resolve id (GET /2/users/by/username/:username)
   const lookup = await xCall({

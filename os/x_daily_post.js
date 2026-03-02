@@ -101,6 +101,19 @@ async function main() {
     return;
   }
 
+  // Preflight auth check (attempt refresh via xCall if needed)
+  const health = await xCall({
+    actionType: 'lookup',
+    method: 'GET',
+    endpoint: '/2/users/me',
+    details: 'preflight auth check',
+    costUsdOverride: 0.005,
+  });
+  if (health.status === 401) {
+    notify('X daily post failed: auth invalid after refresh attempt.');
+    return;
+  }
+
   const text = buildTweet().slice(0, 240);
   if (dryRun) {
     console.log('x_daily_post dry-run:');
