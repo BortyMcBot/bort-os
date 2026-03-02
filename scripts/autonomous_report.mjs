@@ -41,7 +41,26 @@ function main() {
     fs.appendFileSync(LOG_PATH, `\n## report generated\n- path: ${REPORT_PATH}\n`)
   }
 
-  const msg = `Autonomous run completed. PR report:\n\nBort‑OS PRs:\n${prs.bort}\n\nPersonal‑website PRs:\n${prs.site}`
+  let bortList = []
+  let siteList = []
+  try { bortList = JSON.parse(prs.bort) } catch {}
+  try { siteList = JSON.parse(prs.site) } catch {}
+
+  const fmt = (arr) =>
+    arr.length
+      ? arr.map((p) => `- #${p.number} ${p.title}\n  ${p.url}`).join('\n')
+      : '- (none)'
+
+  const msg = [
+    'Autonomous run completed. PR report:',
+    '',
+    'Bort‑OS PRs:',
+    fmt(bortList),
+    '',
+    'Personal‑website PRs:',
+    fmt(siteList),
+  ].join('\n')
+
   run(`openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(msg)}`, WORKSPACE)
 }
 
