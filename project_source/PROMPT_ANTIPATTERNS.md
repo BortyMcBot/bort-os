@@ -83,6 +83,43 @@ Fix: Split tasks at natural approval gates. One envelope per external state chan
 
 ---
 
+## Antipattern 10: Pinchtab health check without auth header
+What happens: curl to http://localhost:9867/health returns 401 and looks like a server failure.
+Why it happens: BRIDGE_TOKEN is set but health check curl omits the Authorization header.
+Fix: Always include -H "Authorization: Bearer <token>" when curling Pinchtab endpoints.
+Token location: ~/.pinchtab/.env
+
+---
+
+## Antipattern 11: Pinchtab fails to start due to stale SingletonLock
+What happens: Pinchtab cannot launch Chrome against ~/.pinchtab/chrome-profile — Permission denied on SingletonLock.
+Why it happens: A prior Chrome session exited uncleanly and left a lock file behind.
+Fix: Confirm no chrome or pinchtab processes are running, then: rm /root/.pinchtab/chrome-profile/SingletonLock
+Do not use /tmp/pinchtab-profile for persistent sessions — it will not retain cookies or auth.
+
+---
+
+## Antipattern 12: Snap Chromium wins PATH and breaks Pinchtab profile writes
+What happens: Pinchtab repeatedly fails with SingletonLock: Permission denied even after directory recreation, permission changes, and --no-sandbox — because snap-confined Chrome cannot write to /root/ paths outside its sandbox.
+Why it happens: Ubuntu systems with snap Chromium installed resolve `chrome` to the snap binary, which runs in a confined namespace regardless of filesystem permissions.
+Fix: Install Google Chrome via the official .deb AND explicitly set CHROME_BINARY:
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+apt install ./google-chrome-stable_current_amd64.deb
+echo "CHROME_BINARY=/usr/bin/google-chrome-stable" >> ~/.pinchtab/.env
+Verify with: which google-chrome-stable (must be /usr/bin/, not /snap/)
+Do not rely on PATH alone — snap may still win. Always set CHROME_BINARY explicitly.
+
+---
+
+## Antipattern 13: Pinchtab running as root requires --no-sandbox
+What happens: Chrome fails to start when Pinchtab is run as root without sandbox flag.
+Why it happens: Chrome refuses to run as root without explicit sandbox override.
+Fix: Add to ~/.pinchtab/.env: CHROME_FLAGS=--no-sandbox
+This is safe for local-only, loopback-bound instances (BRIDGE_BIND=127.0.0.1).
+Do not use --no-sandbox if Pinchtab is exposed to the network.
+
+---
+
 ## Adding new entries
 When Bort behaves unexpectedly, add an entry with:
 - What happened (observable symptom)

@@ -15,7 +15,35 @@ Purpose: Continuity layer for multi-step projects across sessions.
 
 ## Active Projects
 
-- None currently in flight.
+### 1PASSWORD_CLI_SETUP
+- status: planning
+- hat_sequence: [ops-core]
+- last_completed_step: 1password skill confirmed installed but not configured
+- next_action: Set up op CLI auth and migrate ~/.pinchtab/.env token to 1Password vault
+- blocking_issue: none
+- relevant_files: ~/.pinchtab/.env, /usr/lib/node_modules/openclaw/skills/1password/SKILL.md
+- notes: Pinchtab BRIDGE_TOKEN currently stored in plaintext. Priority: before adding any additional credentials to .env files anywhere on the system.
+- last_updated: 2026-03-04
+
+### ROUTING_STATE_FALLBACK_MODEL_FIX
+- status: planning
+- hat_sequence: [ops-core]
+- last_completed_step: Discrepancy identified during baseline rebuild
+- next_action: Update ROUTING_STATE.md to correctly distinguish global hard fallback (openai/gpt-5.2-chat-latest in os/model-routing.js) from route-level fallback (openrouter/nvidia/nemotron-nano-9b-v2:free)
+- blocking_issue: none
+- relevant_files: project_source/ROUTING_STATE.md, os/model-routing.js
+- notes: Low priority. Creates paper truth but has no operational impact.
+- last_updated: 2026-03-04
+
+### PINCHTAB_AUTOSTART_DECISION
+- status: planning
+- hat_sequence: [ops-core]
+- last_completed_step: Pinchtab installed and verified; autostart intentionally deferred
+- next_action: Bryan to decide: cron-based autostart, launch-on-demand, or dashboard mode. Then implement and document in SKILL_REGISTRY.md notes.
+- blocking_issue: Decision needed from Bryan before implementation
+- relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
+- notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env.
+- last_updated: 2026-03-04
 
 ---
 

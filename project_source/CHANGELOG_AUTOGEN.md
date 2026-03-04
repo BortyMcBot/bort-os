@@ -6,6 +6,14 @@ This file records **structural** changes (not diff dumps). Keep entries concise.
 
 ## 2026-03-04
 
+- Installed Pinchtab browser automation bridge via npm install -g pinchtab.
+- Resolved Chrome binary conflict: snap Chromium was winning PATH; fixed by setting CHROME_BINARY=/usr/bin/google-chrome-stable in ~/.pinchtab/.env.
+- Set CHROME_FLAGS=--no-sandbox and BRIDGE_BIND=127.0.0.1 in ~/.pinchtab/.env.
+- Persistent Chrome profile confirmed working at /root/.pinchtab/chrome-profile.
+- Pinchtab skill file registered at /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md.
+- SKILL_REGISTRY.md updated: Pinchtab added under Research & Web (ops-core, web, resale).
+- PROMPT_ANTIPATTERNS.md updated: antipatterns 10-13 added (auth header, SingletonLock, snap Chrome PATH conflict, --no-sandbox requirement).
+- Baseline rebuilt: stale fallbackModel corrected, drift check clean.
 - Template 5 updated to include git push (externalStateChange + approvalNeeded set to true).
 - Created `BORT_INTERESTS.md` to define topics, curated accounts, and voice notes.
 - `x_digest_job.js` updated to score tweets against interests and write scored digest output.
@@ -101,6 +109,54 @@ Details:
 ---
 
 ## Drift Report — Mar 03, 2026 • 4:06 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:34 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:34 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:35 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:36 PM (America/Phoenix)
 
 - severity: HIGH
 - impact_area: architecture
