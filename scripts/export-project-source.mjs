@@ -21,6 +21,11 @@ const CANONICAL_FILES = [
   'ROUTING_STATE.md',
   'OPERATIONS_STATE.md',
   'CHANGELOG_AUTOGEN.md',
+  'SKILL_REGISTRY.md',
+  'PROJECTS_ACTIVE.md',
+  'PROMPT_ANTIPATTERNS.md',
+  'HAT_OS_RESOLUTION.md',
+  'CLAUDE_SESSION_OPENER.md',
 ]
 
 function nowPhoenixStamp() {

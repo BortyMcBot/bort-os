@@ -135,8 +135,11 @@ function validateEnvelope(envelope) {
     if (!(f in envelope)) issues.push(f);
   }
 
+  const HAT_ALIASES = { os: 'ops-core' };
+  const resolvedHat = HAT_ALIASES[envelope.hat] || envelope.hat;
+
   // Basic enum checks
-  if ('hat' in envelope && !(envelope.hat in HATS)) issues.push('hat');
+  if ('hat' in envelope && !(resolvedHat in HATS)) issues.push('hat');
   if (
     'taskType' in envelope &&
     !['classify', 'summarize', 'code', 'spec', 'research', 'ops'].includes(envelope.taskType)
@@ -168,12 +171,12 @@ function validateEnvelope(envelope) {
   }
 
   // Hat membership rules: identity context
-  const hat = HATS[envelope.hat];
+  const hat = HATS[resolvedHat];
   if (!hat.allowedIdentityContexts.includes(envelope.identityContext)) {
     return {
       ok: false,
       ask: askWithFallback([
-        `identityContext (${hat.allowedIdentityContexts.join('|')}) for hat=${envelope.hat}`,
+        `identityContext (${hat.allowedIdentityContexts.join('|')}) for hat=${resolvedHat}`,
       ]),
     };
   }
@@ -183,7 +186,7 @@ function validateEnvelope(envelope) {
     return {
       ok: false,
       ask: askWithFallback([
-        `taskType (${hat.allowedTaskTypes.join('|')}) for hat=${envelope.hat}`,
+        `taskType (${hat.allowedTaskTypes.join('|')}) for hat=${resolvedHat}`,
       ]),
     };
   }
@@ -213,7 +216,7 @@ function validateEnvelope(envelope) {
 
   // Inbox hard rule: never use human Gmail for tool/platform registrations unless explicitly instructed.
   // Enforced via explicit action naming in envelope.
-  if (envelope.hat === 'inbox') {
+  if (resolvedHat === 'inbox') {
     const actions = envelope.actions.map(String);
     const looksLikeSignup = actions.some((a) => /sign\s*up|register|create\s*account/i.test(a));
     if (looksLikeSignup && envelope.identityContext === 'human') {

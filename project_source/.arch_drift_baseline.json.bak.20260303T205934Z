@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "updatedPhoenix": "Feb 27, 2026 • 2:15 PM",
+  "topLevelDirs": [
+    ".openclaw",
+    "assets",
+    "bort-ui",
+    "dist",
+    "drafts",
+    "integrations",
+    "memory",
+    "notes",
+    "os",
+    "project_source",
+    "scripts",
+    "skills",
+    "source"
+  ],
+  "impl": {
+    "os/preflight.js": {
+      "sha256": "bec973a6c170841711365344fe8ff5cd5bfcf0ddd9c00abe4104881b5a8f83c8",
+      "hatAllowlist": [
+        "inbox",
+        "ops-core",
+        "resale",
+        "web"
+      ]
+    },
+    "os/model-routing.js": {
+      "sha256": "8750d5dc361bf6f07826ed3846d8b9cd4711f8398308f0ac82ef360bdf597c52",
+      "routing": {
+        "categories": [
+          "code_ops",
+          "lightweight",
+          "research_web",
+          "social_drafting",
+          "spec_large"
+        ],
+        "routes": {
+          "code_ops": [
+            "openai-codex/gpt-5.2",
+            "openai-codex/gpt-5.2-codex",
+            "openai/codex-mini-latest",
+            "openai/gpt-5.2",
+            "openai/gpt-5.2-pro",
+            "openrouter/anthropic/claude-3.7-sonnet"
+          ],
+          "lightweight": [
+            "openrouter/google/gemini-2.5-flash-lite",
+            "openai/gpt-4.1-nano",
+            "openai/gpt-4.1-mini",
+            "openai/gpt-5.2-chat-latest"
+          ],
+          "research_web": [
+            "openai/gpt-5.2-pro",
+            "openai/gpt-5.2",
+            "openrouter/openai/o3-mini-high",
+            "openrouter/anthropic/claude-3.7-sonnet"
+          ],
+          "social_drafting": [
+            "openai/gpt-5.2-chat-latest",
+            "openrouter/google/gemini-2.5-flash-lite",
+            "openai/gpt-4.1-mini"
+          ],
+          "spec_large": [
+            "openai/gpt-5.2-pro",
+            "openai/gpt-5.2",
+            "openrouter/anthropic/claude-3.7-sonnet"
+          ]
+        },
+        "fallbackModel": "openai/gpt-5.2-chat-latest"
+      }
+    },
+    "bort-ui/vite.config.ts": {
+      "sha256": "6e4791e610d9e53ad87267f2b7fc24337edf56ced10086a174b1eb140756f985",
+      "vite": {
+        "host": "0.0.0.0",
+        "port": 18888,
+        "strictPort": true,
+        "proxyTarget": "http://127.0.0.1:18790"
+      }
+    },
+    "bort-ui/scripts/free-ports.mjs": {
+      "sha256": "71b9695b86941a07c6ad2f842209aa18e177c71bbee1cc61f21bc1daf0d0b043",
+      "ports": [
+        18790,
+        18888
+      ]
+    }
+  },
+  "projectSource": [
+    {
+      "file": "project_source/FILE_INDEX.md",
+      "rawSha256": "ca28f53485a259bcb09cad6e09f278dc7db61f85e9ca14f36adaf1d9abce0e80",
+      "normalizedSha256": "ca28f53485a259bcb09cad6e09f278dc7db61f85e9ca14f36adaf1d9abce0e80"
+    },
+    {
+      "file": "project_source/SYSTEM_CONTEXT.md",
+      "rawSha256": "4b4c27b8739452642d01bda63d9ea12d075cdf10961fc5c573882e47587313a5",
+      "normalizedSha256": "4b4c27b8739452642d01bda63d9ea12d075cdf10961fc5c573882e47587313a5"
+    },
+    {
+      "file": "project_source/ARCHITECTURE_SUMMARY.md",
+      "rawSha256": "c022daa4cd30dec8a76c6533a2e456063504a9ff38c6170cc52aa363d7b49096",
+      "normalizedSha256": "c022daa4cd30dec8a76c6533a2e456063504a9ff38c6170cc52aa363d7b49096"
+    },
+    {
+      "file": "project_source/ROUTING_STATE.md",
+      "rawSha256": "d53409c3abca1f1927c744bac00f953c61aef1bb237c53131cfacb9b68639545",
+      "normalizedSha256": "d53409c3abca1f1927c744bac00f953c61aef1bb237c53131cfacb9b68639545"
+    },
+    {
+      "file": "project_source/OPERATIONS_STATE.md",
+      "rawSha256": "7a84f4636a62a61fd967d3bcf17bb13ca5701f83f431869348397a6dc330a8e4",
+      "normalizedSha256": "7a84f4636a62a61fd967d3bcf17bb13ca5701f83f431869348397a6dc330a8e4"
+    },
+    {
+      "file": "project_source/CHANGELOG_AUTOGEN.md",
+      "rawSha256": "a9adaaf75371a7f1cbb85b2538a00f3216d1925ec45d1edc45e728134750695e",
+      "normalizedSha256": "a9adaaf75371a7f1cbb85b2538a00f3216d1925ec45d1edc45e728134750695e"
+    }
+  ]
+}

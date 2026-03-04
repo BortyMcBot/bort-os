@@ -12,7 +12,6 @@ const crypto = require('crypto');
 const xb = require('./x_budget');
 
 const X_BASE = 'https://api.x.com';
-const TOKEN_URL = 'https://api.x.com/2/oauth2/token';
 
 function loadOpenClawEnvVars() {
   const p = '/root/.openclaw/openclaw.json';
@@ -24,19 +23,6 @@ function loadOpenClawEnvVars() {
   } catch {
     return {};
   }
-}
-
-function updateOpenClawEnvVars(patch) {
-  const p = '/root/.openclaw/openclaw.json';
-  const raw = fs.readFileSync(p, 'utf8');
-  const cfg = JSON.parse(raw);
-  cfg.env = cfg.env || {};
-  cfg.env.vars = cfg.env.vars || {};
-  for (const [k, v] of Object.entries(patch)) {
-    if (v == null) continue;
-    cfg.env.vars[k] = String(v);
-  }
-  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
 }
 
 function mergedEnv() {
@@ -119,53 +105,82 @@ function extractJson(obj, paths) {
   return out;
 }
 
-async function refreshAccessToken(envObj) {
-  const refreshToken = envObj.X_REFRESH_TOKEN;
-  const clientId = envObj.X_CLIENT_ID;
-  const clientSecret = envObj.X_CLIENT_SECRET;
-  if (!refreshToken || !clientId) return { ok: false, status: 0 };
+function pctEncode(s) {
+  return encodeURIComponent(String(s))
+    .replace(/[!*()']/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+}
 
-  const form = new URLSearchParams({
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken,
-    client_id: clientId,
-  });
+function collectQueryParams(urlObj) {
+  const params = [];
+  for (const [k, v] of urlObj.searchParams.entries()) {
+    params.push([k, v]);
+  }
+  return params;
+}
 
-  const headers = {
-    'content-type': 'application/x-www-form-urlencoded',
+function buildOAuthHeader({ method, urlObj, consumerKey, consumerSecret, token, tokenSecret }) {
+  const oauthParams = {
+    oauth_consumer_key: consumerKey,
+    oauth_nonce: crypto.randomBytes(16).toString('hex'),
+    oauth_signature_method: 'HMAC-SHA1',
+    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+    oauth_token: token,
+    oauth_version: '1.0',
   };
 
-  if (clientSecret) {
-    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    headers.authorization = `Basic ${basic}`;
-  }
+  const allParams = [];
+  for (const [k, v] of Object.entries(oauthParams)) allParams.push([k, v]);
+  for (const [k, v] of collectQueryParams(urlObj)) allParams.push([k, v]);
 
-  const res = await fetch(TOKEN_URL, { method: 'POST', headers, body: form.toString() });
-  const text = await res.text();
-  if (!res.ok) return { ok: false, status: res.status };
+  allParams.sort((a, b) => {
+    if (a[0] === b[0]) return String(a[1]).localeCompare(String(b[1]));
+    return String(a[0]).localeCompare(String(b[0]));
+  });
 
-  try {
-    const j = JSON.parse(text);
-    const access = j.access_token;
-    const refresh = j.refresh_token || refreshToken;
-    if (access) {
-      updateOpenClawEnvVars({ X_ACCESS_TOKEN: access, X_REFRESH_TOKEN: refresh });
-      return { ok: true, status: res.status };
-    }
-  } catch {
-    // ignore
-  }
+  const paramString = allParams.map(([k, v]) => `${pctEncode(k)}=${pctEncode(v)}`).join('&');
+  const baseUrl = `${urlObj.origin}${urlObj.pathname}`;
+  const baseString = [String(method).toUpperCase(), pctEncode(baseUrl), pctEncode(paramString)].join('&');
+  const signingKey = `${pctEncode(consumerSecret)}&${pctEncode(tokenSecret)}`;
+  const signature = crypto.createHmac('sha1', signingKey).update(baseString).digest('base64');
 
-  return { ok: false, status: res.status };
+  const headerParams = { ...oauthParams, oauth_signature: signature };
+  const header =
+    'OAuth ' +
+    Object.keys(headerParams)
+      .sort()
+      .map((k) => `${pctEncode(k)}="${pctEncode(headerParams[k])}"`)
+      .join(', ');
+
+  return header;
 }
 
 async function doRequest({ actionType, method, endpoint, body, extractJsonPaths, envObj, estimateUsd }) {
   const m = String(method || 'GET').toUpperCase();
   const ep = normalizeEndpoint(endpoint);
+  const urlObj = new URL(X_BASE + ep);
 
-  const token = must(envObj, 'X_ACCESS_TOKEN');
-  const url = X_BASE + ep;
-  const headers = { authorization: `Bearer ${token}` };
+  const headers = {};
+
+  if (m === 'GET') {
+    const bearer = must(envObj, 'X_BEARER_TOKEN');
+    headers.authorization = `Bearer ${bearer}`;
+  } else if (m === 'POST' || m === 'DELETE') {
+    const consumerKey = must(envObj, 'X_API_KEY');
+    const consumerSecret = must(envObj, 'X_API_SECRET');
+    const token = must(envObj, 'X_ACCESS_TOKEN');
+    const tokenSecret = must(envObj, 'X_ACCESS_TOKEN_SECRET');
+    headers.authorization = buildOAuthHeader({
+      method: m,
+      urlObj,
+      consumerKey,
+      consumerSecret,
+      token,
+      tokenSecret,
+    });
+  } else {
+    const bearer = must(envObj, 'X_BEARER_TOKEN');
+    headers.authorization = `Bearer ${bearer}`;
+  }
 
   let requestBody;
   if (body !== undefined && body !== null) {
@@ -178,7 +193,7 @@ async function doRequest({ actionType, method, endpoint, body, extractJsonPaths,
   let extracted = null;
 
   try {
-    const res = await fetch(url, { method: m, headers, body: requestBody });
+    const res = await fetch(urlObj.toString(), { method: m, headers, body: requestBody });
     executed = true;
     status = res.status;
 
@@ -229,7 +244,7 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
 
   const envObj = mergedEnv();
 
-  let { status, extracted } = await doRequest({
+  const { status, extracted } = await doRequest({
     actionType,
     method: m,
     endpoint: ep,
@@ -238,34 +253,6 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
     envObj,
     estimateUsd,
   });
-
-  if (status === 401) {
-    const refreshed = await refreshAccessToken(envObj);
-    if (refreshed.ok) {
-      const retryGate = xb.guardOrQueue({
-        actionType: `${actionType || 'other'}:retry`,
-        method: m,
-        endpoint: ep,
-        details: 'retry-after-refresh',
-      });
-      if (!retryGate.ok) {
-        return { ok: false, blocked: true, reason: 'blocked_by_budget', estimateUsd, actionId };
-      }
-
-      const envObjRetry = mergedEnv();
-      const retry = await doRequest({
-        actionType,
-        method: m,
-        endpoint: ep,
-        body,
-        extractJsonPaths,
-        envObj: envObjRetry,
-        estimateUsd,
-      });
-      status = retry.status;
-      extracted = retry.extracted;
-    }
-  }
 
   return { ok: true, status, estimateUsd, actionId, extracted };
 }

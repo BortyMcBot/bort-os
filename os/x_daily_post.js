@@ -15,6 +15,7 @@ function notify(message) {
 const WORKSPACE = process.cwd();
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'x_daily_post.log.md');
 const RESULTS_PATH = path.join(WORKSPACE, 'memory', 'x_post_results.log.md');
+const SCORED_PATH = path.join(WORKSPACE, 'memory', 'x_digest_scored.md');
 
 function nowPhoenixStamp() {
   const dtf = new Intl.DateTimeFormat('en-CA', {
@@ -75,12 +76,12 @@ function latestCommitSubjects(n = 3) {
   }
 }
 
-function buildTweet() {
+function buildFallbackTweet() {
   const commits = latestCommitSubjects(3);
   if (commits.length) {
     const lead = commits[0].replace(/^feat\([^)]*\):\s*/i, '').replace(/^docs\([^)]*\):\s*/i, '').trim();
     let t = `Daily build note 👾 Today I worked on: ${lead}. Keeping Bort tighter, safer, and more reliable each day.`;
-    if (t.length <= 240) return t;
+    if (t.length <= 280) return t;
   }
 
   const fallbacks = [
@@ -91,41 +92,167 @@ function buildTweet() {
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
 
+function parseScoredEntries(raw) {
+  const entries = [];
+  const re = /---\s*\n([\s\S]*?)\n---/g;
+  let m;
+  while ((m = re.exec(raw))) {
+    const block = m[1];
+    const get = (key) => {
+      const mm = block.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+      return mm ? mm[1].trim() : '';
+    };
+    const ts = get('timestamp');
+    const score = Number(get('score')) || 0;
+    const tweetUrl = get('tweet_url');
+    const excerpt = get('excerpt');
+    const source = get('source_account');
+    const tweetId = get('tweet_id');
+    entries.push({
+      timestamp: ts,
+      score,
+      tweetUrl,
+      excerpt,
+      source,
+      tweetId,
+    });
+  }
+  return entries;
+}
+
+function loadRecentScoredEntries(hours = 24) {
+  if (!fs.existsSync(SCORED_PATH)) return [];
+  const raw = fs.readFileSync(SCORED_PATH, 'utf8');
+  const entries = parseScoredEntries(raw);
+  const cutoff = Date.now() - hours * 3600 * 1000;
+  return entries.filter((e) => {
+    const t = Date.parse(e.timestamp || '');
+    return Number.isFinite(t) && t >= cutoff;
+  });
+}
+
+function pickAnchor(entries) {
+  if (!entries.length) return null;
+  return entries.sort((a, b) => b.score - a.score)[0];
+}
+
+function dayRotationType() {
+  const day = new Date().getUTCDay();
+  const mod = day % 3;
+  if (mod === 0) return 'original_take';
+  if (mod === 1) return 'quote_tweet';
+  return 'link_post';
+}
+
+function enforceLength(t, limit = 280) {
+  const text = String(t || '').replace(/\s+/g, ' ').trim();
+  if (text.length <= limit) return text;
+
+  const hard = text.slice(0, limit - 1);
+  const punct = Math.max(hard.lastIndexOf('.'), hard.lastIndexOf('!'), hard.lastIndexOf('?'), hard.lastIndexOf(';'), hard.lastIndexOf(':'));
+  if (punct > 40) return hard.slice(0, punct + 1);
+
+  const space = hard.lastIndexOf(' ');
+  if (space > 40) return hard.slice(0, space);
+
+  return hard + '…';
+}
+
+function cleanExcerpt(excerpt, maxLen = 160) {
+  let t = String(excerpt || '').replace(/\s+/g, ' ').trim();
+  t = t.replace(/(\.\.\.|…)+$/g, '').trim();
+  if (!t) return '';
+  if (t.length > maxLen) {
+    const slice = t.slice(0, maxLen);
+    const punct = Math.max(slice.lastIndexOf('.'), slice.lastIndexOf('!'), slice.lastIndexOf('?'));
+    if (punct > 40) return slice.slice(0, punct + 1);
+    const space = slice.lastIndexOf(' ');
+    if (space > 40) return slice.slice(0, space);
+    return slice;
+  }
+  return t;
+}
+
+function buildPostFromAnchor(type, anchor) {
+  const topic = cleanExcerpt(anchor?.excerpt || '');
+  const url = anchor?.tweetUrl || '';
+
+  if (type === 'original_take') {
+    const base = `Curious how often “shipping faster” becomes “we skipped thinking.” ${topic}`.trim();
+    return { text: enforceLength(base), quoteUrl: null };
+  }
+
+  if (type === 'quote_tweet') {
+    const base = `Quote-tweet: ${url} — I like the direction, but I’m allergic to hype-without-proof. Show the numbers and the edge cases.`;
+    return { text: enforceLength(base), quoteUrl: url };
+  }
+
+  const base = `${url} — Worth a look if you care about the boring parts that make systems actually stick.`;
+  return { text: enforceLength(base), quoteUrl: null };
+}
+
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
   const ts = nowPhoenixStamp();
 
-  if (hadTweetWithinHours(20)) {
+  if (!dryRun && hadTweetWithinHours(20)) {
     appendLog([`## ${ts}`, '- status: skipped', '- reason: already_posted_recently']);
     console.log('x_daily_post: skipped (already posted recently)');
     return;
   }
 
-  // Preflight auth check (attempt refresh via xCall if needed)
-  const health = await xCall({
-    actionType: 'lookup',
-    method: 'GET',
-    endpoint: '/2/users/me',
-    details: 'preflight auth check',
-    costUsdOverride: 0.005,
-  });
-  if (health.status === 401) {
-    notify('X daily post failed: auth invalid after refresh attempt.');
-    return;
+  if (!dryRun) {
+    // Preflight auth check (attempt refresh via xCall if needed)
+    const health = await xCall({
+      actionType: 'lookup',
+      method: 'GET',
+      endpoint: '/2/users/me',
+      details: 'preflight auth check',
+      costUsdOverride: 0.005,
+    });
+    if (health.status === 401) {
+      notify('X daily post failed: auth invalid after refresh attempt.');
+      return;
+    }
   }
 
-  const text = buildTweet().slice(0, 240);
+  const recent = loadRecentScoredEntries(24);
+  const anchor = pickAnchor(recent);
+  const postType = dayRotationType();
+
+  let text = '';
+  let quoteUrl = null;
+  let anchorExcerpt = anchor?.excerpt || '';
+  if (anchor) {
+    const built = buildPostFromAnchor(postType, anchor);
+    text = built.text;
+    quoteUrl = built.quoteUrl;
+  } else {
+    text = buildFallbackTweet();
+    anchorExcerpt = '(no recent scored entries; fallback to commits)';
+  }
+
   if (dryRun) {
+    const count = text.length;
     console.log('x_daily_post dry-run:');
+    console.log(`post_type: ${postType}`);
+    console.log(`anchor_excerpt: ${anchorExcerpt}`);
+    console.log(`char_count: ${count}`);
     console.log(text);
     return;
   }
+
+  appendLog([
+    `## ${ts}`,
+    `- post_type: ${postType}`,
+    `- anchor: ${anchor?.tweetUrl || '(fallback)'}`,
+  ]);
 
   const res = await xCall({
     actionType: 'tweet',
     method: 'POST',
     endpoint: '/2/tweets',
-    body: { text },
+    body: quoteUrl ? { text, quote_tweet_id: anchor?.tweetId } : { text },
     details: 'x_daily_post minimum one per day',
     costUsdOverride: 0.02,
     extractJsonPaths: ['data.id', 'data.text'],

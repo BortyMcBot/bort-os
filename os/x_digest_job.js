@@ -13,6 +13,8 @@ const { xCall } = require('./x_call');
 
 const LOG_PATH = path.join(process.cwd(), 'memory', 'x_digest.log.md');
 const STATE_PATH = path.join(process.cwd(), 'memory', 'x_digest_state.json');
+const SCORED_PATH = path.join(process.cwd(), 'memory', 'x_digest_scored.md');
+const INTERESTS_PATH = path.join(process.cwd(), 'project_source', 'BORT_INTERESTS.md');
 
 function nowPhoenixStamp() {
   // ISO-ish stamp in America/Phoenix
@@ -54,6 +56,12 @@ function ensureLogFile() {
   );
 }
 
+function ensureScoredFile() {
+  if (fs.existsSync(SCORED_PATH)) return;
+  fs.mkdirSync(path.dirname(SCORED_PATH), { recursive: true });
+  fs.writeFileSync(SCORED_PATH, '', { flag: 'wx' });
+}
+
 function excerpt(s, n = 140) {
   const t = String(s || '').replace(/\s+/g, ' ').trim();
   if (t.length <= n) return t;
@@ -73,6 +81,98 @@ function pickAccount(curated, state) {
   return { acct, nextIndex };
 }
 
+function readInterestsTopics() {
+  try {
+    const raw = fs.readFileSync(INTERESTS_PATH, 'utf8');
+    const lines = raw.split('\n');
+    const topics = [];
+    let inSection = false;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('## ')) {
+        inSection = trimmed.toLowerCase() === '## topic domains';
+        continue;
+      }
+      if (!inSection) continue;
+      if (trimmed.startsWith('- ')) {
+        const topic = trimmed.slice(2).trim();
+        if (topic) topics.push(topic);
+      }
+    }
+    return topics;
+  } catch {
+    return [];
+  }
+}
+
+function tokenize(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function scoreTweet(text, topicDomains) {
+  const tokens = new Set(tokenize(text));
+  let score = 0;
+  const matched = [];
+
+  for (const topic of topicDomains) {
+    const topicTokens = tokenize(topic);
+    let overlap = 0;
+    for (const t of topicTokens) {
+      if (tokens.has(t)) overlap += 1;
+    }
+    if (overlap > 0) {
+      matched.push(topic);
+      score += overlap;
+    }
+  }
+
+  return { score, matchedTopics: matched };
+}
+
+function parseScoredEntries(raw) {
+  const entries = [];
+  const re = /---\s*\n([\s\S]*?)\n---/g;
+  let m;
+  while ((m = re.exec(raw))) {
+    const block = m[1];
+    const tsMatch = block.match(/^timestamp:\s*(.+)$/m);
+    const ts = tsMatch ? new Date(tsMatch[1].trim()).getTime() : null;
+    entries.push({ raw: `---\n${block}\n---`, ts });
+  }
+  return entries;
+}
+
+function pruneAndWriteScored(newEntries) {
+  ensureScoredFile();
+  const raw = fs.readFileSync(SCORED_PATH, 'utf8');
+  const existing = parseScoredEntries(raw);
+  const cutoff = Date.now() - 72 * 60 * 60 * 1000;
+  const kept = existing.filter((e) => e.ts && e.ts >= cutoff);
+  const merged = [...kept, ...newEntries];
+  const out = merged.map((e) => e.raw).join('\n\n');
+  fs.writeFileSync(SCORED_PATH, out + (out ? '\n' : ''));
+}
+
+function buildScoredEntry({ timestamp, sourceAccount, tweetId, score, matchedTopics, excerptText }) {
+  const matched = JSON.stringify(matchedTopics || []);
+  const lines = [
+    '---',
+    `timestamp: ${timestamp}`,
+    `source_account: ${sourceAccount}`,
+    `tweet_id: ${tweetId}`,
+    `tweet_url: https://x.com/${sourceAccount}/status/${tweetId}`,
+    `score: ${score}`,
+    `matched_topics: ${matched}`,
+    `excerpt: ${excerpt(excerptText, 200)}`,
+    '---',
+  ];
+  return lines.join('\n');
+}
+
 async function main() {
   ensureLogFile();
 
@@ -88,6 +188,8 @@ async function main() {
     { username: 'github' },
     { username: 'PostHog' },
   ];
+
+  const topicDomains = readInterestsTopics();
 
   const state = safeReadJson(STATE_PATH, { nextIndex: 0 });
   const { acct, nextIndex } = pickAccount(curated, state);
@@ -109,13 +211,17 @@ async function main() {
     costUsdOverride: 0.005,
   });
   if (health.status === 401) {
-    appendDigest({
-      ts_phoenix: nowPhoenixStamp(),
-      endpoints: ['/2/users/me'],
-      statusCodes: [401],
-      ingested: 0,
-      skipped: 0,
-    }, acct, []);
+    appendDigest(
+      {
+        ts_phoenix: nowPhoenixStamp(),
+        endpoints: ['/2/users/me'],
+        statusCodes: [401],
+        ingested: 0,
+        skipped: 0,
+      },
+      acct,
+      []
+    );
     writeJsonAtomic(STATE_PATH, { nextIndex });
     return;
   }
@@ -182,40 +288,6 @@ async function main() {
 
   const items = Array.isArray(tweets.extracted?.data) ? tweets.extracted.data : [];
 
-  const DEVOPS_KEYWORDS = [
-    'openclaw',
-    'automation',
-    'tool',
-    'tools',
-    'workflow',
-    'ops',
-    'devops',
-    'deploy',
-    'deployment',
-    'incident',
-    'postmortem',
-    'debug',
-    'perf',
-    'performance',
-    'latency',
-    'security',
-    'vuln',
-    'ci',
-    'tests',
-    'github',
-    'cloudflare',
-    'vercel',
-    'remix',
-    'react',
-    'shopify',
-    'hydrogen',
-  ];
-
-  function isDevOps(text) {
-    const s = String(text || '').toLowerCase();
-    return DEVOPS_KEYWORDS.some((k) => s.includes(k));
-  }
-
   function isExcludedTweet(t) {
     const text = String(t?.text || '').trim();
     if (!text) return true;
@@ -225,27 +297,56 @@ async function main() {
     if (text.startsWith('@')) return true;
     // If author_id isn't the resolved user, skip
     if (t?.author_id && String(t.author_id) !== String(userId)) return true;
-    // Off-topic filter
-    if (!isDevOps(text)) return true;
     return false;
   }
 
-  const filtered = [];
+  const scored = [];
   for (const t of items) {
-    if (filtered.length >= 25) break;
+    if (scored.length >= 25) break;
     if (isExcludedTweet(t)) {
       meta.skipped += 1;
       continue;
     }
-    filtered.push({
+    const { score, matchedTopics } = scoreTweet(t.text, topicDomains);
+    scored.push({
       id: t.id,
-      excerpt: excerpt(t.text, 160),
+      text: t.text,
+      score,
+      matchedTopics,
       url: tweetUrl(resolvedUsername, t.id),
     });
   }
 
+  const topScored = scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  const filtered = topScored.map((t) => ({
+    id: t.id,
+    excerpt: excerpt(t.text, 160),
+    url: t.url,
+  }));
+
   meta.ingested = filtered.length;
   appendDigest(meta, { username: resolvedUsername, userId }, filtered);
+
+  const scoredEntries = topScored.map((t) => ({
+    raw: buildScoredEntry({
+      timestamp: new Date().toISOString(),
+      sourceAccount: resolvedUsername,
+      tweetId: t.id,
+      score: t.score,
+      matchedTopics: t.matchedTopics,
+      excerptText: t.text,
+    }),
+    ts: Date.now(),
+  }));
+
+  if (scoredEntries.length) {
+    pruneAndWriteScored(scoredEntries);
+  } else {
+    pruneAndWriteScored([]);
+  }
 
   writeJsonAtomic(STATE_PATH, { nextIndex });
 }

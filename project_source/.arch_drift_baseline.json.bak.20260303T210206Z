@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "updatedPhoenix": "Mar 03, 2026 • 1:59 PM",
+  "topLevelDirs": [
+    ".openclaw",
+    "assets",
+    "dist",
+    "drafts",
+    "external",
+    "integrations",
+    "memory",
+    "notes",
+    "os",
+    "project_source",
+    "public",
+    "scripts",
+    "skills",
+    "source"
+  ],
+  "impl": {
+    "os/preflight.js": {
+      "sha256": "49fe8a5af1d1423bccdc9b78bca951acf520f072fb4e22b8e27cdad1b87874c7",
+      "hatAllowlist": null
+    },
+    "os/model-routing.js": {
+      "sha256": "96137077a415048d7a1a4701abce24d922ca42e804a92274ce03720469b977b5",
+      "routing": {
+        "categories": [
+          "code_ops",
+          "default",
+          "lightweight",
+          "research_web",
+          "social_drafting",
+          "spec_large"
+        ],
+        "routes": {
+          "code_ops": [
+            "openai-codex/gpt-5.3-codex",
+            "openai-codex/gpt-5.2-codex",
+            "openai-codex/gpt-5.2",
+            "openrouter/nvidia/nemotron-nano-9b-v2:free"
+          ],
+          "lightweight": [
+            "openai-codex/gpt-5.2-codex",
+            "openai-codex/gpt-5.2",
+            "openai-codex/gpt-5.3-codex",
+            "openrouter/nvidia/nemotron-nano-9b-v2:free"
+          ],
+          "research_web": [
+            "openai-codex/gpt-5.3-codex",
+            "openai-codex/gpt-5.2-codex",
+            "openai-codex/gpt-5.2",
+            "openrouter/nvidia/nemotron-nano-9b-v2:free"
+          ],
+          "social_drafting": [
+            "openai-codex/gpt-5.2-codex",
+            "openai-codex/gpt-5.2",
+            "openai-codex/gpt-5.3-codex",
+            "openrouter/nvidia/nemotron-nano-9b-v2:free"
+          ],
+          "spec_large": [
+            "openai-codex/gpt-5.3-codex",
+            "openai-codex/gpt-5.2-codex",
+            "openai-codex/gpt-5.2",
+            "openrouter/nvidia/nemotron-nano-9b-v2:free"
+          ],
+          "default": [
+            "openai-codex/gpt-5.2-codex",
+            "openai-codex/gpt-5.2",
+            "openai-codex/gpt-5.3-codex",
+            "openrouter/nvidia/nemotron-nano-9b-v2:free"
+          ]
+        },
+        "fallbackModel": "openai/gpt-5.2-chat-latest"
+      }
+    }
+  },
+  "projectSource": [
+    {
+      "file": "project_source/FILE_INDEX.md",
+      "rawSha256": "c6aa1ae3bf9f22e456b510746b9266bb02f21c1b248ffebd848d7833b0fa3309",
+      "normalizedSha256": "c6aa1ae3bf9f22e456b510746b9266bb02f21c1b248ffebd848d7833b0fa3309"
+    },
+    {
+      "file": "project_source/SYSTEM_CONTEXT.md",
+      "rawSha256": "7f5007587d6d0d0ce9b622128b1e1cd9de3a5bf40fa395c8e1f0a1f022c9cf14",
+      "normalizedSha256": "7f5007587d6d0d0ce9b622128b1e1cd9de3a5bf40fa395c8e1f0a1f022c9cf14"
+    },
+    {
+      "file": "project_source/ARCHITECTURE_SUMMARY.md",
+      "rawSha256": "cc6524c5ccfde7ad38ecc081a467fc8944bf9692b7636bfa8fc74f8bf58b9df2",
+      "normalizedSha256": "cc6524c5ccfde7ad38ecc081a467fc8944bf9692b7636bfa8fc74f8bf58b9df2"
+    },
+    {
+      "file": "project_source/ROUTING_STATE.md",
+      "rawSha256": "c425f7e7025cb2ab2807ce87ce9cad0919e391dbbc3c0f01231661db555d28b7",
+      "normalizedSha256": "c425f7e7025cb2ab2807ce87ce9cad0919e391dbbc3c0f01231661db555d28b7"
+    },
+    {
+      "file": "project_source/OPERATIONS_STATE.md",
+      "rawSha256": "2db50af738a30ae28143e015d6be1c3791782c6b64df5adf2163b86d935b64e6",
+      "normalizedSha256": "2db50af738a30ae28143e015d6be1c3791782c6b64df5adf2163b86d935b64e6"
+    },
+    {
+      "file": "project_source/CHANGELOG_AUTOGEN.md",
+      "rawSha256": "49d43304fe0d89b0c9d459c0fe3f7cf025b68d81a4761a0171f8cc2673771371",
+      "normalizedSha256": "49d43304fe0d89b0c9d459c0fe3f7cf025b68d81a4761a0171f8cc2673771371"
+    }
+  ]
+}

@@ -13,8 +13,6 @@ const TO_UPLOAD_PATH = path.join(WORKSPACE, 'memory', 'to_upload.md')
 const WATCH_FILES = [
   'os/preflight.js',
   'os/model-routing.js',
-  'bort-ui/vite.config.ts',
-  'bort-ui/scripts/free-ports.mjs',
 ]
 
 function nowPhoenixStamp() {
@@ -73,7 +71,15 @@ function listTopLevelDirs() {
 }
 
 function extractHatAllowlist(preflightText) {
-  // Best-effort parse of: const HATS = { ... };
+  // Preferred: read hats from os/hat-profiles.json (current source of truth).
+  try {
+    const hp = path.join(WORKSPACE, 'os', 'hat-profiles.json')
+    const j = JSON.parse(fs.readFileSync(hp, 'utf8'))
+    const hats = Object.keys(j?.hats || {})
+    if (hats.length) return hats.sort()
+  } catch {}
+
+  // Fallback: best-effort parse of: const HATS = { ... };
   const m = preflightText.match(/const\s+HATS\s*=\s*\{([\s\S]*?)\n\};/)
   if (!m) return null
   const body = m[1]
@@ -121,26 +127,6 @@ function extractRoutingState(routingText) {
     routes: categories,
     fallbackModel: fallback,
   }
-}
-
-function extractViteServer(viteText) {
-  const host = (viteText.match(/host:\s*["']([^"']+)["']/) || [])[1] || null
-  const port = (viteText.match(/port:\s*(\d+)/) || [])[1] ? Number((viteText.match(/port:\s*(\d+)/) || [])[1]) : null
-  const strictPort = /strictPort:\s*true/.test(viteText)
-  const proxyTarget = (viteText.match(/target:\s*["']([^"']+)["']/) || [])[1] || null
-  return { host, port, strictPort, proxyTarget }
-}
-
-function extractFreePorts(freePortsText) {
-  const m = freePortsText.match(/const\s+PORTS\s*=\s*\[([^\]]+)\]/)
-  if (!m) return null
-  const nums = m[1]
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => Number(s))
-    .filter((n) => Number.isFinite(n))
-  return Array.from(new Set(nums)).sort((a, b) => a - b)
 }
 
 function normalizeMdForCosmetic(md) {
@@ -224,12 +210,6 @@ function main() {
     }
     if (rel === 'os/model-routing.js') {
       impl[rel].routing = extractRoutingState(text)
-    }
-    if (rel === 'bort-ui/vite.config.ts') {
-      impl[rel].vite = extractViteServer(text)
-    }
-    if (rel === 'bort-ui/scripts/free-ports.mjs') {
-      impl[rel].ports = extractFreePorts(text)
     }
   }
 
@@ -327,30 +307,6 @@ function main() {
       }
     }
 
-    if (rel === 'bort-ui/vite.config.ts') {
-      const a = prev.vite || {}
-      const b = cur.vite || {}
-      if (a.host !== b.host || a.port !== b.port || a.strictPort !== b.strictPort) {
-        hasBehavioral = true
-        impactAreas.add('dev_ports')
-        details.push(`vite server changed: ${JSON.stringify(a)} -> ${JSON.stringify(b)}`)
-      }
-      if (a.proxyTarget !== b.proxyTarget) {
-        hasBehavioral = true
-        impactAreas.add('dev_ports')
-        details.push(`vite proxy target changed: ${a.proxyTarget} -> ${b.proxyTarget}`)
-      }
-    }
-
-    if (rel === 'bort-ui/scripts/free-ports.mjs') {
-      const a = JSON.stringify(prev.ports || [])
-      const b = JSON.stringify(cur.ports || [])
-      if (a !== b) {
-        hasBehavioral = true
-        impactAreas.add('dev_ports')
-        details.push(`free-ports target ports changed: ${a} -> ${b}`)
-      }
-    }
   }
 
   // Cosmetic drift: project_source files changed only by whitespace/format.
