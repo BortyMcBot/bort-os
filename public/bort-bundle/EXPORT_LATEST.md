@@ -1,6 +1,6 @@
 # Project Source Export (UPLOAD THIS FILE)
 
-Generated: Mar 03, 2026 • 2:02 PM (America/Phoenix)
+Generated: Mar 04, 2026 • 6:01 AM (America/Phoenix)
 
 Changed files since last export:
 - STATE_OF_BORT.md
@@ -211,16 +211,16 @@ Stubs create "paper truth" that can mislead external threads.
 
 # STATE_OF_BORT.md
 
-Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
+Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.2-codex
 - model_resolved_default: openai-codex/gpt-5.2-codex
 - model_fallbacks: openai-codex/gpt-5.2, openrouter/nvidia/nemotron-nano-9b-v2:free
 - allowed_model_count: 6
-- cron_job_count: 6
+- cron_job_count: 7
 - workspace_top_level_dirs: 15
-- workspace_file_count_recursive: 42533
+- workspace_file_count_recursive: 44845
 
 ## Allowed model IDs
 - openrouter/auto
@@ -263,11 +263,12 @@ Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
 - openai-whisper-api
 
 ## Scheduled jobs (cron)
-- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
 - Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
 - Bort bundle update (daily) (cron: 0 6,18 * * * America/Phoenix)
 - Repo hygiene check (daily) (cron: 0 7 * * * America/Phoenix)
 - Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
+- X engagement snapshot (daily 8am) (cron: 0 8 * * * America/Phoenix)
+- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
 - X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
 
 ## Export artifacts
@@ -317,7 +318,7 @@ Output: timeline, root cause, fix, prevention items.
 
 # HAT_STATE.md
 
-Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
+Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -378,7 +379,7 @@ Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
 
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
+Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -399,7 +400,7 @@ Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
 
 # ROUTING_STATE.md
 
-Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
+Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
 
 ## Global configured defaults
 - primary: openai-codex/gpt-5.2-codex
@@ -450,7 +451,7 @@ Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
 
 # OPERATIONS_STATE.md
 
-Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
+Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.
@@ -470,6 +471,25 @@ Generated: Mar 03, 2026, 2:02 PM (America/Phoenix)
 Generated: Feb 25, 2026 • 9:20 AM (America/Phoenix)
 
 This file records **structural** changes (not diff dumps). Keep entries concise.
+
+## 2026-03-04
+
+- Installed Pinchtab browser automation bridge via npm install -g pinchtab.
+- Resolved Chrome binary conflict: snap Chromium was winning PATH; fixed by setting CHROME_BINARY=/usr/bin/google-chrome-stable in ~/.pinchtab/.env.
+- Set CHROME_FLAGS=--no-sandbox and BRIDGE_BIND=127.0.0.1 in ~/.pinchtab/.env.
+- Persistent Chrome profile confirmed working at /root/.pinchtab/chrome-profile.
+- Pinchtab skill file registered at /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md.
+- SKILL_REGISTRY.md updated: Pinchtab added under Research & Web (ops-core, web, resale).
+- PROMPT_ANTIPATTERNS.md updated: antipatterns 10-13 added (auth header, SingletonLock, snap Chrome PATH conflict, --no-sandbox requirement).
+- Baseline rebuilt: stale fallbackModel corrected, drift check clean.
+- Template 5 updated to include git push (externalStateChange + approvalNeeded set to true).
+- Created `BORT_INTERESTS.md` to define topics, curated accounts, and voice notes.
+- `x_digest_job.js` updated to score tweets against interests and write scored digest output.
+- `x_call.js` updated for dual auth: Bearer for GET, OAuth 1.0a for POST/DELETE.
+- `x_daily_post.js` now sources from scored digest with Borty voice and rotation, with commit fallback.
+- Added `x_engagement_job.js` and registered a daily 8am Phoenix cron for read-only metrics snapshots.
+- Added Template 5 session close prompt to `PROMPT_TEMPLATES.md`.
+- Replaced and verified all X credentials in the OpenClaw config.
 
 ## 2026-03-03
 
@@ -542,6 +562,78 @@ Details:
 - route categories changed: ["code_ops","lightweight","research_web","social_drafting","spec_large"] -> ["code_ops","default","lightweight","research_web","social_drafting","spec_large"]
 - route ordering changed for code_ops
 
+---
+
+## Drift Report — Mar 03, 2026 • 4:06 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 4:06 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:34 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:34 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:35 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
+---
+
+## Drift Report — Mar 03, 2026 • 6:36 PM (America/Phoenix)
+
+- severity: HIGH
+- impact_area: architecture
+- changed_files:
+  - os/preflight.js
+
+Details:
+- (no additional details)
+
 ## SKILL_REGISTRY.md
 
 # SKILL_REGISTRY.md
@@ -574,6 +666,7 @@ Format: name | hats | what it does | key inputs | key outputs | notes
 | gemini | web, ops-core | Gemini CLI for one-shot Q&A, summaries, and generation. | Prompt string; optional `--model`, `--output-format`. | CLI stdout (text/JSON). | Requires bin `gemini`. SKILL.md: /usr/lib/node_modules/openclaw/skills/gemini/SKILL.md |
 | gifgrep | web | Search GIF providers (Tenor/Giphy), browse in TUI, download, extract stills/sheets. | Search query; CLI args for download/extract. | GIF files, still images/sheets, CLI output. | Requires bin `gifgrep`. SKILL.md: /usr/lib/node_modules/openclaw/skills/gifgrep/SKILL.md |
 | goplaces | web | Google Places API (New) CLI for text search, place details, reviews; supports `--json`. | Query text/place ID; `--json` for structured output. | Human-readable output or JSON. | Requires bin `goplaces` + env `GOOGLE_PLACES_API_KEY`. SKILL.md: /usr/lib/node_modules/openclaw/skills/goplaces/SKILL.md |
+| pinchtab | ops-core, web, resale | HTTP browser automation bridge — navigate, snapshot a11y tree, extract text, click/type by ref, screenshots, PDF export. Stealth mode, persistent sessions, tab management. | Base URL (default http://localhost:9867), BRIDGE_TOKEN from ~/.pinchtab/.env, tabId for multi-tab ops. CLI: pinchtab nav/snap/text/click/type/ss/pdf/eval | JSON a11y snapshot, plain text extraction, JPEG screenshots, PDF files, health status. | Requires pinchtab binary and Chrome/Chromium. Start server manually before use. Token stored at ~/.pinchtab/.env. SKILL.md: /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md |
 
 
 ### Productivity & Google Workspace
@@ -661,7 +754,37 @@ Purpose: Continuity layer for multi-step projects across sessions.
 
 ---
 
-## Active Projects *(none yet — add entries below as projects begin)*
+## Active Projects
+
+### 1PASSWORD_CLI_SETUP
+- status: planning
+- hat_sequence: [ops-core]
+- last_completed_step: 1password skill confirmed installed but not configured
+- next_action: Set up op CLI auth and migrate ~/.pinchtab/.env token to 1Password vault
+- blocking_issue: none
+- relevant_files: ~/.pinchtab/.env, /usr/lib/node_modules/openclaw/skills/1password/SKILL.md
+- notes: Pinchtab BRIDGE_TOKEN currently stored in plaintext. Priority: before adding any additional credentials to .env files anywhere on the system.
+- last_updated: 2026-03-04
+
+### ROUTING_STATE_FALLBACK_MODEL_FIX
+- status: planning
+- hat_sequence: [ops-core]
+- last_completed_step: Discrepancy identified during baseline rebuild
+- next_action: Update ROUTING_STATE.md to correctly distinguish global hard fallback (openai/gpt-5.2-chat-latest in os/model-routing.js) from route-level fallback (openrouter/nvidia/nemotron-nano-9b-v2:free)
+- blocking_issue: none
+- relevant_files: project_source/ROUTING_STATE.md, os/model-routing.js
+- notes: Low priority. Creates paper truth but has no operational impact.
+- last_updated: 2026-03-04
+
+### PINCHTAB_AUTOSTART_DECISION
+- status: planning
+- hat_sequence: [ops-core]
+- last_completed_step: Pinchtab installed and verified; autostart intentionally deferred
+- next_action: Bryan to decide: cron-based autostart, launch-on-demand, or dashboard mode. Then implement and document in SKILL_REGISTRY.md notes.
+- blocking_issue: Decision needed from Bryan before implementation
+- relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
+- notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env.
+- last_updated: 2026-03-04
 
 ---
 
@@ -694,6 +817,7 @@ What happens: preflight.js rejects the envelope — os is not in the hat allowli
 Why it happens: Conversational shorthand ("Hat: os") bleeds into formal task envelopes.
 Fix: Route os-level tasks through hat:ops-core instead.
 Workaround until fixed: None — envelope will be rejected at preflight.
+Status: RESOLVED (2026-03-03) — Option A implemented. hat:os now aliased to ops-core in os/preflight.js. Envelopes with hat:os will pass preflight and route correctly. This entry is retained for historical reference.
 
 ---
 
@@ -767,6 +891,43 @@ Fix: Split tasks at natural approval gates. One envelope per external state chan
 
 ---
 
+## Antipattern 10: Pinchtab health check without auth header
+What happens: curl to http://localhost:9867/health returns 401 and looks like a server failure.
+Why it happens: BRIDGE_TOKEN is set but health check curl omits the Authorization header.
+Fix: Always include -H "Authorization: Bearer <token>" when curling Pinchtab endpoints.
+Token location: ~/.pinchtab/.env
+
+---
+
+## Antipattern 11: Pinchtab fails to start due to stale SingletonLock
+What happens: Pinchtab cannot launch Chrome against ~/.pinchtab/chrome-profile — Permission denied on SingletonLock.
+Why it happens: A prior Chrome session exited uncleanly and left a lock file behind.
+Fix: Confirm no chrome or pinchtab processes are running, then: rm /root/.pinchtab/chrome-profile/SingletonLock
+Do not use /tmp/pinchtab-profile for persistent sessions — it will not retain cookies or auth.
+
+---
+
+## Antipattern 12: Snap Chromium wins PATH and breaks Pinchtab profile writes
+What happens: Pinchtab repeatedly fails with SingletonLock: Permission denied even after directory recreation, permission changes, and --no-sandbox — because snap-confined Chrome cannot write to /root/ paths outside its sandbox.
+Why it happens: Ubuntu systems with snap Chromium installed resolve `chrome` to the snap binary, which runs in a confined namespace regardless of filesystem permissions.
+Fix: Install Google Chrome via the official .deb AND explicitly set CHROME_BINARY:
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+apt install ./google-chrome-stable_current_amd64.deb
+echo "CHROME_BINARY=/usr/bin/google-chrome-stable" >> ~/.pinchtab/.env
+Verify with: which google-chrome-stable (must be /usr/bin/, not /snap/)
+Do not rely on PATH alone — snap may still win. Always set CHROME_BINARY explicitly.
+
+---
+
+## Antipattern 13: Pinchtab running as root requires --no-sandbox
+What happens: Chrome fails to start when Pinchtab is run as root without sandbox flag.
+Why it happens: Chrome refuses to run as root without explicit sandbox override.
+Fix: Add to ~/.pinchtab/.env: CHROME_FLAGS=--no-sandbox
+This is safe for local-only, loopback-bound instances (BRIDGE_BIND=127.0.0.1).
+Do not use --no-sandbox if Pinchtab is exposed to the network.
+
+---
+
 ## Adding new entries
 When Bort behaves unexpectedly, add an entry with:
 - What happened (observable symptom)
@@ -778,7 +939,7 @@ When Bort behaves unexpectedly, add an entry with:
 
 # HAT_OS_RESOLUTION.md
 Issue: Hat:os is used conversationally but is not defined in the preflight allowlist.
-Status: Open — pending Bryan's decision on resolution path.
+Status: Resolved — Option A implemented (2026-03-03).
 
 ---
 

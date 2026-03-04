@@ -1,6 +1,6 @@
 # STATE_OF_BORT.md
 
-Generated: Mar 03, 2026, 6:00 PM (America/Phoenix)
+Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.2-codex
@@ -9,7 +9,7 @@ Generated: Mar 03, 2026, 6:00 PM (America/Phoenix)
 - allowed_model_count: 6
 - cron_job_count: 7
 - workspace_top_level_dirs: 15
-- workspace_file_count_recursive: 42584
+- workspace_file_count_recursive: 44845
 
 ## Allowed model IDs
 - openrouter/auto
@@ -53,11 +53,11 @@ Generated: Mar 03, 2026, 6:00 PM (America/Phoenix)
 
 ## Scheduled jobs (cron)
 - Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
-- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
 - Bort bundle update (daily) (cron: 0 6,18 * * * America/Phoenix)
 - Repo hygiene check (daily) (cron: 0 7 * * * America/Phoenix)
 - Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
 - X engagement snapshot (daily 8am) (cron: 0 8 * * * America/Phoenix)
+- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
 - X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
 
 ## Export artifacts

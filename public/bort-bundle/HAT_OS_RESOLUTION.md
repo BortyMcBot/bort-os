@@ -1,6 +1,6 @@
 # HAT_OS_RESOLUTION.md
 Issue: Hat:os is used conversationally but is not defined in the preflight allowlist.
-Status: Open — pending Bryan's decision on resolution path.
+Status: Resolved — Option A implemented (2026-03-03).
 
 ---
 
