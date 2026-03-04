@@ -6,6 +6,7 @@ This file records **structural** changes (not diff dumps). Keep entries concise.
 
 ## 2026-03-04
 
+- Template 5 updated to include git push (externalStateChange + approvalNeeded set to true).
 - Created `BORT_INTERESTS.md` to define topics, curated accounts, and voice notes.
 - `x_digest_job.js` updated to score tweets against interests and write scored digest output.
 - `x_call.js` updated for dual auth: Bearer for GET, OAuth 1.0a for POST/DELETE.
