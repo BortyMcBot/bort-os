@@ -80,6 +80,11 @@ Format: name | hats | what it does | key inputs | key outputs | notes
 | notion | ops-core | Notion API for creating/managing pages, databases, blocks. | API key + page/database IDs + payload. | Notion pages/blocks created/updated; API responses. | Requires env `NOTION_API_KEY`. SKILL.md: /usr/lib/node_modules/openclaw/skills/notion/SKILL.md |
 | obsidian | ops-core | Work with Obsidian vaults (Markdown files) via `obsidian-cli`. | Vault path; note path; CLI args. | Markdown files created/updated; CLI output. | Requires bin `obsidian-cli`. SKILL.md: /usr/lib/node_modules/openclaw/skills/obsidian/SKILL.md |
 
+### Automation
+| Skill | Allowed Hats | Description | Key Inputs | Key Outputs | Notes |
+|-------|-------------|-------------|------------|-------------|-------|
+| pr-review | ops-core | Trigger an immediate PR review run on BortyMcBot/bort-os. Invoked via Telegram /pr-review command or directly. | `--silent` flag for quiet mode, `--dry-run` for simulation. | Summary of decisions: merged/flagged/skipped counts + Telegram notifications. | Wraps scripts/pr-review-job.mjs. Cron also runs at 7am + 6pm Phoenix. |
+
 ### Social
 | Skill | Allowed Hats | Description | Key Inputs | Key Outputs | Notes |
 |-------|-------------|-------------|------------|-------------|-------|
