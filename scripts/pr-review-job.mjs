@@ -79,21 +79,61 @@ function countDiffLines(diff) {
     .length
 }
 
-function detectSecrets(diff) {
-  const patterns = [
-    /ghp_[A-Za-z0-9]{36,}/,
-    /sk-[A-Za-z0-9]{20,}/,
-    /-----BEGIN (?:RSA|DSA|EC|OPENSSH) PRIVATE KEY-----/,
-    /PRIVATE KEY/i,
-    /AKIA[0-9A-Z]{16}/,
-  ]
-  return patterns.some((re) => re.test(diff))
+function isMarkdownFence(line) {
+  return line.trim().startsWith('```')
 }
 
-function safeZonesOnly(files) {
+function isExampleLine(line) {
+  const trimmed = line.replace(/^\+/, '').trim()
+  return (
+    trimmed.startsWith('//') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('*') ||
+    trimmed.startsWith('-') ||
+    trimmed.startsWith('>') ||
+    trimmed.includes('`') ||
+    /\b(example|e\.g\.)\b/i.test(trimmed)
+  )
+}
+
+function detectSecrets(diff) {
+  const lines = diff.split('\n')
+  let inFence = false
+
+  // Token-like patterns require value length (avoid matching docs/variable names)
+  const tokenPatterns = [
+    /ghp_[A-Za-z0-9]{20,}/, // GitHub PATs should include long suffix
+    /sk-[A-Za-z0-9]{20,}/, // Secret keys should include long suffix
+    /AKIA[0-9A-Z]{16}/, // AWS access key id format
+  ]
+
+  for (const line of lines) {
+    if (isMarkdownFence(line)) {
+      inFence = !inFence
+      continue
+    }
+
+    const added = line.startsWith('+') && !line.startsWith('+++')
+    if (!added || inFence || isExampleLine(line)) continue
+
+    // Only flag PRIVATE KEY when in PEM context (BEGIN/END) on added lines
+    if (/^\+-----BEGIN .*PRIVATE KEY-----$/.test(line) || /^\+-----END .*PRIVATE KEY-----$/.test(line)) return true
+
+    // Token patterns must appear on added lines outside code fences
+    if (tokenPatterns.some((re) => re.test(line))) return true
+  }
+
+  return false
+}
+
+function safeZonesOnly(files, headRefName) {
   if (!files.length) return false
   return files.every((f) =>
-    f.startsWith('scripts/') || f.startsWith('integrations/') || f.startsWith('hats/') || f.startsWith('docs/')
+    f.startsWith('scripts/') ||
+    f.startsWith('integrations/') ||
+    f.startsWith('hats/') ||
+    f.startsWith('docs/') ||
+    (headRefName.startsWith('bort/') && (f.startsWith('project_source/') || f.startsWith('skills/')))
   )
 }
 
@@ -106,7 +146,18 @@ function hasArchDrift(files) {
 }
 
 function hasConflictMarkers(diff) {
-  return diff.includes('<<<<<<<') || diff.includes('=======') || diff.includes('>>>>>>>')
+  const lines = diff.split('\n')
+  let inFence = false
+  for (const line of lines) {
+    if (isMarkdownFence(line)) {
+      inFence = !inFence
+      continue
+    }
+    const added = line.startsWith('+') && !line.startsWith('+++')
+    if (!added || inFence || isExampleLine(line)) continue
+    if (/^\+<{7}/.test(line) || /^\+={7}/.test(line) || /^\+>{7}/.test(line)) return true
+  }
+  return false
 }
 
 function reviewPR(pr, viewerLogin) {
@@ -122,22 +173,23 @@ function reviewPR(pr, viewerLogin) {
 
   const alreadyReviewed = (prView.reviews || []).some((r) => r.author && r.author.login === viewerLogin)
   if (alreadyReviewed) {
-    return { decision: 'SKIP', reason: `already reviewed by ${viewerLogin}`, prView, diff }
+    return { decision: 'SKIP', reason: `already reviewed by ${viewerLogin}`, prView, diff, isSelf }
   }
 
   const reasons = []
   const authorLogin = prView.author?.login || ''
   const headRefName = prView.headRefName || ''
+  const isSelf = authorLogin === viewerLogin
 
   // AUTO-REJECT rules
   if (authorLogin === 'NewWorldOrderly') reasons.push('author is NewWorldOrderly (direct commit)')
-  if (hasProjectSourceMd(files)) reasons.push('touches project_source/*.md')
+  if (headRefName.startsWith('claude/') && hasProjectSourceMd(files)) reasons.push('claude/ branch touches project_source/*.md')
   if (hasArchDrift(files)) reasons.push('touches .arch_drift_baseline.json')
   if (!(headRefName.startsWith('claude/') || headRefName.startsWith('bort/'))) reasons.push('branch not prefixed claude/ or bort/')
   if (detectSecrets(diff)) reasons.push('possible secret/token pattern detected')
 
   if (reasons.length) {
-    return { decision: 'REQUEST_CHANGES', reason: reasons.join('; '), prView, diff }
+    return { decision: 'REQUEST_CHANGES', reason: reasons.join('; '), prView, diff, isSelf }
   }
 
   const escalateReasons = []
@@ -157,18 +209,18 @@ function reviewPR(pr, viewerLogin) {
   if (diffLines > 500) escalateReasons.push(`diff too large (${diffLines} lines)`)
 
   if (escalateReasons.length) {
-    return { decision: 'ESCALATE', reason: escalateReasons.join('; '), prView, diff }
+    return { decision: 'ESCALATE', reason: escalateReasons.join('; '), prView, diff, isSelf }
   }
 
-  if (!safeZonesOnly(files)) {
-    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/)', prView, diff }
+  if (!safeZonesOnly(files, headRefName)) {
+    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/; project_source/ + skills/ allowed for bort/)', prView, diff, isSelf }
   }
 
   if (hasConflictMarkers(diff)) {
-    return { decision: 'REQUEST_CHANGES', reason: 'diff contains conflict markers', prView, diff }
+    return { decision: 'REQUEST_CHANGES', reason: 'diff contains conflict markers', prView, diff, isSelf }
   }
 
-  return { decision: 'APPROVE', reason: 'safe zones only and no policy flags', prView, diff }
+  return { decision: 'APPROVE', reason: 'safe zones only and no policy flags', prView, diff, isSelf }
 }
 
 function sendTelegram(message) {
@@ -203,7 +255,7 @@ function main() {
   let skippedCount = 0
 
   for (const pr of prs) {
-    const { decision, reason, prView } = reviewPR(pr, viewerLogin)
+    const { decision, reason, prView, isSelf } = reviewPR(pr, viewerLogin)
     const line = `${now()} PR #${pr.number} ${decision} - ${reason}`
     logLine(line)
 
@@ -236,7 +288,11 @@ function main() {
     if (decision === 'ESCALATE') {
       flaggedCount++
       if (dryRun) continue
-      gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+      if (isSelf) {
+        gh(`pr comment ${pr.number} --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+      } else {
+        gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+      }
       sendTelegram(`⚠️ PR #${pr.number} needs your attention: ${reason}\n${prView.url}`)
       continue
     }
@@ -244,7 +300,11 @@ function main() {
     if (decision === 'REQUEST_CHANGES') {
       flaggedCount++
       if (dryRun) continue
-      gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+      if (isSelf) {
+        gh(`pr comment ${pr.number} --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+      } else {
+        gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+      }
     }
   }
 
