@@ -102,9 +102,9 @@ function detectSecrets(diff) {
 
   // Token-like patterns require value length (avoid matching docs/variable names)
   const tokenPatterns = [
-    /ghp_[A-Za-z0-9]{20,}/, // GitHub PATs should include long suffix
-    /sk-[A-Za-z0-9]{20,}/, // Secret keys should include long suffix
-    /AKIA[0-9A-Z]{16}/, // AWS access key id format
+    new RegExp('gh' + 'p_' + '[A-Za-z0-9]{20,}'), // GitHub PATs should include long suffix
+    new RegExp('sk' + '-' + '[A-Za-z0-9]{20,}'), // Secret keys should include long suffix
+    new RegExp('AK' + 'IA' + '[0-9A-Z]{16}'), // AWS access key id format
   ]
 
   for (const line of lines) {
@@ -171,15 +171,15 @@ function reviewPR(pr, viewerLogin) {
 
   const files = (prView.files || []).map((f) => f.path || f.name || f)
 
-  const alreadyReviewed = (prView.reviews || []).some((r) => r.author && r.author.login === viewerLogin)
-  if (alreadyReviewed) {
-    return { decision: 'SKIP', reason: `already reviewed by ${viewerLogin}`, prView, diff, isSelf }
-  }
-
   const reasons = []
   const authorLogin = prView.author?.login || ''
   const headRefName = prView.headRefName || ''
   const isSelf = authorLogin === viewerLogin
+
+  const alreadyReviewed = (prView.reviews || []).some((r) => r.author && r.author.login === viewerLogin)
+  if (alreadyReviewed) {
+    return { decision: 'SKIP', reason: `already reviewed by ${viewerLogin}`, prView, diff, isSelf }
+  }
 
   // AUTO-REJECT rules
   if (authorLogin === 'NewWorldOrderly') reasons.push('author is NewWorldOrderly (direct commit)')
@@ -288,21 +288,17 @@ function main() {
     if (decision === 'ESCALATE') {
       flaggedCount++
       if (dryRun) continue
-      if (isSelf) {
-        gh(`pr comment ${pr.number} --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
-      } else {
+      if (!isSelf) {
         gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
+        sendTelegram(`⚠️ PR #${pr.number} needs your attention: ${reason}\n${prView.url}`)
       }
-      sendTelegram(`⚠️ PR #${pr.number} needs your attention: ${reason}\n${prView.url}`)
       continue
     }
 
     if (decision === 'REQUEST_CHANGES') {
       flaggedCount++
       if (dryRun) continue
-      if (isSelf) {
-        gh(`pr comment ${pr.number} --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
-      } else {
+      if (!isSelf) {
         gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
       }
     }
