@@ -114,3 +114,34 @@ After any claude/ PR merges to main:
 ## Useful Telegram commands (send to @BortyMcBot)
 - /pr-review — trigger immediate PR review
 - /pr-review dry-run — see what would be reviewed without taking action
+
+---
+
+## Ending a Claude Code session
+
+At the end of every session, before closing VSCode:
+
+1. **Commit all changes** on your current claude/* branch
+ - Use conventional commit format: feat:, fix:, chore:, docs:, refactor:
+ - One commit per logical change — don't stack unrelated edits
+
+2. **Push the branch**
+ git push -u origin claude/<your-branch-name>
+
+3. **Open a PR** via the GitHub CLI or VSCode GitHub extension
+ - Title: conventional commit format matching your commit
+ - Body: brief description of what changed and why
+ - Do not assign reviewers — Bort picks up all open PRs automatically
+
+4. **Verify the PR is open** on https://github.com/BortyMcBot/bort-os/pulls
+
+5. **Optionally trigger immediate review** by sending /pr-review to @BortyMcBot on Telegram
+ - Otherwise Bort will review at the next scheduled run (7am or 6pm Phoenix)
+
+6. **Never leave uncommitted changes** on a claude/* branch between sessions
+ - If work is incomplete, commit with a wip: prefix: "wip: <description>"
+ - Bort will skip WIP PRs automatically (see below)
+
+## WIP PRs
+If your PR title starts with "wip:" Bort will skip it during review until the prefix is removed.
+Use this when you want to push work-in-progress without triggering a merge.
