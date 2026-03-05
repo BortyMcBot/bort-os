@@ -8,6 +8,7 @@ const LOG_PATH = path.join(WORKSPACE, 'logs', 'pr-review.log')
 
 const args = new Set(process.argv.slice(2))
 const dryRun = args.has('--dry-run')
+const silent = args.has('--silent')
 const repoArg = process.argv.find((a) => a.startsWith('--repo='))
 const REPO = repoArg ? repoArg.split('=')[1] : (process.env.BORT_OS_REPO || 'BortyMcBot/bort-os')
 
@@ -185,10 +186,21 @@ function main() {
   const list = gh(`pr list --repo ${REPO} --json number,title,headRefName,author,files --state open`)
   const prs = JSON.parse(list)
 
+  if (!silent && !dryRun) {
+    sendTelegram('🔍 PR review starting...')
+  }
+
   if (!prs.length) {
     console.log('No open PRs found.')
+    if (!silent && !dryRun) {
+      sendTelegram('✅ PR review done — no open PRs')
+    }
     return
   }
+
+  let mergedCount = 0
+  let flaggedCount = 0
+  let skippedCount = 0
 
   for (const pr of prs) {
     const { decision, reason, prView } = reviewPR(pr, viewerLogin)
@@ -198,12 +210,21 @@ function main() {
     const summary = `#${pr.number} ${pr.title} → ${decision} (${reason})`
     console.log(summary)
 
-    if (dryRun || decision === 'SKIP') continue
+    if (decision === 'SKIP') {
+      skippedCount++
+      if (dryRun) continue
+      continue
+    }
 
     if (decision === 'APPROVE') {
+      if (dryRun) {
+        mergedCount++
+        continue
+      }
       gh(`pr review ${pr.number} --approve --body ${JSON.stringify('Reviewed by Bort. Merging.')} --repo ${REPO}`)
       try {
         gh(`pr merge ${pr.number} --squash --repo ${REPO}`)
+        mergedCount++
         sendTelegram(`✅ Merged PR #${pr.number}: ${pr.title}`)
       } catch (err) {
         logLine(`${now()} PR #${pr.number} MERGE_FAILED - ${err.message}`)
@@ -213,14 +234,22 @@ function main() {
     }
 
     if (decision === 'ESCALATE') {
+      flaggedCount++
+      if (dryRun) continue
       gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
       sendTelegram(`⚠️ PR #${pr.number} needs your attention: ${reason}\n${prView.url}`)
       continue
     }
 
     if (decision === 'REQUEST_CHANGES') {
+      flaggedCount++
+      if (dryRun) continue
       gh(`pr review ${pr.number} --request-changes --body ${JSON.stringify(reviewBody(reason))} --repo ${REPO}`)
     }
+  }
+
+  if (!silent && !dryRun) {
+    sendTelegram(`✅ PR review done — ${mergedCount} merged, ${flaggedCount} flagged, ${skippedCount} skipped`)
   }
 }
 
