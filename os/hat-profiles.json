@@ -7,7 +7,7 @@
       "allowedIdentityContexts": ["agent"],
       "allowedTaskTypes": ["ops", "research", "spec", "code", "summarize"],
       "defaultDataSensitivity": "low",
-      "allowedSkills": ["project_source_export", "documentation_drift_handling"],
+      "allowedSkills": ["coding-agent", "github", "gh-issues", "openai-image-gen", "bluebubbles"],
       "allowedCommands": [
         "git status",
         "git diff",
@@ -38,8 +38,11 @@
       ],
       "defaultDataSensitivity": "medium",
       "allowedSkills": [
-        "gmail_daily_summary",
-        "gmail_inbox_triage"
+        "himalaya",
+        "apple-notes",
+        "apple-reminders",
+        "bluebubbles",
+        "imsg"
       ],
       "allowedCommands": [
         "node /root/.openclaw/workspace/integrations/gmail/daily-review.js"
@@ -64,7 +67,11 @@
       ],
       "defaultDataSensitivity": "low",
       "allowedSkills": [
-        "web_research"
+        "blogwatcher",
+        "gemini",
+        "gifgrep",
+        "goplaces",
+        "pinchtab"
       ],
       "allowedCommands": [],
       "defaultModelChain": [
@@ -88,7 +95,10 @@
       ],
       "defaultDataSensitivity": "medium",
       "allowedSkills": [
-        "resale_ops"
+        "eightctl",
+        "gog",
+        "nano-banana-pro",
+        "pinchtab"
       ],
       "allowedCommands": [],
       "defaultModelChain": [
@@ -115,8 +125,31 @@
       ],
       "defaultDataSensitivity": "medium",
       "allowedSkills": [
-        "documentation_drift_handling",
-        "project_source_export"
+        "1password",
+        "apple-notes",
+        "apple-reminders",
+        "bear-notes",
+        "blucli",
+        "bluebubbles",
+        "camsnap",
+        "clawhub",
+        "coding-agent",
+        "discord",
+        "eightctl",
+        "gemini",
+        "gh-issues",
+        "github",
+        "healthcheck",
+        "imsg",
+        "mcporter",
+        "model-usage",
+        "nano-pdf",
+        "notion",
+        "obsidian",
+        "openai-image-gen",
+        "openai-whisper",
+        "openai-whisper-api",
+        "pinchtab"
       ],
       "allowedCommands": [
         "node /root/.openclaw/workspace/scripts/arch-drift-check.mjs",

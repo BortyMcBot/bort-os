@@ -1,5 +1,5 @@
 # SKILL_REGISTRY.md
-Generated: Mar 03, 2026
+Generated: Mar 05, 2026
 
 This file documents installed Bort skills with enough detail for prompt construction.
 Format: name | hats | what it does | key inputs | key outputs | notes

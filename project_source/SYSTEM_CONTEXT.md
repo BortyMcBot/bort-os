@@ -46,6 +46,11 @@ node /root/.openclaw/workspace/scripts/export-project-source.mjs --force
 - `ROUTING_STATE.md`
 - `OPERATIONS_STATE.md`
 - `CHANGELOG_AUTOGEN.md` (export includes last 200 lines only)
+- `SKILL_REGISTRY.md`
+- `PROJECTS_ACTIVE.md`
+- `PROMPT_ANTIPATTERNS.md`
+- `HAT_OS_RESOLUTION.md`
+- `CLAUDE_SESSION_OPENER.md`
 
 ## Task Envelope & Hat Enforcement
 
@@ -115,16 +120,18 @@ If a blocklist match occurs, the caller must suppress output and show only a poi
 Source:
 - `os/preflight.js` lines 185–233
 
-### IMPORTANT: conversational “Hat: os” is not an enforced hat
+### Conversational “Hat: os” is aliased to ops-core — RESOLVED 2026-03-03
 
-Some conversational directives may label tasks as `Hat: os`.
-However, `os/preflight.js` does **not** define a hat named `os` in its allowlist.
+Conversational directives that label tasks as `Hat: os` are now handled correctly.
+`os/preflight.js` defines `HAT_ALIASES = { os: 'ops-core' }` — envelopes with `hat=os`
+are resolved to `ops-core` before allowlist validation and will pass preflight.
 
 Source:
-- `os/preflight.js` lines 25–46 (no `os` entry)
 
-If enforcement is active for that execution path, `hat=os` would be rejected.
-Resolving this mismatch requires a behavior change (out of scope for documentation reconciliation).
+- `os/preflight.js` lines 138–139 (HAT_ALIASES mapping)
+
+No action required. See also: `HAT_OS_RESOLUTION.md` (Option A implemented) and
+`PROMPT_ANTIPATTERNS.md` Antipattern 1 (status: RESOLVED).
 
 ## Documentation Integrity & Drift Enforcement
 

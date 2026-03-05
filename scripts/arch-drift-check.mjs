@@ -93,7 +93,7 @@ function extractHatAllowlist(preflightText) {
 
 function extractRoutingState(routingText) {
   // Extract ROUTES object categories and ordering. Best-effort; does not execute JS.
-  const m = routingText.match(/const\s+ROUTES\s*=\s*\{([\s\S]*?)\n\};/)
+  const m = routingText.match(/const\s+ROUTES\s*=\s*\{([\s\S]*?)\n\s*\};/)
   if (!m) return null
   const body = m[1]
 

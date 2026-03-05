@@ -54,6 +54,16 @@ function loadHatProfiles() {
         allowedTaskTypes: ['ops', 'code', 'spec', 'research', 'summarize', 'classify'],
         defaultDataSensitivity: 'medium',
       },
+      autonomous: {
+        allowedIdentityContexts: ['agent'],
+        allowedTaskTypes: ['ops', 'research', 'spec', 'code', 'summarize'],
+        defaultDataSensitivity: 'low',
+        allowedSkills: ['project_source_export', 'documentation_drift_handling'],
+        allowedCommands: [
+          'git status', 'git diff', 'git add', 'git commit', 'git push',
+          'gh pr create', 'gh pr edit',
+        ],
+      },
     };
   }
 }
