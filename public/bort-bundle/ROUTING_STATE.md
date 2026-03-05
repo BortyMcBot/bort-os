@@ -1,6 +1,6 @@
 # ROUTING_STATE.md
 
-Generated: Mar 04, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 
 ## Global configured defaults
 - primary: openai-codex/gpt-5.2-codex
