@@ -264,6 +264,14 @@ function main() {
   let skippedCount = 0
 
   for (const pr of prs) {
+    if (pr.title.toLowerCase().startsWith('wip:')) {
+      const summary = `#${pr.number} ${pr.title} → SKIPPED (WIP)`
+      console.log(summary)
+      logLine(`${now()} PR #${pr.number} SKIP - WIP title`)
+      skippedCount++
+      continue
+    }
+
     const { decision, reason, prView, isSelf } = reviewPR(pr, viewerLogin)
     const line = `${now()} PR #${pr.number} ${decision} - ${reason}`
     logLine(line)
