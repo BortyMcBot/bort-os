@@ -120,6 +120,17 @@ Do not use --no-sandbox if Pinchtab is exposed to the network.
 
 ---
 
+## Antipattern 14: Telegram chat ID hardcoded in multiple implementation files
+What happens: If Bryan's Telegram chat ID changes or the channel config moves, it requires edits across 3 separate files with no single source of truth.
+Why it happens: Chat ID was added inline when each integration was built.
+Affected files:
+ - os/x_daily_post.js line 10
+ - scripts/pr-review-job.mjs line 227
+ - scripts/deploy.mjs line 57
+Fix: Centralize TELEGRAM_CHAT_ID in openclaw.json or a shared constants file, and reference it from all three scripts.
+Risk: LOW — not a security concern. Maintenance debt only.
+Status: OPEN — not yet implemented.
+
 ## Adding new entries
 When Bort behaves unexpectedly, add an entry with:
 - What happened (observable symptom)

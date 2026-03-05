@@ -14,5 +14,5 @@ Canonical project_source files exported to ChatGPT context bundles.
 - `SKILL_REGISTRY.md` — installed skill inventory with capabilities, inputs, outputs, and hat compatibility.
 - `PROJECTS_ACTIVE.md` — continuity layer tracking in-flight multi-step projects across sessions.
 - `PROMPT_ANTIPATTERNS.md` — known prompt patterns that cause failures, rejections, or unexpected behavior.
-- `HAT_OS_RESOLUTION.md` — decision doc for resolving the hat:os preflight mismatch (no implementation).
+- `HAT_OS_RESOLUTION.md` — decision doc for the hat:os preflight mismatch. Resolved 2026-03-03 via Option A (alias in preflight.js).
 - `CLAUDE_SESSION_OPENER.md` — reusable session-opener template for Claude ideation sessions — paste at start of every new conversation with full project_source bundle attached.
