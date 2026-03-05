@@ -273,8 +273,10 @@ function main() {
         mergedCount++
         continue
       }
-      gh(`pr review ${pr.number} --approve --body ${JSON.stringify('Reviewed by Bort. Merging.')} --repo ${REPO}`)
       try {
+        if (!isSelf) {
+          gh(`pr review ${pr.number} --approve --body ${JSON.stringify('Reviewed by Bort. Merging.')} --repo ${REPO}`)
+        }
         gh(`pr merge ${pr.number} --squash --repo ${REPO}`)
         mergedCount++
         sendTelegram(`✅ Merged PR #${pr.number}: ${pr.title}`)
