@@ -4,6 +4,7 @@ import path from 'path'
 import crypto from 'crypto'
 import { spawnSync } from 'child_process'
 
+const WORKSPACE_DIR = '/root/.openclaw/workspace'
 const PROJECT_SOURCE_DIR = '/root/.openclaw/workspace/project_source'
 const HASHES_PATH = path.join(PROJECT_SOURCE_DIR, '.hashes.json')
 const EXPORT_PATH = path.join(PROJECT_SOURCE_DIR, 'EXPORT_LATEST.md')
@@ -26,6 +27,7 @@ const CANONICAL_FILES = [
   'PROMPT_ANTIPATTERNS.md',
   'HAT_OS_RESOLUTION.md',
   'CLAUDE_SESSION_OPENER.md',
+  'CLAUDE.md',
 ]
 
 function nowPhoenixStamp() {
@@ -66,6 +68,11 @@ function ensureFileExists(filePath, placeholder) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true })
     fs.writeFileSync(filePath, placeholder, 'utf8')
   }
+}
+
+function resolveFilePath(name) {
+  if (name === 'CLAUDE.md') return path.join(WORKSPACE_DIR, 'CLAUDE.md')
+  return path.join(PROJECT_SOURCE_DIR, name)
 }
 
 function tailLastLines(text, maxLines) {
@@ -126,8 +133,8 @@ function prependUniqueToUpload(block) {
 
 function buildTgzBundle() {
   fs.mkdirSync(DIST_DIR, { recursive: true })
-  const include = [...CANONICAL_FILES, 'EXPORT_LATEST.md']
-  const args = ['-czf', BUNDLE_PATH, '-C', PROJECT_SOURCE_DIR, ...include]
+  const include = [...CANONICAL_FILES.filter((f) => f !== 'CLAUDE.md'), 'EXPORT_LATEST.md']
+  const args = ['-czf', BUNDLE_PATH, '-C', PROJECT_SOURCE_DIR, ...include, '-C', WORKSPACE_DIR, 'CLAUDE.md']
   const r = spawnSync('tar', args, { stdio: 'pipe' })
   return (r.status ?? 1) === 0
 }
@@ -150,8 +157,12 @@ function main() {
   const changed = []
 
   for (const name of CANONICAL_FILES) {
-    const p = path.join(PROJECT_SOURCE_DIR, name)
-    ensureFileExists(p, `# ${name}\n\n(TODO)\n`)
+    const p = resolveFilePath(name)
+    if (name !== 'CLAUDE.md') {
+      ensureFileExists(p, `# ${name}\n\n(TODO)\n`)
+    } else if (!fs.existsSync(p)) {
+      throw new Error('CLAUDE.md missing at repo root')
+    }
 
     const hash = sha256File(p)
     nextFiles[name] = { sha256: hash }
@@ -178,7 +189,7 @@ function main() {
   // Gather contents in fixed order.
   const contents = new Map()
   for (const name of CANONICAL_FILES) {
-    const p = path.join(PROJECT_SOURCE_DIR, name)
+    const p = resolveFilePath(name)
     let text = fs.readFileSync(p, 'utf8')
     if (name === 'CHANGELOG_AUTOGEN.md') {
       text = tailLastLines(text, 200)
