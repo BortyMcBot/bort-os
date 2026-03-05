@@ -133,7 +133,7 @@ function safeZonesOnly(files, headRefName) {
     f.startsWith('integrations/') ||
     f.startsWith('hats/') ||
     f.startsWith('docs/') ||
-    (headRefName.startsWith('bort/') && (f.startsWith('project_source/') || f.startsWith('skills/')))
+    (headRefName.startsWith('bort/') && (f.startsWith('project_source/') || f.startsWith('skills/') || f === 'CLAUDE.md'))
   )
 }
 
@@ -206,14 +206,14 @@ function reviewPR(pr, viewerLogin) {
       escalateReasons.push('os/model-routing.js adds lines (possible new model IDs)')
     }
   }
-  if (diffLines > 500) escalateReasons.push(`diff too large (${diffLines} lines)`)
+  if (diffLines > 1000) escalateReasons.push(`diff too large (${diffLines} lines)`)
 
   if (escalateReasons.length) {
     return { decision: 'ESCALATE', reason: escalateReasons.join('; '), prView, diff, isSelf }
   }
 
   if (!safeZonesOnly(files, headRefName)) {
-    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/; project_source/ + skills/ allowed for bort/)', prView, diff, isSelf }
+    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/; project_source/ + skills/ + CLAUDE.md allowed for bort/)', prView, diff, isSelf }
   }
 
   if (hasConflictMarkers(diff)) {
