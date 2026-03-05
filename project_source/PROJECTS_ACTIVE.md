@@ -86,6 +86,16 @@ Purpose: Continuity layer for multi-step projects across sessions.
 - notes: Claude Code handoff conventions documented; WIP PRs skipped.
 - last_updated: 2026-03-05
 
+### BORT_PR_REVIEW_PIPELINE
+- status: in_progress
+- hat_sequence: [ops-core → autonomous]
+- last_completed_step: pr-review-job.mjs built with claude/ prefix, legacy exempt logic removed, crons registered, Telegram command added
+- next_action: Bryan to open first real PR from a Claude Code session using claude/* branch and verify end-to-end flow
+- blocking_issue: none
+- relevant_files: scripts/pr-review-job.mjs, logs/pr-review.log, project_source/SYSTEM_CONTEXT.md
+- notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
+- last_updated: 2026-03-05
+
 ---
 
 ## Entry template
