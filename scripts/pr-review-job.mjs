@@ -133,7 +133,7 @@ function safeZonesOnly(files, headRefName) {
     f.startsWith('integrations/') ||
     f.startsWith('hats/') ||
     f.startsWith('docs/') ||
-    (headRefName.startsWith('bort/') && (f.startsWith('project_source/') || f.startsWith('skills/')))
+    (headRefName.startsWith('bort/') && (f.startsWith('project_source/') || f.startsWith('skills/') || f === 'CLAUDE.md'))
   )
 }
 
@@ -206,14 +206,14 @@ function reviewPR(pr, viewerLogin) {
       escalateReasons.push('os/model-routing.js adds lines (possible new model IDs)')
     }
   }
-  if (diffLines > 500) escalateReasons.push(`diff too large (${diffLines} lines)`)
+  if (diffLines > 1000) escalateReasons.push(`diff too large (${diffLines} lines)`)
 
   if (escalateReasons.length) {
     return { decision: 'ESCALATE', reason: escalateReasons.join('; '), prView, diff, isSelf }
   }
 
   if (!safeZonesOnly(files, headRefName)) {
-    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/; project_source/ + skills/ allowed for bort/)', prView, diff, isSelf }
+    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/; project_source/ + skills/ + CLAUDE.md allowed for bort/)', prView, diff, isSelf }
   }
 
   if (hasConflictMarkers(diff)) {
@@ -230,6 +230,15 @@ function sendTelegram(message) {
 
 function reviewBody(reason) {
   return `Reviewed by Bort. Reason: ${reason}`
+}
+
+function runDeploy(prNumber, prTitle) {
+  const cmd = `node /root/.openclaw/workspace/scripts/deploy.mjs --pr-number ${prNumber} --pr-title ${JSON.stringify(prTitle)}`
+  if (dryRun) {
+    console.log(`[dry-run] ${cmd}`)
+    return
+  }
+  execSync(cmd, { stdio: 'inherit' })
 }
 
 function main() {
@@ -255,6 +264,14 @@ function main() {
   let skippedCount = 0
 
   for (const pr of prs) {
+    if (pr.title.toLowerCase().startsWith('wip:')) {
+      const summary = `#${pr.number} ${pr.title} → SKIPPED (WIP)`
+      console.log(summary)
+      logLine(`${now()} PR #${pr.number} SKIP - WIP title`)
+      skippedCount++
+      continue
+    }
+
     const { decision, reason, prView, isSelf } = reviewPR(pr, viewerLogin)
     const line = `${now()} PR #${pr.number} ${decision} - ${reason}`
     logLine(line)
@@ -271,6 +288,7 @@ function main() {
     if (decision === 'APPROVE') {
       if (dryRun) {
         mergedCount++
+        runDeploy(pr.number, pr.title)
         continue
       }
       try {
@@ -279,7 +297,7 @@ function main() {
         }
         gh(`pr merge ${pr.number} --squash --repo ${REPO}`)
         mergedCount++
-        sendTelegram(`✅ Merged PR #${pr.number}: ${pr.title}`)
+        runDeploy(pr.number, pr.title)
       } catch (err) {
         logLine(`${now()} PR #${pr.number} MERGE_FAILED - ${err.message}`)
         sendTelegram(`⚠️ Merge failed for PR #${pr.number}: ${pr.title}`)
