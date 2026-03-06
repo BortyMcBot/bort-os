@@ -21,8 +21,8 @@ operations, cron jobs, and autonomous tasks on the live system.
 ---
 
 ## Branch and PR conventions
-- Your branches must always be prefixed: claude/<short-description>
-- Never merge to main — open PRs only
+- Claude Code branches must be prefixed: claude/<short-description> and require a PR — never push directly to main
+- Bort branches prefixed: bort/<short-description> may be pushed directly to main — no PR required
 - Bort reviews all PRs twice daily (7am + 6pm Phoenix) and auto-merges approved ones
 - Trigger an immediate review anytime by sending /pr-review to @BortyMcBot on Telegram
 - PR titles should be conventional commits format: feat:, fix:, chore:, docs:, refactor:
