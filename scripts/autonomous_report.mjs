@@ -2,7 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import { spawnSync } from 'child_process'
-import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.mjs'
+import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.js'
 
 const WORKSPACE = BORT_WORKSPACE
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'autonomous_log.md')

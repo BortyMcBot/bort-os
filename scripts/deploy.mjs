@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.mjs'
+import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.js'
 
 const WORKSPACE = BORT_WORKSPACE
 const LOG_PATH = path.join(WORKSPACE, 'logs', 'deploy.log')
