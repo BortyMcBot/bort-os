@@ -1,6 +1,6 @@
 # Project Source Export (UPLOAD THIS FILE)
 
-Generated: Mar 05, 2026 • 6:00 AM (America/Phoenix)
+Generated: Mar 06, 2026 • 6:00 AM (America/Phoenix)
 
 Changed files since last export:
 - STATE_OF_BORT.md
@@ -22,14 +22,14 @@ Canonical project_source files exported to ChatGPT context bundles.
 - `PROMPT_TEMPLATES.md` — preferred prompt formats for operations with Bort.
 - `HAT_STATE.md` — active hat profiles (contexts, task types, model chains, and style policy).
 - `ARCHITECTURE_SUMMARY.md` — architecture overview (auto-generated from implementation).
-- `ROUTING_STATE.md` — routing strategy/details (currently needs refresh from TODO).
-- `OPERATIONS_STATE.md` — operations posture/status (currently needs refresh from TODO).
+- `ROUTING_STATE.md` — routing strategy/details.
+- `OPERATIONS_STATE.md` — operations posture/status.
 - `CHANGELOG_AUTOGEN.md` — rolling drift/change log (last 200 lines included in export).
 - `EXPORT_LATEST.md` — generated upload-ready consolidated snapshot.
 - `SKILL_REGISTRY.md` — installed skill inventory with capabilities, inputs, outputs, and hat compatibility.
 - `PROJECTS_ACTIVE.md` — continuity layer tracking in-flight multi-step projects across sessions.
 - `PROMPT_ANTIPATTERNS.md` — known prompt patterns that cause failures, rejections, or unexpected behavior.
-- `HAT_OS_RESOLUTION.md` — decision doc for resolving the hat:os preflight mismatch (no implementation).
+- `HAT_OS_RESOLUTION.md` — decision doc for the hat:os preflight mismatch. Resolved 2026-03-03 via Option A (alias in preflight.js).
 - `CLAUDE_SESSION_OPENER.md` — reusable session-opener template for Claude ideation sessions — paste at start of every new conversation with full project_source bundle attached.
 
 ## SYSTEM_CONTEXT.md
@@ -82,6 +82,11 @@ node /root/.openclaw/workspace/scripts/export-project-source.mjs --force
 - `ROUTING_STATE.md`
 - `OPERATIONS_STATE.md`
 - `CHANGELOG_AUTOGEN.md` (export includes last 200 lines only)
+- `SKILL_REGISTRY.md`
+- `PROJECTS_ACTIVE.md`
+- `PROMPT_ANTIPATTERNS.md`
+- `HAT_OS_RESOLUTION.md`
+- `CLAUDE_SESSION_OPENER.md`
 
 ## Task Envelope & Hat Enforcement
 
@@ -151,16 +156,18 @@ If a blocklist match occurs, the caller must suppress output and show only a poi
 Source:
 - `os/preflight.js` lines 185–233
 
-### IMPORTANT: conversational “Hat: os” is not an enforced hat
+### Conversational “Hat: os” is aliased to ops-core — RESOLVED 2026-03-03
 
-Some conversational directives may label tasks as `Hat: os`.
-However, `os/preflight.js` does **not** define a hat named `os` in its allowlist.
+Conversational directives that label tasks as `Hat: os` are now handled correctly.
+`os/preflight.js` defines `HAT_ALIASES = { os: 'ops-core' }` — envelopes with `hat=os`
+are resolved to `ops-core` before allowlist validation and will pass preflight.
 
 Source:
-- `os/preflight.js` lines 25–46 (no `os` entry)
 
-If enforcement is active for that execution path, `hat=os` would be rejected.
-Resolving this mismatch requires a behavior change (out of scope for documentation reconciliation).
+- `os/preflight.js` lines 138–139 (HAT_ALIASES mapping)
+
+No action required. See also: `HAT_OS_RESOLUTION.md` (Option A implemented) and
+`PROMPT_ANTIPATTERNS.md` Antipattern 1 (status: RESOLVED).
 
 ## Documentation Integrity & Drift Enforcement
 
@@ -207,20 +214,64 @@ At minimum, HIGH severity drift triggers if any of the following change:
 Canonical files in `project_source/` must not remain as `TODO` placeholders.
 Stubs create "paper truth" that can mislead external threads.
 
+## Collaborative Development Convention
+
+All commits to the bort-os repo must be authored by BortyMcBot[bot] via the GitHub App.
+Bryan's personal GitHub account (NewWorldOrderly) must never appear in repo history.
+
+Branch naming convention:
+- claude/ — branches created by Claude Code during Bryan's dev sessions
+- bort/ — branches created by Bort in autonomous or ops-core tasks
+
+### PR Review & Merge Policy
+All code changes from Claude Code sessions flow through PRs. Bort reviews and merges autonomously.
+
+Workflow:
+1. Claude Code pushes a claude/* branch and opens a PR via the BortyMcBot GitHub App
+2. Bort reviews PRs at 7am and 6pm Phoenix, or on demand via Telegram /pr-review
+3. Approved PRs are squash-merged to main automatically
+4. Flagged PRs receive a review comment and Bryan is notified via Telegram
+
+Auto-reject triggers (Bort requests changes, no merge):
+- Author is NewWorldOrderly (not via GitHub App)
+- project_source/*.md touched directly
+- .arch_drift_baseline.json touched directly
+- Branch not prefixed claude/ or bort/
+- Secret/token patterns detected in diff
+
+Escalate to Bryan triggers (Bort requests changes + Telegram notification):
+- Removals in os/preflight.js
+- Any change to os/hat-profiles.json
+- Additions in os/model-routing.js
+- Diff exceeds 500 lines
+
+Safe zones for auto-merge:
+- scripts/, integrations/, hats/, docs/
+
+Post-merge behavior:
+- Bort sends Telegram confirmation to Bryan (chat ID 8374853956)
+- Bort does not delete branches post-merge
+- Bort queues a drift baseline rebuild if os/preflight.js or os/model-routing.js were changed
+
+Ownership zones:
+- os/preflight.js, os/model-routing.js, os/hat-profiles.json → Bryan+Claude Code
+- project_source/*.md, .arch_drift_baseline.json → Bort only
+- scripts/, integrations/, hats/ → either, coordination preferred
+
 ## STATE_OF_BORT.md
 
 # STATE_OF_BORT.md
 
-Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
+Generated: Mar 06, 2026, 6:00 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.2-codex
 - model_resolved_default: openai-codex/gpt-5.2-codex
 - model_fallbacks: openai-codex/gpt-5.2, openrouter/nvidia/nemotron-nano-9b-v2:free
 - allowed_model_count: 6
-- cron_job_count: 7
-- workspace_top_level_dirs: 15
-- workspace_file_count_recursive: 45112
+- cron_job_count: 9
+- workspace_top_level_dirs: 17
+- workspace_file_count_recursive: 45326
 
 ## Allowed model IDs
 - openrouter/auto
@@ -265,11 +316,13 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 ## Scheduled jobs (cron)
 - Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
 - Bort bundle update (daily) (cron: 0 6,18 * * * America/Phoenix)
+- PR review (morning) (cron: 0 7 * * * America/Phoenix)
 - Repo hygiene check (daily) (cron: 0 7 * * * America/Phoenix)
 - Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
 - X engagement snapshot (daily 8am) (cron: 0 8 * * * America/Phoenix)
 - X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
 - X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
+- PR review (evening) (cron: 0 18 * * * America/Phoenix)
 
 ## Export artifacts
 - project_source/EXPORT_LATEST.md
@@ -318,7 +371,7 @@ Output: timeline, root cause, fix, prevention items.
 
 # HAT_STATE.md
 
-Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
+Generated: Mar 06, 2026, 6:00 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -330,7 +383,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 - allowedIdentityContexts: agent
 - allowedTaskTypes: ops, research, spec, code, summarize
 - defaultDataSensitivity: low
-- allowedSkills: project_source_export, documentation_drift_handling
+- allowedSkills: coding-agent, github, gh-issues, openai-image-gen, bluebubbles
 - allowedCommands: git status | git diff | git add | git commit | git push | gh pr create | gh pr edit
 - defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
 - outputStyle: engineering_brief
@@ -340,7 +393,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 - allowedIdentityContexts: human
 - allowedTaskTypes: classify, summarize, research, ops
 - defaultDataSensitivity: medium
-- allowedSkills: gmail_daily_summary, gmail_inbox_triage
+- allowedSkills: himalaya, apple-notes, apple-reminders, bluebubbles, imsg
 - allowedCommands: node /root/.openclaw/workspace/integrations/gmail/daily-review.js
 - defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
 - outputStyle: concise_operational
@@ -350,7 +403,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 - allowedIdentityContexts: human, agent
 - allowedTaskTypes: ops, code, spec, research, summarize, classify
 - defaultDataSensitivity: medium
-- allowedSkills: documentation_drift_handling, project_source_export
+- allowedSkills: 1password, apple-notes, apple-reminders, bear-notes, blucli, bluebubbles, camsnap, clawhub, coding-agent, discord, eightctl, gemini, gh-issues, github, healthcheck, imsg, mcporter, model-usage, nano-pdf, notion, obsidian, openai-image-gen, openai-whisper, openai-whisper-api, pinchtab
 - allowedCommands: node /root/.openclaw/workspace/scripts/arch-drift-check.mjs | node /root/.openclaw/workspace/scripts/export-project-source.mjs | node /root/.openclaw/workspace/scripts/refresh-project-source.mjs
 - defaultModelChain: openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openrouter/nvidia/nemotron-nano-9b-v2:free
 - outputStyle: engineering_brief
@@ -360,7 +413,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 - allowedIdentityContexts: agent
 - allowedTaskTypes: research, summarize, classify, ops
 - defaultDataSensitivity: medium
-- allowedSkills: resale_ops
+- allowedSkills: eightctl, gog, nano-banana-pro, pinchtab
 - allowedCommands: (none)
 - defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
 - outputStyle: actionable_checklist
@@ -370,7 +423,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 - allowedIdentityContexts: agent
 - allowedTaskTypes: research, summarize, classify
 - defaultDataSensitivity: low
-- allowedSkills: web_research
+- allowedSkills: blogwatcher, gemini, gifgrep, goplaces, pinchtab
 - allowedCommands: (none)
 - defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
 - outputStyle: cited_summary
@@ -379,7 +432,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
+Generated: Mar 06, 2026, 6:00 AM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -400,7 +453,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 
 # ROUTING_STATE.md
 
-Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
+Generated: Mar 06, 2026, 6:00 AM (America/Phoenix)
 
 ## Global configured defaults
 - primary: openai-codex/gpt-5.2-codex
@@ -451,7 +504,7 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 
 # OPERATIONS_STATE.md
 
-Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
+Generated: Mar 06, 2026, 6:00 AM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.
@@ -467,6 +520,30 @@ Generated: Mar 05, 2026, 6:00 AM (America/Phoenix)
 ## CHANGELOG_AUTOGEN.md
 
 # CHANGELOG_AUTOGEN.md
+
+## 2026-03-06
+- Diagnosed and fixed Pinchtab Chrome binary resolution failure.
+- Root cause: Pinchtab does not load CHROME_BINARY from ~/.pinchtab/.env at runtime — only honors shell environment.
+- Fix: Added export CHROME_BINARY=/usr/bin/google-chrome-stable to top of scripts/pinchtab-session.sh.
+- Removed snap Chromium (snap remove chromium) to eliminate PATH fallback risk.
+- Confirmed Pinchtab healthy (status: ok) via pinchtab-session.sh start/stop cycle.
+- PROMPT_ANTIPATTERNS.md: added Antipattern 14 (CHROME_BINARY not loaded from .env).
+- PROJECTS_ACTIVE.md: PINCHTAB_AUTOSTART_DECISION marked complete.
+- PROJECTS_ACTIVE.md: EBAY_RESALE_V1 added (status: planning, blocked on eBay Developer Program approval).
+
+## 2026-03-05
+- Architectural review completed (18 findings, 15 resolved this session).
+- os/preflight.js: autonomous hat added to fallback HATS object (C-2 fix).
+- os/hat-profiles.json: allowedSkills updated from abstract labels to real installed skill IDs across all 5 hats (C-1 fix).
+- scripts/arch-drift-check.mjs: ROUTES extraction regex hardened to handle indented closing bracket (C-3 fix).
+- project_source/SYSTEM_CONTEXT.md: hat:os section updated to reflect resolved alias; canonical files list expanded from 9 to 13 entries.
+- project_source/FILE_INDEX.md: stale TODO notes removed; HAT_OS_RESOLUTION entry updated to reflect Option A implemented.
+- project_source/SKILL_REGISTRY.md: header date corrected to Mar 05, 2026.
+- project_source/PROMPT_ANTIPATTERNS.md: Antipattern 14 added (Telegram chat ID hardcoded in 3 files).
+- project_source/PROJECTS_ACTIVE.md: ROUTING_STATE_FALLBACK_MODEL_FIX marked complete; TELEGRAM_CHAT_ID_CENTRALIZATION and ARCH_REVIEW_2026_03_05 entries added.
+- Gmail cron (6ba59b88) delivery mode fixed from "announce" to "none" — resolves 4 consecutive failures.
+- 1PASSWORD_CLI_SETUP deferred to dedicated session. PINCHTAB_AUTOSTART_DECISION remains blocked on it.
+- Note: expect [BORT_ARCH_DRIFT] alert for os/preflight.js on next drift check — intentional, confirm reconciliation when prompted.
 
 Generated: Feb 25, 2026 • 9:20 AM (America/Phoenix)
 
@@ -637,7 +714,7 @@ Details:
 ## SKILL_REGISTRY.md
 
 # SKILL_REGISTRY.md
-Generated: Mar 03, 2026
+Generated: Mar 05, 2026
 
 This file documents installed Bort skills with enough detail for prompt construction.
 Format: name | hats | what it does | key inputs | key outputs | notes
@@ -666,7 +743,7 @@ Format: name | hats | what it does | key inputs | key outputs | notes
 | gemini | web, ops-core | Gemini CLI for one-shot Q&A, summaries, and generation. | Prompt string; optional `--model`, `--output-format`. | CLI stdout (text/JSON). | Requires bin `gemini`. SKILL.md: /usr/lib/node_modules/openclaw/skills/gemini/SKILL.md |
 | gifgrep | web | Search GIF providers (Tenor/Giphy), browse in TUI, download, extract stills/sheets. | Search query; CLI args for download/extract. | GIF files, still images/sheets, CLI output. | Requires bin `gifgrep`. SKILL.md: /usr/lib/node_modules/openclaw/skills/gifgrep/SKILL.md |
 | goplaces | web | Google Places API (New) CLI for text search, place details, reviews; supports `--json`. | Query text/place ID; `--json` for structured output. | Human-readable output or JSON. | Requires bin `goplaces` + env `GOOGLE_PLACES_API_KEY`. SKILL.md: /usr/lib/node_modules/openclaw/skills/goplaces/SKILL.md |
-| pinchtab | ops-core, web, resale | HTTP browser automation bridge — navigate, snapshot a11y tree, extract text, click/type by ref, screenshots, PDF export. Stealth mode, persistent sessions, tab management. | Base URL (default http://localhost:9867), BRIDGE_TOKEN from ~/.pinchtab/.env, tabId for multi-tab ops. CLI: pinchtab nav/snap/text/click/type/ss/pdf/eval | JSON a11y snapshot, plain text extraction, JPEG screenshots, PDF files, health status. | Requires pinchtab binary and Chrome/Chromium. Start server manually before use. Token stored at ~/.pinchtab/.env. SKILL.md: /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md |
+| pinchtab | ops-core, web, resale | HTTP browser automation bridge — navigate, snapshot a11y tree, extract text, click/type by ref, screenshots, PDF export. Stealth mode, persistent sessions, tab management. | Base URL (default http://localhost:9867), BRIDGE_TOKEN from ~/.pinchtab/.env, tabId for multi-tab ops. CLI: pinchtab nav/snap/text/click/type/ss/pdf/eval | JSON a11y snapshot, plain text extraction, JPEG screenshots, PDF files, health status. | Requires pinchtab binary and Chrome/Chromium. Start server manually before use. Token stored at ~/.pinchtab/.env. Launch-on-demand: run scripts/pinchtab-session.sh start before use, stop after. PID tracked at /tmp/pinchtab.pid. SKILL.md: /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md |
 
 
 ### Productivity & Google Workspace
@@ -718,6 +795,11 @@ Format: name | hats | what it does | key inputs | key outputs | notes
 | notion | ops-core | Notion API for creating/managing pages, databases, blocks. | API key + page/database IDs + payload. | Notion pages/blocks created/updated; API responses. | Requires env `NOTION_API_KEY`. SKILL.md: /usr/lib/node_modules/openclaw/skills/notion/SKILL.md |
 | obsidian | ops-core | Work with Obsidian vaults (Markdown files) via `obsidian-cli`. | Vault path; note path; CLI args. | Markdown files created/updated; CLI output. | Requires bin `obsidian-cli`. SKILL.md: /usr/lib/node_modules/openclaw/skills/obsidian/SKILL.md |
 
+### Automation
+| Skill | Allowed Hats | Description | Key Inputs | Key Outputs | Notes |
+|-------|-------------|-------------|------------|-------------|-------|
+| pr-review | ops-core | Trigger an immediate PR review run on BortyMcBot/bort-os. Invoked via Telegram /pr-review command or directly. | `--silent` flag for quiet mode, `--dry-run` for simulation. | Summary of decisions: merged/flagged/skipped counts + Telegram notifications. | Wraps scripts/pr-review-job.mjs. Cron also runs at 7am + 6pm Phoenix. |
+
 ### Social
 | Skill | Allowed Hats | Description | Key Inputs | Key Outputs | Notes |
 |-------|-------------|-------------|------------|-------------|-------|
@@ -763,28 +845,89 @@ Purpose: Continuity layer for multi-step projects across sessions.
 - next_action: Set up op CLI auth and migrate ~/.pinchtab/.env token to 1Password vault
 - blocking_issue: none
 - relevant_files: ~/.pinchtab/.env, /usr/lib/node_modules/openclaw/skills/1password/SKILL.md
-- notes: Pinchtab BRIDGE_TOKEN currently stored in plaintext. Priority: before adding any additional credentials to .env files anywhere on the system.
-- last_updated: 2026-03-04
+- notes: Pinchtab BRIDGE_TOKEN currently stored in plaintext. Priority: before adding any additional credentials to .env files anywhere on the system. Deferred to dedicated session. All other triage items completed first.
+- last_updated: 2026-03-05
 
 ### ROUTING_STATE_FALLBACK_MODEL_FIX
-- status: planning
+- status: complete
 - hat_sequence: [ops-core]
-- last_completed_step: Discrepancy identified during baseline rebuild
-- next_action: Update ROUTING_STATE.md to correctly distinguish global hard fallback (openai/gpt-5.2-chat-latest in os/model-routing.js) from route-level fallback (openrouter/nvidia/nemotron-nano-9b-v2:free)
+- last_completed_step: Documented correctly in ROUTING_STATE.md as of Mar 05, 2026 refresh.
+- next_action: none
 - blocking_issue: none
 - relevant_files: project_source/ROUTING_STATE.md, os/model-routing.js
-- notes: Low priority. Creates paper truth but has no operational impact.
-- last_updated: 2026-03-04
+- notes: Low priority. Creates paper truth but has no operational impact. Documented correctly in ROUTING_STATE.md as of Mar 05, 2026 refresh.
+- last_updated: 2026-03-05
 
 ### PINCHTAB_AUTOSTART_DECISION
+- status: complete
+- hat_sequence: [ops-core]
+- last_completed_step: Launch-on-demand implemented via scripts/pinchtab-session.sh; CHROME_BINARY export fix applied; snap Chromium removed
+- next_action: none
+- blocking_issue: none
+- relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
+- notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env. Blocked until 1PASSWORD_CLI_SETUP is complete.
+- last_updated: 2026-03-06
+
+### EBAY_RESALE_V1
+- status: planning
+- hat_sequence: [resale → ops-core]
+- last_completed_step: eBay Developer Program application submitted; awaiting approval
+- next_action: Confirm eBay Developer Program approval, then set up OAuth tokens in 1Password and implement photo intake via Telegram
+- blocking_issue: eBay Developer Program approval pending
+- relevant_files: ~/resale/inbox/
+- notes: Phase 1 is human-in-the-loop. Bryan uploads photos to ~/resale/inbox/<item-folder>/, Bort identifies item via vision model, researches sold comps, drafts listing, sends Telegram preview, posts via eBay Sell APIs. Pricing: 40th percentile of recent sold comps. Photo intake path (Telegram vs manual upload) still an open question.
+- last_updated: 2026-03-06
+
+### TELEGRAM_CHAT_ID_CENTRALIZATION
 - status: planning
 - hat_sequence: [ops-core]
-- last_completed_step: Pinchtab installed and verified; autostart intentionally deferred
-- next_action: Bryan to decide: cron-based autostart, launch-on-demand, or dashboard mode. Then implement and document in SKILL_REGISTRY.md notes.
-- blocking_issue: Decision needed from Bryan before implementation
-- relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
-- notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env.
-- last_updated: 2026-03-04
+- last_completed_step: Identified and documented as Antipattern 14
+- next_action: Centralize TELEGRAM_CHAT_ID in openclaw.json or shared constants file and update os/x_daily_post.js, scripts/pr-review-job.mjs, scripts/deploy.mjs
+- blocking_issue: none
+- relevant_files: os/x_daily_post.js, scripts/pr-review-job.mjs, scripts/deploy.mjs, openclaw.json
+- notes: Low priority maintenance debt. No security risk. Three files currently hardcode chat ID 8374853956.
+- last_updated: 2026-03-05
+
+### ARCH_REVIEW_2026_03_05
+- status: complete
+- hat_sequence: [ops-core]
+- last_completed_step: All 18 findings triaged. 15 resolved. 1Password deferred. Telegram centralization logged.
+- next_action: none — archive at next monthly cleanup
+- blocking_issue: none
+- relevant_files: project_source/CHANGELOG_AUTOGEN.md
+- notes: Full findings in Claude session 2026-03-05. HIGHs resolved: Gmail cron, allowedSkills enforcement, preflight fallback, drift regex, doc drift. 1PASSWORD_CLI_SETUP remains open.
+- last_updated: 2026-03-05
+
+
+### BORT_PR_REVIEW_PIPELINE
+- status: complete
+- hat_sequence: [ops-core → autonomous]
+- last_completed_step: Full pipeline live — PR review, auto-deploy, session close convention, CLAUDE.md in bundle. First Claude Code session ready.
+- next_action: none
+- blocking_issue: none
+- relevant_files: scripts/pr-review-job.mjs, logs/pr-review.log, project_source/SYSTEM_CONTEXT.md
+- notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
+- last_updated: 2026-03-05
+
+### CLAUDECODE_HANDOFF_SETUP
+- status: complete
+- hat_sequence: [ops-core]
+- last_completed_step: Full pipeline live — PR review, auto-deploy, session close convention, CLAUDE.md in bundle. First Claude Code session ready.
+- next_action: none
+- blocking_issue: none
+- relevant_files: CLAUDE.md, scripts/pr-review-job.mjs, scripts/deploy.mjs
+- notes: Claude Code handoff conventions documented; WIP PRs skipped.
+- last_updated: 2026-03-05
+
+### BORT_PR_REVIEW_PIPELINE
+- status: in_progress
+- hat_sequence: [ops-core → autonomous]
+- last_completed_step: pr-review-job.mjs built with claude/ prefix, legacy exempt logic removed, crons registered, Telegram command added
+- next_action: Bryan to open first real PR from a Claude Code session using claude/* branch and verify end-to-end flow
+- blocking_issue: none
+- relevant_files: scripts/pr-review-job.mjs, logs/pr-review.log, project_source/SYSTEM_CONTEXT.md
+- notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
+- last_updated: 2026-03-05
 
 ---
 
@@ -928,6 +1071,27 @@ Do not use --no-sandbox if Pinchtab is exposed to the network.
 
 ---
 
+## Antipattern 14: Telegram chat ID hardcoded in multiple implementation files
+What happens: If Bryan's Telegram chat ID changes or the channel config moves, it requires edits across 3 separate files with no single source of truth.
+Why it happens: Chat ID was added inline when each integration was built.
+Affected files:
+ - os/x_daily_post.js line 10
+ - scripts/pr-review-job.mjs line 227
+ - scripts/deploy.mjs line 57
+Fix: Centralize TELEGRAM_CHAT_ID in openclaw.json or a shared constants file, and reference it from all three scripts.
+Risk: LOW — not a security concern. Maintenance debt only.
+Status: OPEN — not yet implemented.
+
+---
+
+## Antipattern 14: CHROME_BINARY in ~/.pinchtab/.env is not loaded by Pinchtab at runtime
+What happens: Pinchtab ignores CHROME_BINARY set in ~/.pinchtab/.env and falls back to resolving chrome from PATH — which may resolve to snap Chromium, causing AppArmor denials and SingletonLock permission errors.
+Why it happens: Pinchtab only reads CHROME_BINARY from the shell environment, not from its own .env file. Variables in ~/.pinchtab/.env are not automatically exported to the process environment.
+Fix: Export CHROME_BINARY explicitly before launching Pinchtab. In scripts/pinchtab-session.sh, add at the top (after shebang): export CHROME_BINARY=/usr/bin/google-chrome-stable
+Also remove snap Chromium to eliminate the fallback risk entirely: snap remove chromium
+Root cause confirmed by: dmesg showing exe="/snap/chromium/.../chrome" with apparmor="DENIED", while direct launch of /usr/bin/google-chrome-stable succeeded.
+Related: Antipattern 12 (snap Chrome PATH conflict), Antipattern 13 (--no-sandbox requirement).
+
 ## Adding new entries
 When Bort behaves unexpectedly, add an entry with:
 - What happened (observable symptom)
@@ -1048,3 +1212,153 @@ All attached files in the bundle are **ground-truth**. If anything conflicts wit
 - Recent Bort incidents: <any unexpected behavior since last session, or none>
 - Pending decisions: <e.g. hat:os resolution, or none>
 - New skills installed since last export: <skill names, or none>
+
+## CLAUDE.md
+
+# CLAUDE.md
+# Bort-OS — Claude Code Session Context
+
+This file is read automatically by Claude Code at the start of every session.
+Do not edit this file from a claude/ branch — it is Bort-owned and updated via bort/ PRs.
+
+---
+
+## What this repo is
+This is the bort-os repository — the codebase for Bort, an AI agent running on a VPS
+using the OpenClaw framework. Bryan develops here via Claude Code. Bort handles runtime
+operations, cron jobs, and autonomous tasks on the live system.
+
+---
+
+## Your identity and commit rules
+- All commits are authored as BortyMcBot[bot] via the GitHub App configured in git credentials
+- Never commit as NewWorldOrderly or any personal account
+- If git identity looks wrong, stop and flag it before committing anything
+
+---
+
+## Branch and PR conventions
+- Claude Code branches must be prefixed: claude/<short-description> and require a PR — never push directly to main
+- Bort branches prefixed: bort/<short-description> may be pushed directly to main — no PR required
+- Bort reviews all PRs twice daily (7am + 6pm Phoenix) and auto-merges approved ones
+- Trigger an immediate review anytime by sending /pr-review to @BortyMcBot on Telegram
+- PR titles should be conventional commits format: feat:, fix:, chore:, docs:, refactor:
+
+---
+
+## Ownership zones
+
+| Path | Claude Code | Bort |
+|---|---|---|
+| project_source/*.md | ❌ blocked | ✅ owner |
+| .arch_drift_baseline.json | ❌ blocked | ✅ owner |
+| skills/ | ✅ allowed | ✅ allowed |
+| scripts/ | ✅ allowed | ✅ allowed |
+| integrations/ | ✅ allowed | ✅ allowed |
+| hats/ | ✅ allowed | ✅ allowed |
+| docs/ | ✅ allowed | ✅ allowed |
+| os/ | ✅ allowed (with care) | ✅ allowed |
+| CLAUDE.md | ❌ blocked | ✅ owner |
+
+If you need a change in a blocked path, describe it to Bryan and Bort will implement it
+on a bort/ branch.
+
+---
+
+## Dangerous files — read before touching
+
+### os/preflight.js
+The Task Envelope enforcement layer. Every Bort execution passes through this.
+- Defines the hat allowlist (inbox, web, resale, ops-core, autonomous)
+- Validates all required Task Envelope fields
+- Enforces identity context rules per hat
+- Enforces approval gating when externalStateChange=true
+- Implements high-sensitivity output suppression
+Risk: breaking this silently disables all of Bort's safety enforcement.
+Rule: always read this file in full before making any changes. Flag any removals
+of enforcement logic in your PR description so Bort's review escalates to Bryan.
+
+### os/model-routing.js
+Determines which AI model handles which task type.
+Risk: adding unknown model IDs or changing routing order will cause silent task
+failures on the live system.
+Rule: only add model IDs that already exist in STATE_OF_BORT.md allowed model list.
+
+### os/hat-profiles.json
+Defines per-hat permissions, allowed skills, and identity contexts.
+Risk: expanding permissions here bypasses Bort's safety model.
+Rule: any permission expansion triggers Bort's escalate-to-Bryan review rule — expect
+the PR to be held for Bryan's explicit approval.
+
+### .arch_drift_baseline.json
+Bort's reference snapshot for detecting architectural drift.
+Risk: hand-editing this masks real drift and disables drift detection.
+Rule: never touch this file. If it needs rebuilding, ask Bort to do it.
+
+### project_source/*.md
+Auto-generated canonical docs. Hand-edits will be overwritten by Bort's next refresh cron.
+Rule: never edit these directly. Describe the change to Bryan — Bort will implement it.
+
+---
+
+## Handoff to Bort — what goes where
+
+**Do it in Claude Code if:**
+- It's a code change (scripts, integrations, skills, os/ with care)
+- It can be reviewed statically by Bort before hitting the live system
+- It doesn't require knowing Bort's live runtime state
+
+**Hand off to Bort if:**
+- It requires live system access (cron registration, config changes, secret retrieval)
+- It touches project_source/ or .arch_drift_baseline.json
+- It needs to run on the VPS before it can be tested
+- You're unsure whether something is currently running that touches the same file
+
+**How to hand off:**
+Describe the change in plain English to Bryan. Bryan sends it to Bort via Telegram.
+Bort implements, commits on a bort/ branch, opens a PR, and notifies Bryan when done.
+
+---
+
+## Post-merge behavior
+After any claude/ PR merges to main:
+- Bort pulls the changes on the VPS automatically (or Bryan triggers it)
+- If os/preflight.js or os/model-routing.js changed, Bort rebuilds .arch_drift_baseline.json
+- Bort sends Bryan a Telegram confirmation
+
+---
+
+## Useful Telegram commands (send to @BortyMcBot)
+- /pr-review — trigger immediate PR review
+- /pr-review dry-run — see what would be reviewed without taking action
+
+---
+
+## Ending a Claude Code session
+
+At the end of every session, before closing VSCode:
+
+1. **Commit all changes** on your current claude/* branch
+ - Use conventional commit format: feat:, fix:, chore:, docs:, refactor:
+ - One commit per logical change — don't stack unrelated edits
+
+2. **Push the branch**
+ git push -u origin claude/<your-branch-name>
+
+3. **Open a PR** via the GitHub CLI or VSCode GitHub extension
+ - Title: conventional commit format matching your commit
+ - Body: brief description of what changed and why
+ - Do not assign reviewers — Bort picks up all open PRs automatically
+
+4. **Verify the PR is open** on https://github.com/BortyMcBot/bort-os/pulls
+
+5. **Optionally trigger immediate review** by sending /pr-review to @BortyMcBot on Telegram
+ - Otherwise Bort will review at the next scheduled run (7am or 6pm Phoenix)
+
+6. **Never leave uncommitted changes** on a claude/* branch between sessions
+ - If work is incomplete, commit with a wip: prefix: "wip: <description>"
+ - Bort will skip WIP PRs automatically (see below)
+
+## WIP PRs
+If your PR title starts with "wip:" Bort will skip it during review until the prefix is removed.
+Use this when you want to push work-in-progress without triggering a merge.

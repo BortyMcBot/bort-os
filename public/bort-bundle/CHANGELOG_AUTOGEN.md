@@ -1,5 +1,29 @@
 # CHANGELOG_AUTOGEN.md
 
+## 2026-03-06
+- Diagnosed and fixed Pinchtab Chrome binary resolution failure.
+- Root cause: Pinchtab does not load CHROME_BINARY from ~/.pinchtab/.env at runtime — only honors shell environment.
+- Fix: Added export CHROME_BINARY=/usr/bin/google-chrome-stable to top of scripts/pinchtab-session.sh.
+- Removed snap Chromium (snap remove chromium) to eliminate PATH fallback risk.
+- Confirmed Pinchtab healthy (status: ok) via pinchtab-session.sh start/stop cycle.
+- PROMPT_ANTIPATTERNS.md: added Antipattern 14 (CHROME_BINARY not loaded from .env).
+- PROJECTS_ACTIVE.md: PINCHTAB_AUTOSTART_DECISION marked complete.
+- PROJECTS_ACTIVE.md: EBAY_RESALE_V1 added (status: planning, blocked on eBay Developer Program approval).
+
+## 2026-03-05
+- Architectural review completed (18 findings, 15 resolved this session).
+- os/preflight.js: autonomous hat added to fallback HATS object (C-2 fix).
+- os/hat-profiles.json: allowedSkills updated from abstract labels to real installed skill IDs across all 5 hats (C-1 fix).
+- scripts/arch-drift-check.mjs: ROUTES extraction regex hardened to handle indented closing bracket (C-3 fix).
+- project_source/SYSTEM_CONTEXT.md: hat:os section updated to reflect resolved alias; canonical files list expanded from 9 to 13 entries.
+- project_source/FILE_INDEX.md: stale TODO notes removed; HAT_OS_RESOLUTION entry updated to reflect Option A implemented.
+- project_source/SKILL_REGISTRY.md: header date corrected to Mar 05, 2026.
+- project_source/PROMPT_ANTIPATTERNS.md: Antipattern 14 added (Telegram chat ID hardcoded in 3 files).
+- project_source/PROJECTS_ACTIVE.md: ROUTING_STATE_FALLBACK_MODEL_FIX marked complete; TELEGRAM_CHAT_ID_CENTRALIZATION and ARCH_REVIEW_2026_03_05 entries added.
+- Gmail cron (6ba59b88) delivery mode fixed from "announce" to "none" — resolves 4 consecutive failures.
+- 1PASSWORD_CLI_SETUP deferred to dedicated session. PINCHTAB_AUTOSTART_DECISION remains blocked on it.
+- Note: expect [BORT_ARCH_DRIFT] alert for os/preflight.js on next drift check — intentional, confirm reconciliation when prompted.
+
 Generated: Feb 25, 2026 • 9:20 AM (America/Phoenix)
 
 This file records **structural** changes (not diff dumps). Keep entries concise.

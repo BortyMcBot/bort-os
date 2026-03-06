@@ -1,5 +1,5 @@
 # SKILL_REGISTRY.md
-Generated: Mar 03, 2026
+Generated: Mar 05, 2026
 
 This file documents installed Bort skills with enough detail for prompt construction.
 Format: name | hats | what it does | key inputs | key outputs | notes
@@ -28,7 +28,7 @@ Format: name | hats | what it does | key inputs | key outputs | notes
 | gemini | web, ops-core | Gemini CLI for one-shot Q&A, summaries, and generation. | Prompt string; optional `--model`, `--output-format`. | CLI stdout (text/JSON). | Requires bin `gemini`. SKILL.md: /usr/lib/node_modules/openclaw/skills/gemini/SKILL.md |
 | gifgrep | web | Search GIF providers (Tenor/Giphy), browse in TUI, download, extract stills/sheets. | Search query; CLI args for download/extract. | GIF files, still images/sheets, CLI output. | Requires bin `gifgrep`. SKILL.md: /usr/lib/node_modules/openclaw/skills/gifgrep/SKILL.md |
 | goplaces | web | Google Places API (New) CLI for text search, place details, reviews; supports `--json`. | Query text/place ID; `--json` for structured output. | Human-readable output or JSON. | Requires bin `goplaces` + env `GOOGLE_PLACES_API_KEY`. SKILL.md: /usr/lib/node_modules/openclaw/skills/goplaces/SKILL.md |
-| pinchtab | ops-core, web, resale | HTTP browser automation bridge — navigate, snapshot a11y tree, extract text, click/type by ref, screenshots, PDF export. Stealth mode, persistent sessions, tab management. | Base URL (default http://localhost:9867), BRIDGE_TOKEN from ~/.pinchtab/.env, tabId for multi-tab ops. CLI: pinchtab nav/snap/text/click/type/ss/pdf/eval | JSON a11y snapshot, plain text extraction, JPEG screenshots, PDF files, health status. | Requires pinchtab binary and Chrome/Chromium. Start server manually before use. Token stored at ~/.pinchtab/.env. SKILL.md: /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md |
+| pinchtab | ops-core, web, resale | HTTP browser automation bridge — navigate, snapshot a11y tree, extract text, click/type by ref, screenshots, PDF export. Stealth mode, persistent sessions, tab management. | Base URL (default http://localhost:9867), BRIDGE_TOKEN from ~/.pinchtab/.env, tabId for multi-tab ops. CLI: pinchtab nav/snap/text/click/type/ss/pdf/eval | JSON a11y snapshot, plain text extraction, JPEG screenshots, PDF files, health status. | Requires pinchtab binary and Chrome/Chromium. Start server manually before use. Token stored at ~/.pinchtab/.env. Launch-on-demand: run scripts/pinchtab-session.sh start before use, stop after. PID tracked at /tmp/pinchtab.pid. SKILL.md: /usr/lib/node_modules/openclaw/skills/pinchtab/SKILL.md |
 
 
 ### Productivity & Google Workspace
@@ -79,6 +79,11 @@ Format: name | hats | what it does | key inputs | key outputs | notes
 | bear-notes | ops-core | Create/search/manage Bear notes via `grizzly` CLI. | Note title/content/tags; CLI flags. | Notes created/updated; CLI output. | Requires bin `grizzly`; macOS only. Some ops require Bear app token. SKILL.md: /usr/lib/node_modules/openclaw/skills/bear-notes/SKILL.md |
 | notion | ops-core | Notion API for creating/managing pages, databases, blocks. | API key + page/database IDs + payload. | Notion pages/blocks created/updated; API responses. | Requires env `NOTION_API_KEY`. SKILL.md: /usr/lib/node_modules/openclaw/skills/notion/SKILL.md |
 | obsidian | ops-core | Work with Obsidian vaults (Markdown files) via `obsidian-cli`. | Vault path; note path; CLI args. | Markdown files created/updated; CLI output. | Requires bin `obsidian-cli`. SKILL.md: /usr/lib/node_modules/openclaw/skills/obsidian/SKILL.md |
+
+### Automation
+| Skill | Allowed Hats | Description | Key Inputs | Key Outputs | Notes |
+|-------|-------------|-------------|------------|-------------|-------|
+| pr-review | ops-core | Trigger an immediate PR review run on BortyMcBot/bort-os. Invoked via Telegram /pr-review command or directly. | `--silent` flag for quiet mode, `--dry-run` for simulation. | Summary of decisions: merged/flagged/skipped counts + Telegram notifications. | Wraps scripts/pr-review-job.mjs. Cron also runs at 7am + 6pm Phoenix. |
 
 ### Social
 | Skill | Allowed Hats | Description | Key Inputs | Key Outputs | Notes |

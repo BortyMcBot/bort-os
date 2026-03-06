@@ -120,6 +120,27 @@ Do not use --no-sandbox if Pinchtab is exposed to the network.
 
 ---
 
+## Antipattern 14: Telegram chat ID hardcoded in multiple implementation files
+What happens: If Bryan's Telegram chat ID changes or the channel config moves, it requires edits across 3 separate files with no single source of truth.
+Why it happens: Chat ID was added inline when each integration was built.
+Affected files:
+ - os/x_daily_post.js line 10
+ - scripts/pr-review-job.mjs line 227
+ - scripts/deploy.mjs line 57
+Fix: Centralize TELEGRAM_CHAT_ID in openclaw.json or a shared constants file, and reference it from all three scripts.
+Risk: LOW — not a security concern. Maintenance debt only.
+Status: OPEN — not yet implemented.
+
+---
+
+## Antipattern 14: CHROME_BINARY in ~/.pinchtab/.env is not loaded by Pinchtab at runtime
+What happens: Pinchtab ignores CHROME_BINARY set in ~/.pinchtab/.env and falls back to resolving chrome from PATH — which may resolve to snap Chromium, causing AppArmor denials and SingletonLock permission errors.
+Why it happens: Pinchtab only reads CHROME_BINARY from the shell environment, not from its own .env file. Variables in ~/.pinchtab/.env are not automatically exported to the process environment.
+Fix: Export CHROME_BINARY explicitly before launching Pinchtab. In scripts/pinchtab-session.sh, add at the top (after shebang): export CHROME_BINARY=/usr/bin/google-chrome-stable
+Also remove snap Chromium to eliminate the fallback risk entirely: snap remove chromium
+Root cause confirmed by: dmesg showing exe="/snap/chromium/.../chrome" with apparmor="DENIED", while direct launch of /usr/bin/google-chrome-stable succeeded.
+Related: Antipattern 12 (snap Chrome PATH conflict), Antipattern 13 (--no-sandbox requirement).
+
 ## Adding new entries
 When Bort behaves unexpectedly, add an entry with:
 - What happened (observable symptom)

@@ -46,6 +46,11 @@ node /root/.openclaw/workspace/scripts/export-project-source.mjs --force
 - `ROUTING_STATE.md`
 - `OPERATIONS_STATE.md`
 - `CHANGELOG_AUTOGEN.md` (export includes last 200 lines only)
+- `SKILL_REGISTRY.md`
+- `PROJECTS_ACTIVE.md`
+- `PROMPT_ANTIPATTERNS.md`
+- `HAT_OS_RESOLUTION.md`
+- `CLAUDE_SESSION_OPENER.md`
 
 ## Task Envelope & Hat Enforcement
 
@@ -115,16 +120,18 @@ If a blocklist match occurs, the caller must suppress output and show only a poi
 Source:
 - `os/preflight.js` lines 185–233
 
-### IMPORTANT: conversational “Hat: os” is not an enforced hat
+### Conversational “Hat: os” is aliased to ops-core — RESOLVED 2026-03-03
 
-Some conversational directives may label tasks as `Hat: os`.
-However, `os/preflight.js` does **not** define a hat named `os` in its allowlist.
+Conversational directives that label tasks as `Hat: os` are now handled correctly.
+`os/preflight.js` defines `HAT_ALIASES = { os: 'ops-core' }` — envelopes with `hat=os`
+are resolved to `ops-core` before allowlist validation and will pass preflight.
 
 Source:
-- `os/preflight.js` lines 25–46 (no `os` entry)
 
-If enforcement is active for that execution path, `hat=os` would be rejected.
-Resolving this mismatch requires a behavior change (out of scope for documentation reconciliation).
+- `os/preflight.js` lines 138–139 (HAT_ALIASES mapping)
+
+No action required. See also: `HAT_OS_RESOLUTION.md` (Option A implemented) and
+`PROMPT_ANTIPATTERNS.md` Antipattern 1 (status: RESOLVED).
 
 ## Documentation Integrity & Drift Enforcement
 
@@ -170,3 +177,47 @@ At minimum, HIGH severity drift triggers if any of the following change:
 
 Canonical files in `project_source/` must not remain as `TODO` placeholders.
 Stubs create "paper truth" that can mislead external threads.
+
+## Collaborative Development Convention
+
+All commits to the bort-os repo must be authored by BortyMcBot[bot] via the GitHub App.
+Bryan's personal GitHub account (NewWorldOrderly) must never appear in repo history.
+
+Branch naming convention:
+- claude/ — branches created by Claude Code during Bryan's dev sessions
+- bort/ — branches created by Bort in autonomous or ops-core tasks
+
+### PR Review & Merge Policy
+All code changes from Claude Code sessions flow through PRs. Bort reviews and merges autonomously.
+
+Workflow:
+1. Claude Code pushes a claude/* branch and opens a PR via the BortyMcBot GitHub App
+2. Bort reviews PRs at 7am and 6pm Phoenix, or on demand via Telegram /pr-review
+3. Approved PRs are squash-merged to main automatically
+4. Flagged PRs receive a review comment and Bryan is notified via Telegram
+
+Auto-reject triggers (Bort requests changes, no merge):
+- Author is NewWorldOrderly (not via GitHub App)
+- project_source/*.md touched directly
+- .arch_drift_baseline.json touched directly
+- Branch not prefixed claude/ or bort/
+- Secret/token patterns detected in diff
+
+Escalate to Bryan triggers (Bort requests changes + Telegram notification):
+- Removals in os/preflight.js
+- Any change to os/hat-profiles.json
+- Additions in os/model-routing.js
+- Diff exceeds 500 lines
+
+Safe zones for auto-merge:
+- scripts/, integrations/, hats/, docs/
+
+Post-merge behavior:
+- Bort sends Telegram confirmation to Bryan (chat ID 8374853956)
+- Bort does not delete branches post-merge
+- Bort queues a drift baseline rebuild if os/preflight.js or os/model-routing.js were changed
+
+Ownership zones:
+- os/preflight.js, os/model-routing.js, os/hat-profiles.json → Bryan+Claude Code
+- project_source/*.md, .arch_drift_baseline.json → Bort only
+- scripts/, integrations/, hats/ → either, coordination preferred

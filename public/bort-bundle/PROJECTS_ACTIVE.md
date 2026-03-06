@@ -22,28 +22,89 @@ Purpose: Continuity layer for multi-step projects across sessions.
 - next_action: Set up op CLI auth and migrate ~/.pinchtab/.env token to 1Password vault
 - blocking_issue: none
 - relevant_files: ~/.pinchtab/.env, /usr/lib/node_modules/openclaw/skills/1password/SKILL.md
-- notes: Pinchtab BRIDGE_TOKEN currently stored in plaintext. Priority: before adding any additional credentials to .env files anywhere on the system.
-- last_updated: 2026-03-04
+- notes: Pinchtab BRIDGE_TOKEN currently stored in plaintext. Priority: before adding any additional credentials to .env files anywhere on the system. Deferred to dedicated session. All other triage items completed first.
+- last_updated: 2026-03-05
 
 ### ROUTING_STATE_FALLBACK_MODEL_FIX
-- status: planning
+- status: complete
 - hat_sequence: [ops-core]
-- last_completed_step: Discrepancy identified during baseline rebuild
-- next_action: Update ROUTING_STATE.md to correctly distinguish global hard fallback (openai/gpt-5.2-chat-latest in os/model-routing.js) from route-level fallback (openrouter/nvidia/nemotron-nano-9b-v2:free)
+- last_completed_step: Documented correctly in ROUTING_STATE.md as of Mar 05, 2026 refresh.
+- next_action: none
 - blocking_issue: none
 - relevant_files: project_source/ROUTING_STATE.md, os/model-routing.js
-- notes: Low priority. Creates paper truth but has no operational impact.
-- last_updated: 2026-03-04
+- notes: Low priority. Creates paper truth but has no operational impact. Documented correctly in ROUTING_STATE.md as of Mar 05, 2026 refresh.
+- last_updated: 2026-03-05
 
 ### PINCHTAB_AUTOSTART_DECISION
+- status: complete
+- hat_sequence: [ops-core]
+- last_completed_step: Launch-on-demand implemented via scripts/pinchtab-session.sh; CHROME_BINARY export fix applied; snap Chromium removed
+- next_action: none
+- blocking_issue: none
+- relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
+- notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env. Blocked until 1PASSWORD_CLI_SETUP is complete.
+- last_updated: 2026-03-06
+
+### EBAY_RESALE_V1
+- status: planning
+- hat_sequence: [resale → ops-core]
+- last_completed_step: eBay Developer Program application submitted; awaiting approval
+- next_action: Confirm eBay Developer Program approval, then set up OAuth tokens in 1Password and implement photo intake via Telegram
+- blocking_issue: eBay Developer Program approval pending
+- relevant_files: ~/resale/inbox/
+- notes: Phase 1 is human-in-the-loop. Bryan uploads photos to ~/resale/inbox/<item-folder>/, Bort identifies item via vision model, researches sold comps, drafts listing, sends Telegram preview, posts via eBay Sell APIs. Pricing: 40th percentile of recent sold comps. Photo intake path (Telegram vs manual upload) still an open question.
+- last_updated: 2026-03-06
+
+### TELEGRAM_CHAT_ID_CENTRALIZATION
 - status: planning
 - hat_sequence: [ops-core]
-- last_completed_step: Pinchtab installed and verified; autostart intentionally deferred
-- next_action: Bryan to decide: cron-based autostart, launch-on-demand, or dashboard mode. Then implement and document in SKILL_REGISTRY.md notes.
-- blocking_issue: Decision needed from Bryan before implementation
-- relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
-- notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env.
-- last_updated: 2026-03-04
+- last_completed_step: Identified and documented as Antipattern 14
+- next_action: Centralize TELEGRAM_CHAT_ID in openclaw.json or shared constants file and update os/x_daily_post.js, scripts/pr-review-job.mjs, scripts/deploy.mjs
+- blocking_issue: none
+- relevant_files: os/x_daily_post.js, scripts/pr-review-job.mjs, scripts/deploy.mjs, openclaw.json
+- notes: Low priority maintenance debt. No security risk. Three files currently hardcode chat ID 8374853956.
+- last_updated: 2026-03-05
+
+### ARCH_REVIEW_2026_03_05
+- status: complete
+- hat_sequence: [ops-core]
+- last_completed_step: All 18 findings triaged. 15 resolved. 1Password deferred. Telegram centralization logged.
+- next_action: none — archive at next monthly cleanup
+- blocking_issue: none
+- relevant_files: project_source/CHANGELOG_AUTOGEN.md
+- notes: Full findings in Claude session 2026-03-05. HIGHs resolved: Gmail cron, allowedSkills enforcement, preflight fallback, drift regex, doc drift. 1PASSWORD_CLI_SETUP remains open.
+- last_updated: 2026-03-05
+
+
+### BORT_PR_REVIEW_PIPELINE
+- status: complete
+- hat_sequence: [ops-core → autonomous]
+- last_completed_step: Full pipeline live — PR review, auto-deploy, session close convention, CLAUDE.md in bundle. First Claude Code session ready.
+- next_action: none
+- blocking_issue: none
+- relevant_files: scripts/pr-review-job.mjs, logs/pr-review.log, project_source/SYSTEM_CONTEXT.md
+- notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
+- last_updated: 2026-03-05
+
+### CLAUDECODE_HANDOFF_SETUP
+- status: complete
+- hat_sequence: [ops-core]
+- last_completed_step: Full pipeline live — PR review, auto-deploy, session close convention, CLAUDE.md in bundle. First Claude Code session ready.
+- next_action: none
+- blocking_issue: none
+- relevant_files: CLAUDE.md, scripts/pr-review-job.mjs, scripts/deploy.mjs
+- notes: Claude Code handoff conventions documented; WIP PRs skipped.
+- last_updated: 2026-03-05
+
+### BORT_PR_REVIEW_PIPELINE
+- status: in_progress
+- hat_sequence: [ops-core → autonomous]
+- last_completed_step: pr-review-job.mjs built with claude/ prefix, legacy exempt logic removed, crons registered, Telegram command added
+- next_action: Bryan to open first real PR from a Claude Code session using claude/* branch and verify end-to-end flow
+- blocking_issue: none
+- relevant_files: scripts/pr-review-job.mjs, logs/pr-review.log, project_source/SYSTEM_CONTEXT.md
+- notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
+- last_updated: 2026-03-05
 
 ---
 
