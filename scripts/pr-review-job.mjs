@@ -126,15 +126,15 @@ function detectSecrets(diff) {
   return false
 }
 
-function safeZonesOnly(files, headRefName) {
-  if (!files.length) return false
-  return files.every((f) =>
-    f.startsWith('scripts/') ||
-    f.startsWith('integrations/') ||
-    f.startsWith('hats/') ||
-    f.startsWith('docs/') ||
-    (headRefName.startsWith('bort/') && (f.startsWith('project_source/') || f.startsWith('skills/') || f === 'CLAUDE.md'))
-  )
+function isClaudeBlockedPath(file) {
+  if (file === 'CLAUDE.md') return true
+  if (file.endsWith('.arch_drift_baseline.json')) return true
+  if (file.startsWith('project_source/') && file.endsWith('.md')) return true
+  return false
+}
+
+function hasClaudeBlockedPaths(files) {
+  return files.some((f) => isClaudeBlockedPath(f))
 }
 
 function hasProjectSourceMd(files) {
@@ -183,8 +183,7 @@ function reviewPR(pr, viewerLogin) {
 
   // AUTO-REJECT rules
   if (authorLogin === 'NewWorldOrderly') reasons.push('author is NewWorldOrderly (direct commit)')
-  if (headRefName.startsWith('claude/') && hasProjectSourceMd(files)) reasons.push('claude/ branch touches project_source/*.md')
-  if (hasArchDrift(files)) reasons.push('touches .arch_drift_baseline.json')
+  if (headRefName.startsWith('claude/') && hasClaudeBlockedPaths(files)) reasons.push('claude/ branch touches blocked path (project_source/*.md, .arch_drift_baseline.json, or CLAUDE.md)')
   if (!(headRefName.startsWith('claude/') || headRefName.startsWith('bort/'))) reasons.push('branch not prefixed claude/ or bort/')
   if (detectSecrets(diff)) reasons.push('possible secret/token pattern detected')
 
@@ -210,10 +209,6 @@ function reviewPR(pr, viewerLogin) {
 
   if (escalateReasons.length) {
     return { decision: 'ESCALATE', reason: escalateReasons.join('; '), prView, diff, isSelf }
-  }
-
-  if (!safeZonesOnly(files, headRefName)) {
-    return { decision: 'REQUEST_CHANGES', reason: 'changes outside safe zones (scripts/, integrations/, hats/, docs/; project_source/ + skills/ + CLAUDE.md allowed for bort/)', prView, diff, isSelf }
   }
 
   if (hasConflictMarkers(diff)) {
