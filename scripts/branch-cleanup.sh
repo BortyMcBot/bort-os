@@ -12,7 +12,7 @@ set -euo pipefail
 REPO="${BORT_WORKSPACE:-/root/.openclaw/workspace}"
 MAIN_BRANCH="main"
 DRY_RUN=true
-TELEGRAM_TARGET="8374853956"
+TELEGRAM_TARGET="$(node -p "require('${REPO}/os/constants').TELEGRAM_CHAT_ID")"
 
 for arg in "$@"; do
   case "$arg" in

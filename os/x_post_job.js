@@ -10,13 +10,14 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const { xCall } = require('./x_call');
+const { TELEGRAM_CHAT_ID } = require('./constants');
 
 function notify(message) {
-  const { execSync } = require('child_process');
   execSync(
-    `openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(message)}`,
+    `openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(message)}`,
     { stdio: 'inherit' }
   );
 }

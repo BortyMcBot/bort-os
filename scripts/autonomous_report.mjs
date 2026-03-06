@@ -2,8 +2,9 @@
 import fs from 'fs'
 import path from 'path'
 import { spawnSync } from 'child_process'
+import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.mjs'
 
-const WORKSPACE = '/root/.openclaw/workspace'
+const WORKSPACE = BORT_WORKSPACE
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'autonomous_log.md')
 const REPORT_PATH = path.join(WORKSPACE, 'memory', 'autonomous_report.md')
 
@@ -61,7 +62,7 @@ function main() {
     fmt(siteList),
   ].join('\n')
 
-  run(`openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(msg)}`, WORKSPACE)
+  run(`openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(msg)}`, WORKSPACE)
 }
 
 main()
