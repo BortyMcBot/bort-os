@@ -23,11 +23,16 @@ FILES=(
   PROMPT_ANTIPATTERNS.md
   HAT_OS_RESOLUTION.md
   CLAUDE_SESSION_OPENER.md
+  CLAUDE.md
   EXPORT_LATEST.md
 )
 
 for f in "${FILES[@]}"; do
-  cp -f "$ROOT/project_source/$f" "$PUB/$f"
+  if [[ "$f" == "CLAUDE.md" ]]; then
+    cp -f "$ROOT/CLAUDE.md" "$PUB/$f"
+  else
+    cp -f "$ROOT/project_source/$f" "$PUB/$f"
+  fi
 done
 
 # Remove tgz bundle from public dir (flat file listing only)
