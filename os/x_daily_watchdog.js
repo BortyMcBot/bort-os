@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { TELEGRAM_CHAT_ID } = require('./constants');
 
 const RESULTS_PATH = path.join(process.cwd(), 'memory', 'x_post_results.log.md');
 const DAILY_LOG = path.join(process.cwd(), 'memory', 'x_daily_post.log.md');
@@ -57,7 +58,7 @@ function hoursSince(d) {
 }
 
 function notify(message) {
-  execSync(`openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(message)}`, { stdio: 'inherit' });
+  execSync(`openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(message)}`, { stdio: 'inherit' });
 }
 
 function main() {

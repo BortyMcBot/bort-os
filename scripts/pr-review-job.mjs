@@ -2,8 +2,9 @@
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.mjs'
 
-const WORKSPACE = '/root/.openclaw/workspace'
+const WORKSPACE = BORT_WORKSPACE
 const LOG_PATH = path.join(WORKSPACE, 'logs', 'pr-review.log')
 
 const args = new Set(process.argv.slice(2))
@@ -219,7 +220,7 @@ function reviewPR(pr, viewerLogin) {
 }
 
 function sendTelegram(message) {
-  const cmd = `openclaw message send --channel telegram --target 8374853956 --message ${JSON.stringify(message)}`
+  const cmd = `openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(message)}`
   run(cmd)
 }
 

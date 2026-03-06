@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO="/root/.openclaw/workspace"
+TELEGRAM_CHAT_ID="$(node -p "require('${REPO}/os/constants').TELEGRAM_CHAT_ID")"
 STATUS=$(git -C "$REPO" status --porcelain=v1)
 
 if [ -z "$STATUS" ]; then
@@ -15,8 +16,8 @@ MESSAGE="chore(repo): automated hygiene sync (${DATE})"
 git -C "$REPO" add -A
 if git -C "$REPO" commit -m "$MESSAGE"; then
   git -C "$REPO" push origin main
-  openclaw message send --channel telegram --target 8374853956 --message "Repo hygiene: auto-committed and pushed."
+  openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "Repo hygiene: auto-committed and pushed."
 else
   MSG=$'Repo hygiene check: uncommitted changes detected.\n\n'"$STATUS"
-  openclaw message send --channel telegram --target 8374853956 --message "$MSG"
+  openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
 fi
