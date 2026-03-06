@@ -1,5 +1,15 @@
 # CHANGELOG_AUTOGEN.md
 
+## 2026-03-06
+- Diagnosed and fixed Pinchtab Chrome binary resolution failure.
+- Root cause: Pinchtab does not load CHROME_BINARY from ~/.pinchtab/.env at runtime — only honors shell environment.
+- Fix: Added export CHROME_BINARY=/usr/bin/google-chrome-stable to top of scripts/pinchtab-session.sh.
+- Removed snap Chromium (snap remove chromium) to eliminate PATH fallback risk.
+- Confirmed Pinchtab healthy (status: ok) via pinchtab-session.sh start/stop cycle.
+- PROMPT_ANTIPATTERNS.md: added Antipattern 14 (CHROME_BINARY not loaded from .env).
+- PROJECTS_ACTIVE.md: PINCHTAB_AUTOSTART_DECISION marked complete.
+- PROJECTS_ACTIVE.md: EBAY_RESALE_V1 added (status: planning, blocked on eBay Developer Program approval).
+
 ## 2026-03-05
 - Architectural review completed (18 findings, 15 resolved this session).
 - os/preflight.js: autonomous hat added to fallback HATS object (C-2 fix).

@@ -36,14 +36,24 @@ Purpose: Continuity layer for multi-step projects across sessions.
 - last_updated: 2026-03-05
 
 ### PINCHTAB_AUTOSTART_DECISION
-- status: planning
+- status: complete
 - hat_sequence: [ops-core]
-- last_completed_step: Pinchtab installed and verified; autostart intentionally deferred
-- next_action: Bryan to decide: cron-based autostart, launch-on-demand, or dashboard mode. Then implement and document in SKILL_REGISTRY.md notes.
-- blocking_issue: Decision needed from Bryan before implementation
+- last_completed_step: Launch-on-demand implemented via scripts/pinchtab-session.sh; CHROME_BINARY export fix applied; snap Chromium removed
+- next_action: none
+- blocking_issue: none
 - relevant_files: ~/.pinchtab/.env, project_source/SKILL_REGISTRY.md
 - notes: Current posture is manual launch only. Persistent profile is ready at /root/.pinchtab/chrome-profile. Autostart should only be considered after 1Password CLI setup is complete so BRIDGE_TOKEN is not exposed in a cron env. Blocked until 1PASSWORD_CLI_SETUP is complete.
-- last_updated: 2026-03-05
+- last_updated: 2026-03-06
+
+### EBAY_RESALE_V1
+- status: planning
+- hat_sequence: [resale → ops-core]
+- last_completed_step: eBay Developer Program application submitted; awaiting approval
+- next_action: Confirm eBay Developer Program approval, then set up OAuth tokens in 1Password and implement photo intake via Telegram
+- blocking_issue: eBay Developer Program approval pending
+- relevant_files: ~/resale/inbox/
+- notes: Phase 1 is human-in-the-loop. Bryan uploads photos to ~/resale/inbox/<item-folder>/, Bort identifies item via vision model, researches sold comps, drafts listing, sends Telegram preview, posts via eBay Sell APIs. Pricing: 40th percentile of recent sold comps. Photo intake path (Telegram vs manual upload) still an open question.
+- last_updated: 2026-03-06
 
 ### TELEGRAM_CHAT_ID_CENTRALIZATION
 - status: planning
