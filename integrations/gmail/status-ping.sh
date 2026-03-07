@@ -8,6 +8,7 @@ LOG="/root/.openclaw/workspace/integrations/gmail/backlog-sweep.log"
 INITIAL=13888
 
 cd /root/.openclaw/workspace/integrations/gmail
+TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
 
 UNREAD_JSON=$(GMAIL_CREDS="$CREDS" GMAIL_TOKEN="$TOKEN" node ./count-unread.js)
 UNREAD=$(echo "$UNREAD_JSON" | node -pe 'JSON.parse(fs.readFileSync(0,"utf8")).total')
@@ -36,4 +37,4 @@ if [[ -n "${LASTERR}" ]]; then
   MSG+=" Recent errors: ${LASTERR}"
 fi
 
-/usr/bin/openclaw message send --channel telegram --target 8374853956 --message "$MSG"
+/usr/bin/openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"

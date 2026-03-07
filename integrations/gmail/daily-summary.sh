@@ -7,6 +7,7 @@ PREFS="/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.json"
 OUT="/tmp/gmail-daily.json"
 
 cd /root/.openclaw/workspace/integrations/gmail
+TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
 
 node ./daily-review.js --creds "$CREDS" --token "$TOKEN" --prefs "$PREFS" --max 50 > "$OUT"
 
@@ -65,4 +66,4 @@ console.log(msg);
 NODE
 )
 
-openclaw message send --channel telegram --target 8374853956 --message "$MSG"
+openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
