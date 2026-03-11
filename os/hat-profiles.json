@@ -7,7 +7,7 @@
       "allowedIdentityContexts": ["agent"],
       "allowedTaskTypes": ["ops", "research", "spec", "code", "summarize"],
       "defaultDataSensitivity": "low",
-      "allowedSkills": ["coding-agent", "github", "gh-issues", "openai-image-gen", "bluebubbles", "self-improving-agent"],
+      "allowedSkills": ["coding-agent", "github", "gh-issues", "openai-image-gen", "bluebubbles"],
       "allowedCommands": [
         "git status",
         "git diff",
@@ -149,8 +149,7 @@
         "openai-image-gen",
         "openai-whisper",
         "openai-whisper-api",
-        "pinchtab",
-        "self-improving-agent"
+        "pinchtab"
       ],
       "allowedCommands": [
         "node /root/.openclaw/workspace/scripts/arch-drift-check.mjs",

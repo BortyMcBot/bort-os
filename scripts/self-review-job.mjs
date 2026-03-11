@@ -286,8 +286,8 @@ function createFixPRs(findings) {
 
       run(`openclaw agent run --prompt-file ${tmpFixPrompt}`, { timeout: 120_000 })
 
-      // Stage, commit, push, open PR
-      run(`git add -A`)
+      // Stage only the target file — avoid sweeping unrelated changes
+      run(`git add -- ${file}`)
       const hasChanges = run(`git diff --cached --name-only`)
       if (!hasChanges) {
         console.log(`  No changes produced for ${file}, skipping PR.`)
@@ -612,10 +612,12 @@ function sendSummary({ fileCount, findings, prsOpened, research, stalenessNotifi
     `🌐 Research highlights:`,
     researchHighlights,
     '',
-    `📝 Notes committed:`,
-    `  • ${relPath(docPaths.findingsPath)}`,
-    `  • ${relPath(docPaths.digestPath)}`,
-    `  • ${relPath(docPaths.planPath)}`,
+    ...(docPaths.findingsPath ? [
+      `📝 Notes committed:`,
+      `  • ${relPath(docPaths.findingsPath)}`,
+      `  • ${relPath(docPaths.digestPath)}`,
+      `  • ${relPath(docPaths.planPath)}`,
+    ] : []),
     questions,
   ].join('\n')
 
