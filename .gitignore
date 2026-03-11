@@ -7,6 +7,9 @@ openclaw.json
 
 # Workspace memory/logs
 memory/
+
+# Runtime learnings (self-improving-agent, local to VPS)
+.learnings/
 *.log
 *.log.*
 *.md.log
