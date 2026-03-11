@@ -194,7 +194,7 @@ function runCodeReview() {
       fs.writeFileSync(tmpPrompt, combinedPrompt)
 
       const result = run(
-        `openclaw agent run --prompt-file ${tmpPrompt}`,
+        `openclaw agent run -m "$(cat ${tmpPrompt})"`,
         { timeout: 120_000 }
       )
 
@@ -303,7 +303,7 @@ function createFixPRs(findings) {
       const tmpFixPrompt = `/tmp/self-review-fix-${slug}.txt`
       fs.writeFileSync(tmpFixPrompt, fixPrompt)
 
-      run(`openclaw agent run --prompt-file ${tmpFixPrompt}`, { timeout: 120_000 })
+      run(`openclaw agent run -m "$(cat ${tmpFixPrompt})"`, { timeout: 120_000 })
 
       // Enforce clean worktree: only the target file may be changed.
       // Use git status --porcelain to catch unstaged edits, staged changes,
@@ -458,7 +458,7 @@ function runWebResearch() {
       fs.writeFileSync(tmpQuery, topic.query)
 
       const result = run(
-        `openclaw agent run --skill gemini --prompt-file ${tmpQuery}`,
+        `openclaw agent run --skill gemini -m "$(cat ${tmpQuery})"`,
         { timeout: 90_000 }
       )
 
