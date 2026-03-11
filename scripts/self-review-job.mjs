@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from 'node:child_process'
+import { execFileSync, execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.js'
@@ -35,6 +35,20 @@ function run(cmd, opts = {}) {
     return ''
   }
   return execSync(cmd, { encoding: 'utf8', cwd: WORKSPACE, ...opts }).trim()
+}
+
+function runOpenClaw(args, opts = {}) {
+  if (dryRun && !opts.allowDryRun) {
+    console.log(`[dry-run] openclaw ${args.join(' ')}`)
+    return ''
+  }
+  return execFileSync('openclaw', args, { encoding: 'utf8', cwd: WORKSPACE, ...opts }).trim()
+}
+
+function getStatusPath(line) {
+  const match = line.match(/^[ MARC?][ MARC?] (.+)$/)
+  if (!match) return null
+  return match[1].split(' -> ')[0]
 }
 
 function sendTelegram(message) {
@@ -188,8 +202,8 @@ function runCodeReview() {
       const tmpPrompt = `/tmp/self-review-prompt-${slugify(dir)}.txt`
       fs.writeFileSync(tmpPrompt, combinedPrompt)
 
-      const result = run(
-        `openclaw agent --agent ${AGENT_ID} --message ${JSON.stringify(combinedPrompt)}`,
+      const result = runOpenClaw(
+        ['agent', '--agent', AGENT_ID, '--message', combinedPrompt],
         { timeout: 120_000 }
       )
 
@@ -299,7 +313,10 @@ function createFixPRs(findings) {
       fs.writeFileSync(tmpFixPrompt, fixPrompt)
 
       const fixMessage = fs.readFileSync(tmpFixPrompt, 'utf8')
-      run(`openclaw agent --agent ${AGENT_ID} --message ${JSON.stringify(fixMessage)}`, { timeout: 120_000 })
+      runOpenClaw(
+        ['agent', '--agent', AGENT_ID, '--message', fixMessage],
+        { timeout: 120_000 }
+      )
 
       // Enforce clean worktree: only the target file may be changed.
       // Use git status --porcelain to catch unstaged edits, staged changes,
@@ -308,19 +325,20 @@ function createFixPRs(findings) {
       if (porcelain) {
         const statusLines = porcelain.split('\n').filter((l) => l.trim())
         const unexpected = statusLines.filter((l) => {
-          // porcelain format: XY <path> or XY <path> -> <path>
-          const statusPath = l.slice(3).split(' -> ')[0]
+          const statusPath = getStatusPath(l)
+          if (!statusPath) return false
           return statusPath !== file
         })
         if (unexpected.length > 0) {
-          const unexpectedPaths = unexpected.map((l) => l.slice(3).split(' -> ')[0])
+          const unexpectedPaths = unexpected.map((l) => getStatusPath(l)).filter(Boolean)
           console.log(`  Fixer touched files outside target, discarding: ${unexpectedPaths.join(', ')}`)
           // Restore tracked files (excluding target) and remove untracked files
           for (const p of unexpectedPaths) {
-            const statusChar = statusLines.find((l) => l.slice(3).split(' -> ')[0] === p)?.[0]
+            const statusLine = statusLines.find((l) => getStatusPath(l) === p)
+            const statusChar = statusLine ? statusLine[0] : ''
             if (statusChar === '?') {
               // Untracked file — delete it
-              try { fs.unlinkSync(path.join(WORKSPACE, p)) } catch { /* ignore */ }
+              try { fs.rmSync(path.join(WORKSPACE, p), { force: true }) } catch { /* ignore */ }
             } else {
               // Tracked file — restore from HEAD
               run(`git checkout HEAD -- ${JSON.stringify(p)}`)
@@ -454,8 +472,8 @@ function runWebResearch() {
       fs.writeFileSync(tmpQuery, topic.query)
 
       const queryMessage = `Use the gemini skill if available. ${topic.query}`
-      const result = run(
-        `openclaw agent --agent ${AGENT_ID} --message ${JSON.stringify(queryMessage)}`,
+      const result = runOpenClaw(
+        ['agent', '--agent', AGENT_ID, '--message', queryMessage],
         { timeout: 90_000 }
       )
 
