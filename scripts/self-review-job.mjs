@@ -186,7 +186,8 @@ function runCodeReview() {
         { timeout: 120_000 }
       )
 
-      const findings = parseFindings(result, dir)
+      const reviewedSet = new Set(groupFiles_.map(relPath))
+      const findings = parseFindings(result, dir, reviewedSet)
       allFindings.push(...findings)
 
       try { fs.unlinkSync(tmpPrompt) } catch { /* ignore */ }
@@ -199,7 +200,7 @@ function runCodeReview() {
   return { findings: allFindings, fileCount: files.length }
 }
 
-function parseFindings(output, dir) {
+function parseFindings(output, dir, reviewedSet) {
   const findings = []
   const blocks = output.split('---FINDING---')
   for (const block of blocks) {
@@ -209,9 +210,15 @@ function parseFindings(output, dir) {
     const severity = content.match(/SEVERITY:\s*(HIGH|MEDIUM|LOW)/)?.[1]?.trim()
     const description = content.match(/DESCRIPTION:\s*(.+)/)?.[1]?.trim()
     const suggestion = content.match(/SUGGESTION:\s*(.+)/)?.[1]?.trim()
-    if (file && severity && description) {
-      findings.push({ file, severity, description, suggestion: suggestion || '', dir })
+    if (!file || !severity || !description) continue
+
+    // Validate the file was actually in the reviewed set — reject hallucinated paths
+    if (!reviewedSet.has(file)) {
+      console.log(`  Skipping finding for ${file} — not in reviewed file set for ${dir}/`)
+      continue
     }
+
+    findings.push({ file, severity, description, suggestion: suggestion || '', dir })
   }
   return findings
 }
@@ -286,7 +293,17 @@ function createFixPRs(findings) {
 
       run(`openclaw agent run --prompt-file ${tmpFixPrompt}`, { timeout: 120_000 })
 
-      // Stage only the target file — avoid sweeping unrelated changes
+      // Check for and discard any changes outside the target file
+      const allDirty = run(`git diff --name-only`, { allowDryRun: true })
+      if (allDirty) {
+        const dirtyFiles = allDirty.split('\n').filter((f) => f.trim() && f.trim() !== file)
+        if (dirtyFiles.length > 0) {
+          console.log(`  Fixer touched files outside target, discarding: ${dirtyFiles.join(', ')}`)
+          run(`git checkout -- ${dirtyFiles.map((f) => JSON.stringify(f)).join(' ')}`)
+        }
+      }
+
+      // Stage only the target file
       run(`git add -- ${file}`)
       const hasChanges = run(`git diff --cached --name-only`)
       if (!hasChanges) {
