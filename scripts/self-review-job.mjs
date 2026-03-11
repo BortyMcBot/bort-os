@@ -293,13 +293,31 @@ function createFixPRs(findings) {
 
       run(`openclaw agent run --prompt-file ${tmpFixPrompt}`, { timeout: 120_000 })
 
-      // Check for and discard any changes outside the target file
-      const allDirty = run(`git diff --name-only`, { allowDryRun: true })
-      if (allDirty) {
-        const dirtyFiles = allDirty.split('\n').filter((f) => f.trim() && f.trim() !== file)
-        if (dirtyFiles.length > 0) {
-          console.log(`  Fixer touched files outside target, discarding: ${dirtyFiles.join(', ')}`)
-          run(`git checkout -- ${dirtyFiles.map((f) => JSON.stringify(f)).join(' ')}`)
+      // Enforce clean worktree: only the target file may be changed.
+      // Use git status --porcelain to catch unstaged edits, staged changes,
+      // AND untracked files the fixer agent may have created.
+      const porcelain = run(`git status --porcelain`, { allowDryRun: true })
+      if (porcelain) {
+        const statusLines = porcelain.split('\n').filter((l) => l.trim())
+        const unexpected = statusLines.filter((l) => {
+          // porcelain format: XY <path> or XY <path> -> <path>
+          const statusPath = l.slice(3).split(' -> ')[0]
+          return statusPath !== file
+        })
+        if (unexpected.length > 0) {
+          const unexpectedPaths = unexpected.map((l) => l.slice(3).split(' -> ')[0])
+          console.log(`  Fixer touched files outside target, discarding: ${unexpectedPaths.join(', ')}`)
+          // Restore tracked files (excluding target) and remove untracked files
+          for (const p of unexpectedPaths) {
+            const statusChar = statusLines.find((l) => l.slice(3).split(' -> ')[0] === p)?.[0]
+            if (statusChar === '?') {
+              // Untracked file — delete it
+              try { fs.unlinkSync(path.join(WORKSPACE, p)) } catch { /* ignore */ }
+            } else {
+              // Tracked file — restore from HEAD
+              run(`git checkout HEAD -- ${JSON.stringify(p)}`)
+            }
+          }
         }
       }
 
