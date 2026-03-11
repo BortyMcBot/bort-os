@@ -61,8 +61,13 @@ function collectFiles() {
   const files = []
   for (const dir of REVIEW_DIRS) {
     const full = path.join(WORKSPACE, dir)
-    if (!fs.existsSync(full)) continue
+    if (!fs.existsSync(full)) {
+      console.log(`  Warning: review directory not found: ${full}`)
+      continue
+    }
+    const before = files.length
     walkDir(full, files)
+    console.log(`  ${dir} — ${files.length - before} files`)
   }
   return files
 }
@@ -130,6 +135,13 @@ function runCodeReview() {
 
   const files = collectFiles()
   console.log(`Found ${files.length} files to review.`)
+
+  if (files.length === 0) {
+    const msg = `ERROR: No files found to review. WORKSPACE=${WORKSPACE} — check that BORT_WORKSPACE points to the bort-os repo root and that review directories (${REVIEW_DIRS.join(', ')}) exist.`
+    console.error(msg)
+    if (!dryRun) sendTelegram(`⚠️ Self-review aborted: ${msg}`)
+    return { findings: [], fileCount: 0 }
+  }
 
   const learnings = loadLearnings()
   if (learnings) {
