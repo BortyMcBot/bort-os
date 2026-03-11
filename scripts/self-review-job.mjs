@@ -180,21 +180,15 @@ function runCodeReview() {
     ].join('\n')
 
     try {
-      const fileContents = groupFiles_.map((f) => {
-        const rel = relPath(f)
-        const content = fs.readFileSync(f, 'utf8')
-        return `=== ${rel} ===\n${content}`
-      }).join('\n\n')
-
       const learningsSection = learnings
         ? `\n\nRuntime learnings (from self-improving-agent — use these as additional context for your review, especially recurring errors or known issues):\n${learnings}\n`
         : ''
-      const combinedPrompt = `${prompt}${learningsSection}\n\nFile contents:\n${fileContents}`
+      const combinedPrompt = `${prompt}${learningsSection}\n\nInstructions: Use the read tool to open each file listed above and review their contents. Do not assume file contents.`
       const tmpPrompt = `/tmp/self-review-prompt-${slugify(dir)}.txt`
       fs.writeFileSync(tmpPrompt, combinedPrompt)
 
       const result = run(
-        `openclaw agent run -m "$(cat ${tmpPrompt})"`,
+        `openclaw agent --message ${JSON.stringify(combinedPrompt)}`,
         { timeout: 120_000 }
       )
 
@@ -303,7 +297,8 @@ function createFixPRs(findings) {
       const tmpFixPrompt = `/tmp/self-review-fix-${slug}.txt`
       fs.writeFileSync(tmpFixPrompt, fixPrompt)
 
-      run(`openclaw agent run -m "$(cat ${tmpFixPrompt})"`, { timeout: 120_000 })
+      const fixMessage = fs.readFileSync(tmpFixPrompt, 'utf8')
+      run(`openclaw agent --message ${JSON.stringify(fixMessage)}`, { timeout: 120_000 })
 
       // Enforce clean worktree: only the target file may be changed.
       // Use git status --porcelain to catch unstaged edits, staged changes,
@@ -457,8 +452,9 @@ function runWebResearch() {
       const tmpQuery = `/tmp/self-review-research-${topic.id}.txt`
       fs.writeFileSync(tmpQuery, topic.query)
 
+      const queryMessage = `Use the gemini skill if available. ${topic.query}`
       const result = run(
-        `openclaw agent run --skill gemini -m "$(cat ${tmpQuery})"`,
+        `openclaw agent --message ${JSON.stringify(queryMessage)}`,
         { timeout: 90_000 }
       )
 
