@@ -18,6 +18,8 @@ const RESEARCH_DIR = path.join(SELF_REVIEW_DIR, 'research')
 const PLANS_DIR = path.join(SELF_REVIEW_DIR, 'plans')
 const STALENESS_STATE_PATH = '/tmp/pr-staleness-state.json'
 
+const LEARNINGS_DIR = path.join(WORKSPACE, '.learnings')
+
 const HIGH_RISK_FILES = ['os/preflight.js', 'os/model-routing.js', 'os/hat-profiles.json']
 
 const REVIEW_DIRS = ['scripts/', 'integrations/', 'hats/', 'os/', 'skills/']
@@ -99,6 +101,27 @@ function groupFiles(files) {
 }
 
 // ---------------------------------------------------------------------------
+// .learnings/ integration (self-improving-agent)
+// ---------------------------------------------------------------------------
+
+function loadLearnings() {
+  const files = ['LEARNINGS.md', 'ERRORS.md']
+  const sections = []
+
+  for (const file of files) {
+    const filePath = path.join(LEARNINGS_DIR, file)
+    if (!fs.existsSync(filePath)) continue
+    const content = fs.readFileSync(filePath, 'utf8').trim()
+    // Skip files that only have the header template
+    const lines = content.split('\n').filter((l) => l.trim() && !l.startsWith('#') && l !== '---')
+    if (lines.length === 0) continue
+    sections.push(`=== .learnings/${file} ===\n${content}`)
+  }
+
+  return sections.length > 0 ? sections.join('\n\n') : ''
+}
+
+// ---------------------------------------------------------------------------
 // Phase 1 — Code Review Pass
 // ---------------------------------------------------------------------------
 
@@ -107,6 +130,11 @@ function runCodeReview() {
 
   const files = collectFiles()
   console.log(`Found ${files.length} files to review.`)
+
+  const learnings = loadLearnings()
+  if (learnings) {
+    console.log(`Loaded runtime learnings from .learnings/ for review context.`)
+  }
 
   const groups = groupFiles(files)
   const allFindings = []
@@ -146,7 +174,10 @@ function runCodeReview() {
         return `=== ${rel} ===\n${content}`
       }).join('\n\n')
 
-      const combinedPrompt = `${prompt}\n\nFile contents:\n${fileContents}`
+      const learningsSection = learnings
+        ? `\n\nRuntime learnings (from self-improving-agent — use these as additional context for your review, especially recurring errors or known issues):\n${learnings}\n`
+        : ''
+      const combinedPrompt = `${prompt}${learningsSection}\n\nFile contents:\n${fileContents}`
       const tmpPrompt = `/tmp/self-review-prompt-${slugify(dir)}.txt`
       fs.writeFileSync(tmpPrompt, combinedPrompt)
 

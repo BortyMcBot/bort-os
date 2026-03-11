@@ -46,7 +46,7 @@ continuity.
 
 `scripts/self-review-job.mjs` runs five phases:
 
-1. **Code Review** — scans scripts/, integrations/, hats/, os/, skills/ for issues
+1. **Code Review** — scans scripts/, integrations/, hats/, os/, skills/ for issues; also loads `.learnings/` (populated by `self-improving-agent`) as additional review context
 2. **PR Staleness** — flags PRs open > 3 days (excluding WIP)
 3. **Web Research** — researches four topic areas via Gemini
 4. **Write Notes** — commits findings, digest, and plan to this directory
@@ -54,3 +54,17 @@ continuity.
 
 Fix PRs (HIGH/MEDIUM findings) go through normal PR review. Notes are committed
 on bort/ branches directly to main.
+
+## Runtime Learnings Integration
+
+The `self-improving-agent` ClawHub skill passively captures runtime failures, corrections,
+and knowledge gaps to `.learnings/` on the VPS. During Phase 1, the self-review job reads
+these learnings and injects them as additional context for the code reviewer, creating a
+feedback loop:
+
+```text
+runtime failures/corrections → .learnings/ → weekly self-review → fix PRs
+```
+
+The `.learnings/` directory is gitignored (local to VPS only). See `.learnings/README.md`
+for the file format and trigger conditions.
