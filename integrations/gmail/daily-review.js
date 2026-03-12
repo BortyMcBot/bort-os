@@ -24,6 +24,7 @@ const {
   extractUnsubTargets,
   normalizeFrom,
   extractEmailAddress,
+  withBackoff,
 } = require('./lib');
 const { looksSpammy, looksImportant } = require('./classify');
 
@@ -65,11 +66,11 @@ function senderMatches(list, fromEmail) {
   const lblSub = await getOrCreateLabel(gmail, 'Bort/Subscription');
   const lblSpam = await getOrCreateLabel(gmail, 'Bort/SpamReview');
 
-  const list = await gmail.users.threads.list({
+  const list = await withBackoff(() => gmail.users.threads.list({
     userId: 'me',
     q: 'in:inbox is:unread',
     maxResults: maxThreads,
-  });
+  }));
 
   const threads = list.data.threads || [];
   const summary = {
@@ -84,12 +85,12 @@ function senderMatches(list, fromEmail) {
   };
 
   for (const t of threads) {
-    const thr = await gmail.users.threads.get({
+    const thr = await withBackoff(() => gmail.users.threads.get({
       userId: 'me',
       id: t.id,
       format: 'metadata',
       metadataHeaders: ['From', 'To', 'Subject', 'Date', 'List-Unsubscribe', 'List-Unsubscribe-Post'],
-    });
+    }));
 
     const msg = thr.data.messages?.[0];
     const hdr = pickHeaders(msg.payload);
@@ -128,21 +129,21 @@ function senderMatches(list, fromEmail) {
     const addLabelIds = [labelId];
     if (bucket === 'important') addLabelIds.push('STARRED');
 
-    await gmail.users.threads.modify({
+    await withBackoff(() => gmail.users.threads.modify({
       userId: 'me',
       id: t.id,
       requestBody: {
         addLabelIds,
         ...(removeLabelIds.length ? { removeLabelIds } : {}),
       },
-    });
+    }));
 
     if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
-      await gmail.users.threads.modify({
+      await withBackoff(() => gmail.users.threads.modify({
         userId: 'me',
         id: t.id,
         requestBody: { removeLabelIds: ['INBOX'] },
-      });
+      }));
       summary.archivedByRule.push({ threadId: t.id, from, fromEmail, subject });
     }
 

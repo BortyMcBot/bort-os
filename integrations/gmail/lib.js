@@ -11,10 +11,10 @@ function loadOAuthClient({ credsPath, tokenPath }) {
 }
 
 async function getOrCreateLabel(gmail, name) {
-  const list = await gmail.users.labels.list({ userId: 'me' });
+  const list = await withBackoff(() => gmail.users.labels.list({ userId: 'me' }));
   const found = (list.data.labels || []).find((l) => l.name === name);
   if (found) return found;
-  const created = await gmail.users.labels.create({
+  const created = await withBackoff(() => gmail.users.labels.create({
     userId: 'me',
     requestBody: {
       name,
@@ -22,7 +22,7 @@ async function getOrCreateLabel(gmail, name) {
       messageListVisibility: 'show',
       type: 'user',
     },
-  });
+  }));
   return created.data;
 }
 
@@ -66,6 +66,30 @@ function extractEmailAddress(from) {
   return addr.replace(/^"|"$/g, '');
 }
 
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function withBackoff(fn, { maxRetries = 6, baseMs = 750, maxMs = 15000 } = {}) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (e) {
+      const status = e?.code || e?.response?.status;
+      const msg = String(e?.message || '');
+      const isRetryable =
+        status === 429 ||
+        (status >= 500 && status < 600) ||
+        /rate|quota|userRateLimitExceeded|resource exhausted/i.test(msg);
+      if (!isRetryable || attempt >= maxRetries) throw e;
+      const wait = Math.min(maxMs, baseMs * Math.pow(2, attempt));
+      await sleep(wait);
+      attempt++;
+    }
+  }
+}
+
 module.exports = {
   loadOAuthClient,
   getOrCreateLabel,
@@ -73,4 +97,5 @@ module.exports = {
   extractUnsubTargets,
   normalizeFrom,
   extractEmailAddress,
+  withBackoff,
 };
