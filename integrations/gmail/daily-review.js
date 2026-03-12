@@ -125,22 +125,17 @@ function senderMatches(list, fromEmail) {
     const removeLabelIds = [];
     if (bucket === 'spamReview') removeLabelIds.push('UNREAD');
 
+    const addLabelIds = [labelId];
+    if (bucket === 'important') addLabelIds.push('STARRED');
+
     await gmail.users.threads.modify({
       userId: 'me',
       id: t.id,
       requestBody: {
-        addLabelIds: [labelId],
+        addLabelIds,
         ...(removeLabelIds.length ? { removeLabelIds } : {}),
       },
     });
-
-    if (bucket === 'important') {
-      await gmail.users.threads.modify({
-        userId: 'me',
-        id: t.id,
-        requestBody: { addLabelIds: ['STARRED'] },
-      });
-    }
 
     if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
       await gmail.users.threads.modify({
