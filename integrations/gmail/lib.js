@@ -11,10 +11,10 @@ function loadOAuthClient({ credsPath, tokenPath }) {
 }
 
 async function getOrCreateLabel(gmail, name) {
-  const list = await gmail.users.labels.list({ userId: 'me' });
+  const list = await withBackoff(() => gmail.users.labels.list({ userId: 'me' }));
   const found = (list.data.labels || []).find((l) => l.name === name);
   if (found) return found;
-  const created = await gmail.users.labels.create({
+  const created = await withBackoff(() => gmail.users.labels.create({
     userId: 'me',
     requestBody: {
       name,
@@ -22,7 +22,7 @@ async function getOrCreateLabel(gmail, name) {
       messageListVisibility: 'show',
       type: 'user',
     },
-  });
+  }));
   return created.data;
 }
 
