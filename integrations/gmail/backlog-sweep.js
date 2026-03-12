@@ -52,6 +52,27 @@ function saveJson(p, obj) {
   fs.writeFileSync(p, JSON.stringify(obj, null, 2));
 }
 
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function withBackoff(fn, { maxRetries = 6, baseMs = 750, maxMs = 15000 } = {}) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (e) {
+      const status = e?.code || e?.response?.status;
+      const msg = String(e?.message || '');
+      const isRate = status === 429 || /rate|quota|userRateLimitExceeded|resource exhausted/i.test(msg);
+      if (!isRate || attempt >= maxRetries) throw e;
+      const wait = Math.min(maxMs, baseMs * Math.pow(2, attempt));
+      await sleep(wait);
+      attempt++;
+    }
+  }
+}
+
 function inc(map, key, by = 1) {
   if (!key) return;
   map[key] = (map[key] || 0) + by;
@@ -117,7 +138,7 @@ function senderMatches(list, fromEmail) {
   let batches = 0;
 
   while (batches < maxBatches) {
-    const res = await gmail.users.threads.list({ userId: 'me', q, maxResults: batch, pageToken });
+    const res = await withBackoff(() => gmail.users.threads.list({ userId: 'me', q, maxResults: batch, pageToken }));
     const threads = res.data.threads || [];
     pageToken = res.data.nextPageToken;
 
@@ -130,12 +151,12 @@ function senderMatches(list, fromEmail) {
     }
 
     for (const t of threads) {
-      const thr = await gmail.users.threads.get({
+      const thr = await withBackoff(() => gmail.users.threads.get({
         userId: 'me',
         id: t.id,
         format: 'metadata',
         metadataHeaders: ['From', 'Subject', 'Date', 'List-Unsubscribe', 'List-Unsubscribe-Post'],
-      });
+      }));
       const msg = thr.data.messages?.[0];
       const hdr = pickHeaders(msg.payload);
 
@@ -187,14 +208,14 @@ function senderMatches(list, fromEmail) {
         state.archivedByRule += 1;
       }
 
-      await gmail.users.threads.modify({
+      await withBackoff(() => gmail.users.threads.modify({
         userId: 'me',
         id: t.id,
         requestBody: {
           addLabelIds,
           ...(removeLabelIds.length ? { removeLabelIds } : {}),
         },
-      });
+      }));
 
       if (shouldStar) state.starred += 1;
       if (shouldMarkRead) state.markedRead += 1;
