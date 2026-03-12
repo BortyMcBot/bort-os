@@ -45,6 +45,14 @@ function runOpenClaw(args, opts = {}) {
   return execFileSync('openclaw', args, { encoding: 'utf8', cwd: WORKSPACE, ...opts }).trim()
 }
 
+function runGit(args, opts = {}) {
+  if (dryRun && !opts.allowDryRun) {
+    console.log(`[dry-run] git ${args.join(' ')}`)
+    return ''
+  }
+  return execFileSync('git', args, { encoding: 'utf8', cwd: WORKSPACE, ...opts }).trim()
+}
+
 function getStatusPath(line) {
   const match = line.match(/^[ MARC?][ MARC?] (.+)$/)
   if (!match) return null
@@ -296,9 +304,9 @@ function createFixPRs(findings) {
 
     try {
       // Create branch from main
-      run(`git checkout main`)
-      run(`git pull --ff-only`)
-      run(`git checkout -b ${branch}`)
+      runGit(['checkout', 'main'])
+      runGit(['pull', '--ff-only'])
+      runGit(['checkout', '-b', branch])
 
       // Shell out to agent to implement the fix
       const fixPrompt = [
@@ -341,24 +349,24 @@ function createFixPRs(findings) {
               try { fs.rmSync(path.join(WORKSPACE, p), { force: true }) } catch { /* ignore */ }
             } else {
               // Tracked file — restore from HEAD
-              run(`git checkout HEAD -- ${JSON.stringify(p)}`)
+              runGit(['checkout', 'HEAD', '--', p])
             }
           }
         }
       }
 
       // Stage only the target file
-      run(`git add -- ${file}`)
-      const hasChanges = run(`git diff --cached --name-only`)
+      runGit(['add', '--', file])
+      const hasChanges = runGit(['diff', '--cached', '--name-only'])
       if (!hasChanges) {
         console.log(`  No changes produced for ${file}, skipping PR.`)
-        run(`git checkout main`)
-        run(`git branch -D ${branch}`)
+        runGit(['checkout', 'main'])
+        runGit(['branch', '-D', branch])
         continue
       }
 
-      run(`git commit -m "fix: [SELF-REVIEW] ${fileFindings[0].description.slice(0, 60)}"`)
-      run(`git push -u origin ${branch}`)
+      runGit(['commit', '-m', `fix: [SELF-REVIEW] ${fileFindings[0].description.slice(0, 60)}`])
+      runGit(['push', '-u', 'origin', branch])
 
       fs.writeFileSync(bodyPath, bodyLines.join('\n'))
       const prUrl = run(`gh pr create --repo ${REPO} --title ${JSON.stringify(prTitle)} --body-file ${bodyPath}`)
