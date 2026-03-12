@@ -32,7 +32,14 @@ if (!fs.existsSync(credsPath)) {
   process.exit(2);
 }
 
-const creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
+let creds;
+try {
+  creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
+} catch (err) {
+  console.error(`Failed to parse credentials JSON at: ${credsPath}`);
+  console.error(err?.message || err);
+  process.exit(2);
+}
 const { client_secret, client_id, redirect_uris } = creds.installed || creds.web || {};
 if (!client_id || !client_secret || !redirect_uris?.length) {
   console.error('credentials.json does not look like a Google OAuth client JSON');
