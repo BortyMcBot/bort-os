@@ -66,6 +66,30 @@ function extractEmailAddress(from) {
   return addr.replace(/^"|"$/g, '');
 }
 
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function withBackoff(fn, { maxRetries = 6, baseMs = 750, maxMs = 15000 } = {}) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (e) {
+      const status = e?.code || e?.response?.status;
+      const msg = String(e?.message || '');
+      const isRetryable =
+        status === 429 ||
+        (status >= 500 && status < 600) ||
+        /rate|quota|userRateLimitExceeded|resource exhausted/i.test(msg);
+      if (!isRetryable || attempt >= maxRetries) throw e;
+      const wait = Math.min(maxMs, baseMs * Math.pow(2, attempt));
+      await sleep(wait);
+      attempt++;
+    }
+  }
+}
+
 module.exports = {
   loadOAuthClient,
   getOrCreateLabel,
@@ -73,4 +97,5 @@ module.exports = {
   extractUnsubTargets,
   normalizeFrom,
   extractEmailAddress,
+  withBackoff,
 };

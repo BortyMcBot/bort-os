@@ -2,28 +2,7 @@
 // Count unread inbox threads accurately by paging.
 
 const { google } = require('googleapis');
-const { loadOAuthClient } = require('./lib');
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-async function withBackoff(fn, { maxRetries = 6, baseMs = 750, maxMs = 15000 } = {}) {
-  let attempt = 0;
-  while (true) {
-    try {
-      return await fn();
-    } catch (e) {
-      const status = e?.code || e?.response?.status;
-      const msg = String(e?.message || '');
-      const isRate = status === 429 || /rate|quota|userRateLimitExceeded|resource exhausted/i.test(msg);
-      if (!isRate || attempt >= maxRetries) throw e;
-      const wait = Math.min(maxMs, baseMs * Math.pow(2, attempt));
-      await sleep(wait);
-      attempt++;
-    }
-  }
-}
+const { loadOAuthClient, withBackoff } = require('./lib');
 
 (async () => {
   const credsPath = process.env.GMAIL_CREDS;
