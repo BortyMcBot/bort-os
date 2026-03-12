@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CREDS="/root/.openclaw/secrets/gmail/gobuffs10/credentials.json"
-TOKEN="/root/.openclaw/secrets/gmail/gobuffs10/token.json"
-PREFS="/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.json"
-OUT="/tmp/gmail-daily.json"
+CREDS="${CREDS:-/root/.openclaw/secrets/gmail/gobuffs10/credentials.json}"
+TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/gobuffs10/token.json}"
+PREFS="${PREFS:-/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.json}"
+OUT="${OUT:-/tmp/gmail-daily.json}"
 
 cd /root/.openclaw/workspace/integrations/gmail
 TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
