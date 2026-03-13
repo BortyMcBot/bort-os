@@ -1,15 +1,15 @@
 # STATE_OF_BORT.md
 
-Generated: Mar 12, 2026, 6:02 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 ## Runtime snapshot
-- model_default: openai-codex/gpt-5.2-codex
-- model_resolved_default: openai-codex/gpt-5.2-codex
+- model_default: openai-codex/gpt-5.3-codex
+- model_resolved_default: openai-codex/gpt-5.3-codex
 - model_fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
 - allowed_model_count: 8
 - cron_job_count: 9
 - workspace_top_level_dirs: 19
-- workspace_file_count_recursive: 45600
+- workspace_file_count_recursive: 45691
 
 ## Allowed model IDs
 - openrouter/auto

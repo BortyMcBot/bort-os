@@ -1,9 +1,9 @@
 # ROUTING_STATE.md
 
-Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 ## Global configured defaults
-- primary: openai-codex/gpt-5.2-codex
+- primary: openai-codex/gpt-5.3-codex
 - fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
 
 ## Workspace routing categories (from os/model-routing.js ROUTES)

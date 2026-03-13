@@ -1,6 +1,6 @@
 # Project Source Export (UPLOAD THIS FILE)
 
-Generated: Mar 12, 2026 • 6:02 AM (America/Phoenix)
+Generated: Mar 13, 2026 • 6:01 AM (America/Phoenix)
 
 Changed files since last export:
 - STATE_OF_BORT.md
@@ -262,16 +262,16 @@ Ownership zones:
 
 # STATE_OF_BORT.md
 
-Generated: Mar 12, 2026, 6:02 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 ## Runtime snapshot
-- model_default: openai-codex/gpt-5.2-codex
-- model_resolved_default: openai-codex/gpt-5.2-codex
+- model_default: openai-codex/gpt-5.3-codex
+- model_resolved_default: openai-codex/gpt-5.3-codex
 - model_fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
 - allowed_model_count: 8
 - cron_job_count: 9
 - workspace_top_level_dirs: 19
-- workspace_file_count_recursive: 45600
+- workspace_file_count_recursive: 45691
 
 ## Allowed model IDs
 - openrouter/auto
@@ -373,7 +373,7 @@ Output: timeline, root cause, fix, prevention items.
 
 # HAT_STATE.md
 
-Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -434,7 +434,7 @@ Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
 
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -455,10 +455,10 @@ Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
 
 # ROUTING_STATE.md
 
-Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 ## Global configured defaults
-- primary: openai-codex/gpt-5.2-codex
+- primary: openai-codex/gpt-5.3-codex
 - fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
 
 ## Workspace routing categories (from os/model-routing.js ROUTES)
@@ -506,7 +506,7 @@ Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
 
 # OPERATIONS_STATE.md
 
-Generated: Mar 12, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.
