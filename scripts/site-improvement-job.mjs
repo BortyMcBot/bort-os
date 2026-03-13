@@ -238,7 +238,14 @@ function analyzeRepo(repoDir) {
     framework = 'Vite'
   }
 
-  const pkg = fileContents['package.json'] ? JSON.parse(fileContents['package.json']) : null
+  // Parse package.json safely — the file content may have been read in full but could
+  // still be malformed; guard against parse failures.
+  let pkg = null
+  if (fileContents['package.json']) {
+    try {
+      pkg = JSON.parse(fs.readFileSync(path.join(repoDir, 'package.json'), 'utf8'))
+    } catch { /* malformed package.json — skip deps extraction */ }
+  }
   const deps = pkg ? { ...pkg.dependencies, ...pkg.devDependencies } : {}
 
   console.log(`  Framework: ${framework}`)
@@ -254,6 +261,14 @@ function analyzeRepo(repoDir) {
 
 function callGeminiAnalysis(repoSummary) {
   console.log(`\n=== Phase 2b: Gemini analysis (${now()}) ===\n`)
+
+  if (dryRun) {
+    console.log('[dry-run] Skipping Gemini analysis — returning stub findings.')
+    return {
+      summary: '(dry-run stub)',
+      findings: [],
+    }
+  }
 
   // Gather available capture data
   let pageText = ''
@@ -470,8 +485,9 @@ function createPRs(analysis, repoRef) {
       // Create branch
       runGit(['checkout', '-b', branch], { cwd: prDir })
 
-      // Write the suggested change instruction to a file for the agent
-      const changePrompt = `Apply the following change to the repository at ${prDir}.
+      // Use openclaw agent with cwd set to the PR working copy so edits
+      // land in the right checkout instead of bort-os workspace.
+      const changePrompt = `Apply the following change to the repository in the current directory.
 
 Finding: ${finding.title}
 Description: ${finding.description}
@@ -480,10 +496,11 @@ Suggested change: ${finding.suggested_change}
 Make the minimal edit required. Only modify the file(s) described. Do not add comments, do not refactor surrounding code.
 After editing, respond with the exact file path(s) you changed, one per line.`
 
-      const changeResult = runOpenClaw(
+      const changeResult = execFileSync(
+        'openclaw',
         ['agent', '--agent', AGENT_ID, '--message', changePrompt],
-        { timeout: 60_000 }
-      )
+        { encoding: 'utf8', cwd: prDir, timeout: 60_000 }
+      ).trim()
 
       // Check if any files were actually changed
       const status = runGit(['status', '--porcelain'], { cwd: prDir, allowDryRun: true })
