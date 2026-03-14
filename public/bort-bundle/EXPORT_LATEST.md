@@ -1,13 +1,9 @@
 # Project Source Export (UPLOAD THIS FILE)
 
-Generated: Mar 13, 2026 • 6:01 AM (America/Phoenix)
+Generated: Mar 14, 2026 • 6:01 AM (America/Phoenix)
 
 Changed files since last export:
-- STATE_OF_BORT.md
-- HAT_STATE.md
-- ARCHITECTURE_SUMMARY.md
-- ROUTING_STATE.md
-- OPERATIONS_STATE.md
+- (none)
 
 ---
 
@@ -262,7 +258,7 @@ Ownership zones:
 
 # STATE_OF_BORT.md
 
-Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 14, 2026, 6:01 AM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.3-codex
@@ -271,7 +267,7 @@ Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 - allowed_model_count: 8
 - cron_job_count: 9
 - workspace_top_level_dirs: 19
-- workspace_file_count_recursive: 45691
+- workspace_file_count_recursive: 45705
 
 ## Allowed model IDs
 - openrouter/auto
@@ -373,7 +369,7 @@ Output: timeline, root cause, fix, prevention items.
 
 # HAT_STATE.md
 
-Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 14, 2026, 6:01 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -434,7 +430,7 @@ Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 14, 2026, 6:01 AM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -455,7 +451,7 @@ Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 # ROUTING_STATE.md
 
-Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 14, 2026, 6:01 AM (America/Phoenix)
 
 ## Global configured defaults
 - primary: openai-codex/gpt-5.3-codex
@@ -506,7 +502,7 @@ Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
 
 # OPERATIONS_STATE.md
 
-Generated: Mar 13, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 14, 2026, 6:01 AM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.
