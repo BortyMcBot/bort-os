@@ -18,7 +18,12 @@ function nowPhoenixIso() {
 
 async function main() {
   if (fs.existsSync(STATE_PATH)) {
-    const cur = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'))
+    let cur
+    try {
+      cur = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'))
+    } catch {
+      cur = {}
+    }
     cur.active = false
     cur.stoppedAtPhoenix = nowPhoenixIso()
     fs.writeFileSync(STATE_PATH, JSON.stringify(cur, null, 2) + '\n')
