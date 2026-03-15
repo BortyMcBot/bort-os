@@ -22,7 +22,7 @@ if [[ -z "${BRIDGE_TOKEN:-}" ]]; then
 fi
 
 health_check() {
-  curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BRIDGE_TOKEN}" "$HEALTH_URL"
+  curl -s --connect-timeout 2 --max-time 5 -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BRIDGE_TOKEN}" "$HEALTH_URL"
 }
 
 is_pid_alive() {
