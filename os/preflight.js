@@ -18,11 +18,14 @@ function runProjectSourceCheck() {
     });
   } catch {
     // Never block preflight on source check.
+    console.warn('[preflight] WARN: project_source_check_failed')
   }
 }
 
-// Run before any hat executes.
-runProjectSourceCheck();
+if (require.main === module) {
+  // Run only when invoked directly.
+  runProjectSourceCheck();
+}
 
 const HAT_PROFILES_PATH = path.join(__dirname, 'hat-profiles.json');
 
