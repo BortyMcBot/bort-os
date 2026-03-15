@@ -98,7 +98,11 @@ function execBortOsTask(task, policy) {
 }
 
 function execPersonalWebsiteTask(task, policy) {
-  const repo = path.join(WORKSPACE, 'external', 'personal-website')
+  const repo = process.env.PERSONAL_WEBSITE_REPO || path.join(WORKSPACE, 'tmp', 'site-review', 'repo')
+  if (!fs.existsSync(repo)) {
+    log(`- skipped ${task.id}: repo_missing (${repo})`)
+    return
+  }
   if (task.id === 'personal-website:now-section') {
     run('git checkout -b autonomous/now-section', repo)
 
