@@ -9,6 +9,8 @@ const { appendLog, appendHatLog, nowUtcStamp } = require('../os/memory-log');
 const envelope = {
   hat: 'inbox',
   intent: 'triage',
+  taskType: 'classify',
+  taskSize: 'small',
   risk: 'medium',
   dataSensitivity: 'medium',
   externalStateChange: false,
