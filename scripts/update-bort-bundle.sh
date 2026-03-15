@@ -7,6 +7,13 @@ PUB="$ROOT/public/bort-bundle"
 # Refresh + export latest bundle
 $ROOT/scripts/export-bort-source.sh
 
+# Ensure public bundle dir exists and is writable
+mkdir -p "$PUB"
+if [[ ! -d "$PUB" || ! -w "$PUB" ]]; then
+  echo "Public bundle dir is not writable: $PUB" >&2
+  exit 1
+fi
+
 # Copy current project_source files into public dir
 FILES=(
   FILE_INDEX.md
