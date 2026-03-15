@@ -9,6 +9,8 @@ const { appendLog, appendHatLog, nowUtcStamp } = require('../os/memory-log');
 const envelope = {
   hat: 'ops-core',
   intent: 'diagnose',
+  taskType: 'ops',
+  taskSize: 'small',
   risk: 'low',
   dataSensitivity: 'medium',
   externalStateChange: false,
@@ -27,9 +29,16 @@ function sh(cmd) {
   return execSync(cmd, { encoding: 'utf8' }).trim();
 }
 
-const mem = sh('free -h');
-const disk = sh('df -h /');
-const uptime = sh('uptime');
+let mem, disk, uptime;
+try {
+  mem = sh('free -h');
+  disk = sh('df -h /');
+  uptime = sh('uptime');
+} catch (e) {
+  console.log('Healthcheck failed (read-only).');
+  console.log(`- error: ${String(e.message || e)}`);
+  process.exit(1);
+}
 
 console.log(executionHeader(envelope));
 console.log('');
