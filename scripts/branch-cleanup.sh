@@ -12,7 +12,7 @@ set -euo pipefail
 REPO="${BORT_WORKSPACE:-/root/.openclaw/workspace}"
 MAIN_BRANCH="main"
 DRY_RUN=true
-TELEGRAM_TARGET="$(node -p "require('${REPO}/os/constants').TELEGRAM_CHAT_ID")"
+TELEGRAM_TARGET="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
 
 for arg in "$@"; do
   case "$arg" in
@@ -93,6 +93,6 @@ echo ""
 echo "$SUMMARY"
 
 # Notify via Telegram if openclaw is available
-if command -v openclaw &>/dev/null; then
+if command -v openclaw &>/dev/null && [ -n "$TELEGRAM_TARGET" ]; then
   openclaw message send --channel telegram --target "$TELEGRAM_TARGET" --message "$SUMMARY"
 fi
