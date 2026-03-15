@@ -12,6 +12,8 @@ const repoPath = process.env.WEB_REPO_PATH || '';
 const envelope = {
   hat: 'web',
   intent: 'audit',
+  taskType: 'research',
+  taskSize: 'small',
   risk: 'low',
   dataSensitivity: 'low',
   externalStateChange: false,
@@ -35,6 +37,10 @@ console.log('');
 
 if (!repoPath) {
   console.log('Need: WEB_REPO_PATH (path to BryanDuckworth.com repo)');
+  process.exit(2);
+}
+if (!/^[\w./-]+$/.test(repoPath)) {
+  console.log('Need: WEB_REPO_PATH (safe path characters only)');
   process.exit(2);
 }
 
