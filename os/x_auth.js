@@ -95,17 +95,35 @@ function redact(s) {
 function updateOpenClawEnvVars(patch) {
   // Writes tokens into /root/.openclaw/openclaw.json env.vars without printing them.
   const p = '/root/.openclaw/openclaw.json';
-  const raw = fs.readFileSync(p, 'utf8');
-  const cfg = JSON.parse(raw);
-  cfg.env = cfg.env || {};
-  cfg.env.vars = cfg.env.vars || {};
-
-  for (const [k, v] of Object.entries(patch)) {
-    if (v == null) continue;
-    cfg.env.vars[k] = String(v);
+  const lock = '/tmp/openclaw.json.lock';
+  let lockFd = null;
+  for (let i = 0; i < 20; i++) {
+    try {
+      lockFd = fs.openSync(lock, 'wx');
+      break;
+    } catch {
+      const t = Date.now() + 50;
+      while (Date.now() < t) {}
+    }
   }
+  if (lockFd == null) throw new Error('Could not acquire config lock');
 
-  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
+  try {
+    const raw = fs.readFileSync(p, 'utf8');
+    const cfg = JSON.parse(raw);
+    cfg.env = cfg.env || {};
+    cfg.env.vars = cfg.env.vars || {};
+
+    for (const [k, v] of Object.entries(patch)) {
+      if (v == null) continue;
+      cfg.env.vars[k] = String(v);
+    }
+
+    fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
+  } finally {
+    try { fs.closeSync(lockFd); } catch {}
+    try { fs.unlinkSync(lock); } catch {}
+  }
 }
 
 async function httpPostForm(url, formObj, basicAuth) {
