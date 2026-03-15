@@ -107,6 +107,15 @@ function lastModelsCheck() {
   return { ts: lastTs, notable };
 }
 
+function getPreflightTestSummary() {
+  const out = sh('node /root/.openclaw/workspace/os/preflight.test.js');
+  const m = out.match(/Total:\s*(\d+)\s*passed\s*\/\s*(\d+)\s*failed/i);
+  if (!m) return 'UNKNOWN';
+  const passed = m[1];
+  const failed = m[2];
+  return failed === '0' ? `PASS (${passed} passed / ${failed} failed)` : `FAIL (${passed} passed / ${failed} failed)`;
+}
+
 function main() {
   const cfg = readJson('/root/.openclaw/openclaw.json');
   const { inventory, routeModel } = require('./model-routing');
@@ -124,6 +133,7 @@ function main() {
   const hats = hatsFromMemory();
   const skills = skillsSummary();
   const mc = lastModelsCheck();
+  const preflightSummary = getPreflightTestSummary();
 
   // Gateway runtime
   const desc = sh('systemctl --user show openclaw-gateway.service -p Description --value');
@@ -199,7 +209,7 @@ function main() {
   console.log('');
 
   console.log('Health / Tests');
-  console.log('- preflight tests: PASS (14 passed / 0 failed)');
+  console.log(`- preflight tests: ${preflightSummary}`);
   console.log(`- last models_check run: ${mc.ts || '(none yet)'}`);
   console.log(`- notable new models (if any): ${mc.notable.length ? mc.notable.join(', ') : '(none)'}`);
   console.log('');
