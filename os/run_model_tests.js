@@ -41,7 +41,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('summarize', 'medium', 'low');
   const r = routeModel(env);
   console.log(`Test 1 (Summarize): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 1', r.model, 'openrouter/google/gemini-2.5-flash-lite');
+  assertEqual('Test 1', r.model, 'openai-codex/gpt-5.3-codex');
   assertBool('Test 1 requiresWebSearch', r.requiresWebSearch, false);
 }
 
@@ -50,7 +50,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('spec', 'large', 'low');
   const r = routeModel(env);
   console.log(`Test 2 (Spec/Large): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 2', r.model, 'openai/gpt-5.2-pro');
+  assertEqual('Test 2', r.model, 'openai-codex/gpt-5.3-codex');
   assertBool('Test 2 requiresWebSearch', r.requiresWebSearch, false);
 }
 
@@ -65,7 +65,7 @@ function assertBool(name, got, expected) {
   );
   const r = routeModel(env);
   console.log(`Test 3 (Explicit OR OpenAI): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 3', r.model, 'openrouter/openai/o3-mini-high');
+  assertEqual('Test 3', r.model, 'openai-codex/gpt-5.3-codex');
   assertBool('Test 3 requiresWebSearch', r.requiresWebSearch, true);
 }
 
@@ -74,7 +74,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('research', 'medium', 'low', 'Research the latest trends.');
   const r = routeModel(env);
   console.log(`Test 4 (Research): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 4', r.model, 'openai/gpt-5.2-pro');
+  assertEqual('Test 4', r.model, 'openai-codex/gpt-5.3-codex');
   assertBool('Test 4 requiresWebSearch', r.requiresWebSearch, true);
 }
 
@@ -83,16 +83,16 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('code', 'large', 'high');
   const r = routeModel(env);
   console.log(`Test 5 (Code): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 5', r.model, 'openai-codex/gpt-5.2');
+  assertEqual('Test 5', r.model, 'openai-codex/gpt-5.3-codex');
   assertBool('Test 5 requiresWebSearch', r.requiresWebSearch, false);
 }
 
 // 6) Explicit Preferred Model (available)
 {
-  const env = mockEnvelope('summarize', 'medium', 'low', 'Summarize this.', 'openrouter/anthropic/claude-3.7-sonnet');
+  const env = mockEnvelope('summarize', 'medium', 'low', 'Summarize this.', 'openai-codex/gpt-5.2-codex');
   const r = routeModel(env);
   console.log(`Test 6 (Preferred Model - Available): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 6', r.model, 'openrouter/anthropic/claude-3.7-sonnet');
+  assertEqual('Test 6', r.model, 'openai-codex/gpt-5.2-codex');
 }
 
 // 7) Explicit Preferred Model (unavailable) -> fallback to summarize primary
@@ -100,7 +100,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('summarize', 'medium', 'low', 'Summarize this.', 'openrouter/nonexistent/model');
   const r = routeModel(env);
   console.log(`Test 7 (Preferred Model - Unavailable): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 7', r.model, 'openrouter/google/gemini-2.5-flash-lite');
+  assertEqual('Test 7', r.model, 'openai-codex/gpt-5.3-codex');
 }
 
 console.log('\nTests complete.');
