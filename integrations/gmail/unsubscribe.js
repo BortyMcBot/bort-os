@@ -21,6 +21,7 @@ const {
   extractUnsubTargets,
   normalizeFrom,
   extractEmailAddress,
+  withBackoff,
 } = require('./lib');
 
 function arg(name, fallback) {
@@ -36,27 +37,40 @@ function parseCsv(x) {
     .filter(Boolean);
 }
 
-function httpRequest(url, { method = 'GET', headers = {}, body } = {}) {
-  return new Promise((resolve, reject) => {
-    const u = new URL(url);
-    const opts = {
-      method,
-      hostname: u.hostname,
-      path: u.pathname + (u.search || ''),
-      headers: {
-        'User-Agent': 'OpenClaw-Bort/1.0 (unsubscribe helper)',
-        ...headers,
-      },
-    };
-    const req = https.request(opts, (res) => {
-      let data = '';
-      res.on('data', (d) => (data += d));
-      res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: data.slice(0, 5000) }));
-    });
-    req.on('error', reject);
-    if (body) req.write(body);
-    req.end();
-  });
+async function httpRequest(url, { method = 'GET', headers = {}, body, connectTimeoutMs = 5000, timeoutMs = 10000, retries = 2 } = {}) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await new Promise((resolve, reject) => {
+        const u = new URL(url);
+        const opts = {
+          method,
+          hostname: u.hostname,
+          path: u.pathname + (u.search || ''),
+          headers: {
+            'User-Agent': 'OpenClaw-Bort/1.0 (unsubscribe helper)',
+            ...headers,
+          },
+        };
+        const req = https.request(opts, (res) => {
+          let data = '';
+          res.on('data', (d) => (data += d));
+          res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: data.slice(0, 5000) }));
+        });
+        req.setTimeout(timeoutMs, () => req.destroy(new Error('request_timeout')));
+        req.on('socket', (socket) => {
+          socket.setTimeout(connectTimeoutMs);
+          socket.on('timeout', () => req.destroy(new Error('connect_timeout')));
+        });
+        req.on('error', reject);
+        if (body) req.write(body);
+        req.end();
+      });
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      attempt += 1;
+    }
+  }
 }
 
 function parseMailto(mailtoUrl) {
@@ -107,16 +121,16 @@ function makeRawEmail({ to, subject, body }) {
 
     // Search recent messages from sender in any mailbox.
     const q = `from:${sender} newer_than:90d`;
-    const list = await gmail.users.messages.list({ userId: 'me', q, maxResults: maxPerSender });
+    const list = await withBackoff(() => gmail.users.messages.list({ userId: 'me', q, maxResults: maxPerSender }));
     const msgs = list.data.messages || [];
 
     for (const m of msgs) {
-      const full = await gmail.users.messages.get({
+      const full = await withBackoff(() => gmail.users.messages.get({
         userId: 'me',
         id: m.id,
         format: 'metadata',
         metadataHeaders: ['From','Subject','List-Unsubscribe','List-Unsubscribe-Post'],
-      });
+      }));
       const hdr = pickHeaders(full.data.payload);
       const fromEmail = extractEmailAddress(hdr.from);
       if (fromEmail.toLowerCase() !== sender.toLowerCase()) continue;
@@ -162,7 +176,7 @@ function makeRawEmail({ to, subject, body }) {
       if (mailtoTargets.length) {
         const { to, subject, body } = parseMailto(mailtoTargets[0]);
         const raw = makeRawEmail({ to, subject, body });
-        const sent = await gmail.users.messages.send({ userId: 'me', requestBody: { raw } });
+        const sent = await withBackoff(() => gmail.users.messages.send({ userId: 'me', requestBody: { raw } }));
         r.attempts.push({ kind: 'mailto-send', to, subject, messageId: sent.data.id });
         r.ok = true;
         break;
