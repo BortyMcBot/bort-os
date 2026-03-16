@@ -1,9 +1,8 @@
 # Project Source Export (UPLOAD THIS FILE)
 
-Generated: Mar 15, 2026 • 6:01 AM (America/Phoenix)
+Generated: Mar 15, 2026 • 6:01 PM (America/Phoenix)
 
 Changed files since last export:
-- STATE_OF_BORT.md
 - HAT_STATE.md
 - ARCHITECTURE_SUMMARY.md
 - ROUTING_STATE.md
@@ -262,7 +261,7 @@ Ownership zones:
 
 # STATE_OF_BORT.md
 
-Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 15, 2026, 6:01 PM (America/Phoenix)
 
 ## Runtime snapshot
 - model_default: openai-codex/gpt-5.3-codex
@@ -271,7 +270,7 @@ Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
 - allowed_model_count: 8
 - cron_job_count: 9
 - workspace_top_level_dirs: 19
-- workspace_file_count_recursive: 45970
+- workspace_file_count_recursive: 45998
 
 ## Allowed model IDs
 - openrouter/auto
@@ -316,15 +315,15 @@ Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
 - openai-whisper-api
 
 ## Scheduled jobs (cron)
-- Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
 - Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
+- PR review (evening) (cron: 0 18 * * * America/Phoenix)
 - Bort bundle update (daily) (cron: 0 6,18 * * * America/Phoenix)
+- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
+- Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
 - PR review (morning) (cron: 0 7 * * * America/Phoenix)
 - Repo hygiene check (daily) (cron: 0 7 * * * America/Phoenix)
 - X engagement snapshot (daily 8am) (cron: 0 8 * * * America/Phoenix)
-- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
 - X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
-- PR review (evening) (cron: 0 18 * * * America/Phoenix)
 
 ## Export artifacts
 - project_source/EXPORT_LATEST.md
@@ -373,7 +372,7 @@ Output: timeline, root cause, fix, prevention items.
 
 # HAT_STATE.md
 
-Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 15, 2026, 6:01 PM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -434,7 +433,7 @@ Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
 
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 15, 2026, 6:01 PM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -455,7 +454,7 @@ Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
 
 # ROUTING_STATE.md
 
-Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 15, 2026, 6:01 PM (America/Phoenix)
 
 ## Global configured defaults
 - primary: openai-codex/gpt-5.3-codex
@@ -506,7 +505,7 @@ Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
 
 # OPERATIONS_STATE.md
 
-Generated: Mar 15, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 15, 2026, 6:01 PM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.
