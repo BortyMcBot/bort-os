@@ -80,6 +80,14 @@ function slugify(text) {
     .slice(0, 40)
 }
 
+function sanitizePrTitle(text, maxLen = 60) {
+  const clean = text.replace(/`/g, '').replace(/\s+/g, ' ').trim()
+  if (clean.length <= maxLen) return clean
+  const truncated = clean.slice(0, maxLen)
+  const lastSpace = truncated.lastIndexOf(' ')
+  return lastSpace > maxLen * 0.5 ? truncated.slice(0, lastSpace) : truncated
+}
+
 function collectFiles() {
   const files = []
   for (const dir of REVIEW_DIRS) {
@@ -269,7 +277,7 @@ function createFixPRs(findings) {
     const highRisk = isHighRisk(path.join(WORKSPACE, file))
     const riskTag = highRisk ? ' [HIGH RISK]' : ''
 
-    const prTitle = `fix: [SELF-REVIEW] ${fileFindings[0].description.slice(0, 60)}`
+    const prTitle = `fix: [SELF-REVIEW] ${sanitizePrTitle(fileFindings[0].description)}`
 
     const bodyLines = [
       '## Self-Review Finding',
@@ -365,7 +373,7 @@ function createFixPRs(findings) {
         continue
       }
 
-      runGit(['commit', '-m', `fix: [SELF-REVIEW] ${fileFindings[0].description.slice(0, 60)}`])
+      runGit(['commit', '-m', `fix: [SELF-REVIEW] ${sanitizePrTitle(fileFindings[0].description)}`])
       runGit(['push', '-u', 'origin', branch])
 
       fs.writeFileSync(bodyPath, bodyLines.join('\n'))

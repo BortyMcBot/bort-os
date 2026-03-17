@@ -57,6 +57,14 @@ function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 }
 
+function sanitizePrTitle(text, maxLen = 60) {
+  const clean = text.replace(/`/g, '').replace(/\s+/g, ' ').trim()
+  if (clean.length <= maxLen) return clean
+  const truncated = clean.slice(0, maxLen)
+  const lastSpace = truncated.lastIndexOf(' ')
+  return lastSpace > maxLen * 0.5 ? truncated.slice(0, lastSpace) : truncated
+}
+
 function ensureLogDir() {
   ensureDir(path.dirname(LOG_PATH))
 }
@@ -532,7 +540,7 @@ After editing, respond with the exact file path(s) you changed, one per line.`
       fs.writeFileSync(bodyPath, prBody)
 
       const prUrl = run(
-        `gh pr create --repo ${repoRef} --title ${JSON.stringify(`fix: ${finding.title}`)} --body-file ${bodyPath} --head ${branch}`
+        `gh pr create --repo ${repoRef} --title ${JSON.stringify(`fix: ${sanitizePrTitle(finding.title)}`)} --body-file ${bodyPath} --head ${branch}`
       )
 
       if (prUrl) {
