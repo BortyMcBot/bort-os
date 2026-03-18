@@ -55,8 +55,17 @@ function runReadOnly(cmd, opts = {}) {
 }
 
 function sendTelegram(message) {
+  if (!TELEGRAM_CHAT_ID) {
+    console.log('Telegram target not configured; skipping notification.')
+    return ''
+  }
   const cmd = `openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(message)}`
-  return run(cmd)
+  try {
+    return run(cmd)
+  } catch (err) {
+    console.log(`Telegram notify failed: ${err.message}`)
+    return ''
+  }
 }
 
 function sleep(ms) {
