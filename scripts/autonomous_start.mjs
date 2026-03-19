@@ -18,15 +18,23 @@ function nowPhoenixIso() {
 
 function parseUntilArg() {
   const args = process.argv.slice(2)
+
+  const eq = args.find((a) => a.startsWith('--until='))
+  if (eq) return eq.slice('--until='.length)
+
+  const flagIdx = args.indexOf('--until')
+  if (flagIdx !== -1 && args[flagIdx + 1]) return args[flagIdx + 1]
+
   const idx = args.indexOf('until')
-  if (idx === -1 || !args[idx + 1]) return null
-  return args[idx + 1]
+  if (idx !== -1 && args[idx + 1]) return args[idx + 1]
+
+  return null
 }
 
 async function main() {
   const until = parseUntilArg()
   if (!until) {
-    console.error('Usage: autonomous_start.mjs until HH:MM')
+    console.error('Usage: autonomous_start.mjs --until HH:MM | --until=HH:MM | until HH:MM')
     process.exit(2)
   }
 
