@@ -112,8 +112,17 @@ async function main() {
   }
 
   // Determine changed files (read-only)
-  const diffOut = runReadOnly('git diff --name-only HEAD~1 HEAD', { cwd: WORKSPACE })
-  const changedFiles = diffOut ? diffOut.split('\n').filter(Boolean) : []
+  let changedFiles = []
+  try {
+    const prFilesJson = runReadOnly(`gh pr view ${prNumber} --json files`, { cwd: WORKSPACE })
+    const prFiles = JSON.parse(prFilesJson)
+    changedFiles = Array.isArray(prFiles?.files)
+      ? prFiles.files.map((f) => f?.path).filter(Boolean)
+      : []
+  } catch {
+    const diffOut = runReadOnly('git diff --name-only HEAD~1 HEAD', { cwd: WORKSPACE })
+    changedFiles = diffOut ? diffOut.split('\n').filter(Boolean) : []
+  }
   const restartRequired = changedFiles.some((f) => f.startsWith('os/') || f.startsWith('scripts/'))
 
   console.log(`Changed files: ${changedFiles.length ? changedFiles.join(', ') : '(none)'}`)
