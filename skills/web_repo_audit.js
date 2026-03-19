@@ -3,7 +3,7 @@
 // Project 1 skeleton: Web repo audit checklist (read-only)
 // No git writes, no network pushes.
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const { validateEnvelope, executionHeader } = require('../os/preflight');
 const { appendLog, appendHatLog, nowUtcStamp } = require('../os/memory-log');
 
@@ -28,8 +28,8 @@ if (!v.ok) {
   process.exit(2);
 }
 
-function sh(cmd) {
-  return execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+function sh(args) {
+  return execFileSync('git', ['-C', repoPath, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
 console.log(executionHeader(envelope));
@@ -54,10 +54,10 @@ console.log('- remotes configured?');
 console.log('');
 
 try {
-  const status = sh(`git -C ${repoPath} status --porcelain`);
-  const branch = sh(`git -C ${repoPath} rev-parse --abbrev-ref HEAD`);
-  const last = sh(`git -C ${repoPath} log -1 --oneline`);
-  const remotes = sh(`git -C ${repoPath} remote -v | head`);
+  const status = sh(['status', '--porcelain']);
+  const branch = sh(['rev-parse', '--abbrev-ref', 'HEAD']);
+  const last = sh(['log', '-1', '--oneline']);
+  const remotes = sh(['remote', '-v']).split('\n').slice(0, 10).join('\n');
 
   console.log(`- branch: ${branch}`);
   console.log(`- last commit: ${last}`);
