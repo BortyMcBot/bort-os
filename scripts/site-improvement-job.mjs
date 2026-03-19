@@ -12,14 +12,30 @@ const args = new Set(process.argv.slice(2))
 const dryRun = args.has('--dry-run')
 
 const TODAY = new Date().toISOString().slice(0, 10)
-const SITE_URL = 'https://bryanduckworth.com'
-const REVIEW_DIR = '/tmp/site-review'
-const PR_DIR = '/tmp/site-prs'
+const CONFIG = {
+  siteUrl: process.env.SITE_URL || 'https://bryanduckworth.com',
+  reviewDir: process.env.SITE_REVIEW_DIR || '/tmp/site-review',
+  prDir: process.env.SITE_PR_DIR || '/tmp/site-prs',
+  pinchtabPid: process.env.PINCHTAB_PID || '/tmp/pinchtab.pid',
+  pinchtabBase: process.env.PINCHTAB_BASE || 'http://127.0.0.1:9867',
+}
+
+const SITE_URL = CONFIG.siteUrl
+const REVIEW_DIR = CONFIG.reviewDir
+const PR_DIR = CONFIG.prDir
 const TODO_DIR = path.join(WORKSPACE, 'docs', 'site-review')
 const LOG_PATH = path.join(WORKSPACE, 'logs', 'site-improvement.log')
-const PINCHTAB_PID = '/tmp/pinchtab.pid'
+const PINCHTAB_PID = CONFIG.pinchtabPid
 const PINCHTAB_ENV = `${process.env.HOME}/.pinchtab/.env`
-const PINCHTAB_BASE = 'http://127.0.0.1:9867'
+const PINCHTAB_BASE = CONFIG.pinchtabBase
+
+try {
+  new URL(SITE_URL)
+  new URL(PINCHTAB_BASE)
+} catch {
+  console.error('Invalid SITE_URL or PINCHTAB_BASE')
+  process.exit(2)
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
