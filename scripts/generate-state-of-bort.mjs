@@ -53,6 +53,11 @@ function countFiles(p) {
   return n
 }
 
+function countRelevantFiles() {
+  const dirs = ['scripts', 'os', 'skills', 'integrations', 'project_source', 'docs']
+  return dirs.reduce((sum, d) => sum + countFiles(path.join(WORKSPACE, d)), 0)
+}
+
 function parseJsonSafe(s) {
   try { return JSON.parse(s) } catch { return null }
 }
@@ -103,7 +108,7 @@ function main() {
     `- allowed_model_count: ${allowedModels.length}`,
     `- cron_job_count: ${jobs.length}`,
     `- workspace_top_level_dirs: ${topDirs.length}`,
-    `- workspace_file_count_recursive: ${countFiles(WORKSPACE)}`,
+    `- workspace_file_count_relevant: ${countRelevantFiles()}`,
     '',
     '## Allowed model IDs',
     ...(allowedModels.length ? allowedModels.map((m) => `- ${m}`) : ['- (none detected)']),
