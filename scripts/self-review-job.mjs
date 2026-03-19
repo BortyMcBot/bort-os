@@ -17,7 +17,7 @@ const SELF_REVIEW_DIR = path.join(WORKSPACE, 'docs', 'self-review')
 const FINDINGS_DIR = path.join(SELF_REVIEW_DIR, 'findings')
 const RESEARCH_DIR = path.join(SELF_REVIEW_DIR, 'research')
 const PLANS_DIR = path.join(SELF_REVIEW_DIR, 'plans')
-const STALENESS_STATE_PATH = '/tmp/pr-staleness-state.json'
+const STALENESS_STATE_PATH = path.join(WORKSPACE, 'memory', 'pr-staleness-state.json')
 
 const LEARNINGS_DIR = path.join(WORKSPACE, '.learnings')
 
