@@ -7,7 +7,7 @@ PREFS="${PREFS:-/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.jso
 OUT="${OUT:-/tmp/gmail-daily.json}"
 
 cd /root/.openclaw/workspace/integrations/gmail
-TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
 
 node ./daily-review.js --creds "$CREDS" --token "$TOKEN" --prefs "$PREFS" --max 50 > "$OUT"
 
