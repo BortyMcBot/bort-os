@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CREDS="${CREDS:-/root/.openclaw/secrets/gmail/gobuffs10/credentials.json}"
-TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/gobuffs10/token.json}"
-PREFS="${PREFS:-/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.json}"
-OUT="${OUT:-/tmp/gmail-daily.json}"
+WORKSPACE="${BORT_WORKSPACE:-/root/.openclaw/workspace}"
+ACCOUNT_SLUG="${GMAIL_ACCOUNT_SLUG:-gobuffs10}"
+CREDS="${CREDS:-/root/.openclaw/secrets/gmail/${ACCOUNT_SLUG}/credentials.json}"
+TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/${ACCOUNT_SLUG}/token.json}"
+PREFS="${PREFS:-${WORKSPACE}/integrations/gmail/prefs-${ACCOUNT_SLUG}.json}"
+OUT="${OUT:-/tmp/gmail-daily-${ACCOUNT_SLUG}.json}"
 
-cd /root/.openclaw/workspace/integrations/gmail
-TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
+cd "${WORKSPACE}/integrations/gmail"
+TELEGRAM_CHAT_ID="$(node -p "require('${WORKSPACE}/os/constants').TELEGRAM_CHAT_ID")"
 
 node ./daily-review.js --creds "$CREDS" --token "$TOKEN" --prefs "$PREFS" --max 50 > "$OUT"
 
 # Auto-unsubscribe from anything in SpamReview (best-effort). These are already marked read by daily-review.js.
-SPAM_SENDERS=$(node - <<'NODE'
+SPAM_SENDERS=$(OUT_PATH="$OUT" node - <<'NODE'
 const fs = require('fs');
-const d = JSON.parse(fs.readFileSync('/tmp/gmail-daily.json','utf8'));
+const d = JSON.parse(fs.readFileSync(process.env.OUT_PATH,'utf8'));
 const spam = d.spamReview || [];
 const set = new Set();
 for (const it of spam) {
@@ -29,16 +31,16 @@ if [[ -n "$SPAM_SENDERS" ]]; then
   node ./unsubscribe.js --creds "$CREDS" --token "$TOKEN" --senders "$SPAM_SENDERS" --maxPerSender 1 || true
 fi
 
-MSG=$(node - <<'NODE'
+MSG=$(OUT_PATH="$OUT" ACCOUNT_SLUG="$ACCOUNT_SLUG" node - <<'NODE'
 const fs = require('fs');
-const d = JSON.parse(fs.readFileSync('/tmp/gmail-daily.json','utf8'));
+const d = JSON.parse(fs.readFileSync(process.env.OUT_PATH,'utf8'));
 const imp = d.important||[];
 const oth = d.other||[];
 const sub = d.subscriptions||[];
 const spam = d.spamReview||[];
 const line = (s)=>String(s||'').replace(/\s+/g,' ').trim();
 
-let msg = `Gmail summary (gobuffs10)\n\n`;
+let msg = `Gmail summary (${process.env.ACCOUNT_SLUG||'gobuffs10'})\n\n`;
 msg += `IMPORTANT (starred): ${imp.length}\n`;
 for (const it of imp.slice(0,10)) msg += `• ${line(it.fromEmail||it.from)} — ${line(it.subject)}\n`;
 
