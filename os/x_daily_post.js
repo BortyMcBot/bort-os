@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 const { xCall } = require('./x_call');
 const { TELEGRAM_CHAT_ID } = require('./constants');
 
