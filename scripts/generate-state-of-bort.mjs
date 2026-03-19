@@ -7,6 +7,7 @@ const WORKSPACE = '/root/.openclaw/workspace'
 const PROJECT_SOURCE = path.join(WORKSPACE, 'project_source')
 const STATE_PATH = path.join(PROJECT_SOURCE, 'STATE_OF_BORT.md')
 const TEMPLATES_PATH = path.join(PROJECT_SOURCE, 'PROMPT_TEMPLATES.md')
+const COUNT_WORKSPACE_FILES = process.env.COUNT_WORKSPACE_FILES === '1'
 
 function run(cmd, args) {
   const r = spawnSync(cmd, args, { encoding: 'utf8' })
@@ -103,7 +104,7 @@ function main() {
     `- allowed_model_count: ${allowedModels.length}`,
     `- cron_job_count: ${jobs.length}`,
     `- workspace_top_level_dirs: ${topDirs.length}`,
-    `- workspace_file_count_recursive: ${countFiles(WORKSPACE)}`,
+    `- workspace_file_count_recursive: ${COUNT_WORKSPACE_FILES ? countFiles(WORKSPACE) : '(skipped; set COUNT_WORKSPACE_FILES=1)'}`,
     '',
     '## Allowed model IDs',
     ...(allowedModels.length ? allowedModels.map((m) => `- ${m}`) : ['- (none detected)']),
