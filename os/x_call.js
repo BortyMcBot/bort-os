@@ -28,17 +28,37 @@ function loadOpenClawEnvVars() {
 
 function updateOpenClawEnvVars(patch) {
   const p = '/root/.openclaw/openclaw.json';
-  const raw = fs.readFileSync(p, 'utf8');
-  const cfg = JSON.parse(raw);
-  cfg.env = cfg.env || {};
-  cfg.env.vars = cfg.env.vars || {};
+  const lock = '/tmp/openclaw.json.lock';
+  let lockFd = null;
 
-  for (const [k, v] of Object.entries(patch)) {
-    if (v == null) continue;
-    cfg.env.vars[k] = String(v);
+  for (let i = 0; i < 20; i++) {
+    try {
+      lockFd = fs.openSync(lock, 'wx');
+      break;
+    } catch {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
+    }
   }
+  if (lockFd == null) throw new Error('Could not acquire config lock');
 
-  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
+  try {
+    const raw = fs.readFileSync(p, 'utf8');
+    const cfg = JSON.parse(raw);
+    cfg.env = cfg.env || {};
+    cfg.env.vars = cfg.env.vars || {};
+
+    for (const [k, v] of Object.entries(patch)) {
+      if (v == null) continue;
+      cfg.env.vars[k] = String(v);
+    }
+
+    const tmp = `${p}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
+    fs.renameSync(tmp, p);
+  } finally {
+    try { fs.closeSync(lockFd); } catch {}
+    try { fs.unlinkSync(lock); } catch {}
+  }
 }
 
 function mergedEnv() {
