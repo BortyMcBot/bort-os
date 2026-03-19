@@ -11,7 +11,8 @@
  * Actions:
  *  - Apply bucket label
  *  - Star ONLY Important
- *  - No mark-read, no archiving (except archive-after-unsubscribe sender rule)
+ *  - Mark SpamReview threads read
+ *  - No archiving (except archive-after-unsubscribe sender rule)
  */
 
 const fs = require('fs');
