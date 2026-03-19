@@ -36,7 +36,7 @@ function assertBool(name, got, expected) {
   }
 }
 
-// 1) summarize -> gemini flash-lite
+// 1) summarize -> current default codex route
 {
   const env = mockEnvelope('summarize', 'medium', 'low');
   const r = routeModel(env);
@@ -45,7 +45,7 @@ function assertBool(name, got, expected) {
   assertBool('Test 1 requiresWebSearch', r.requiresWebSearch, false);
 }
 
-// 2) spec + large -> gpt-5.2-pro
+// 2) spec + large -> current quality-first codex route
 {
   const env = mockEnvelope('spec', 'large', 'low');
   const r = routeModel(env);
@@ -54,7 +54,7 @@ function assertBool(name, got, expected) {
   assertBool('Test 2 requiresWebSearch', r.requiresWebSearch, false);
 }
 
-// 3) explicit preferred OpenRouter OpenAI -> allow o3-mini-high
+// 3) explicit preferred model (unavailable) -> fallback to current research route
 {
   const env = mockEnvelope(
     'research',
@@ -69,7 +69,7 @@ function assertBool(name, got, expected) {
   assertBool('Test 3 requiresWebSearch', r.requiresWebSearch, true);
 }
 
-// 4) research default -> gpt-5.2-pro + requiresWebSearch
+// 4) research default -> current research route + requiresWebSearch
 {
   const env = mockEnvelope('research', 'medium', 'low', 'Research the latest trends.');
   const r = routeModel(env);
