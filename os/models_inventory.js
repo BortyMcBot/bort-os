@@ -19,6 +19,10 @@ for (const m of inv.models) {
 
 console.log('---');
 console.log('OpenAI fallback chain:');
-for (const id of inv.openaiFallbackChain) {
-  console.log(`- ${id}`);
+if (Array.isArray(inv.openaiFallbackChain)) {
+  for (const id of inv.openaiFallbackChain) {
+    console.log(`- ${id}`);
+  }
+} else {
+  console.log('- (none)');
 }
