@@ -237,7 +237,8 @@ function reviewBody(reason) {
 }
 
 function runDeploy(prNumber, prTitle) {
-  const cmd = `node /root/.openclaw/workspace/scripts/deploy.mjs --pr-number ${prNumber} --pr-title ${JSON.stringify(prTitle)}`
+  const deployScript = path.join(WORKSPACE, 'scripts', 'deploy.mjs')
+  const cmd = `node ${deployScript} --pr-number ${prNumber} --pr-title ${JSON.stringify(prTitle)}`
   if (dryRun) {
     console.log(`[dry-run] ${cmd}`)
     return
