@@ -59,13 +59,22 @@ function runOnce() {
   if (!state || state.active !== true) return
 
   // Generate a fresh queue at start of each autonomous window
-  spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_generate_queue.mjs'], { stdio: 'inherit' })
+  const gen = spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_generate_queue.mjs'], { stdio: 'inherit' })
 
   ensureQueue()
   log(`## ${nowPhoenix()} — autonomous runner tick`)
+  if ((gen.status ?? 1) !== 0) {
+    log(`- status: queue_generate_failed (code=${gen.status ?? 1})`)
+    return
+  }
   log('- status: queue_generated')
 
-  spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_execute_queue.mjs'], { stdio: 'inherit' })
+  const exec = spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_execute_queue.mjs'], { stdio: 'inherit' })
+  if ((exec.status ?? 1) !== 0) {
+    log(`- status: queue_execute_failed (code=${exec.status ?? 1})`)
+    return
+  }
+  log('- status: queue_executed')
 }
 
 
