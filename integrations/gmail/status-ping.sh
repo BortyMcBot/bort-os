@@ -14,8 +14,8 @@ TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');cons
 
 UNREAD_JSON=$(GMAIL_CREDS="$CREDS" GMAIL_TOKEN="$TOKEN" node ./count-unread.js)
 UNREAD=$(echo "$UNREAD_JSON" | node -pe 'JSON.parse(fs.readFileSync(0,"utf8")).total')
-PROCESSED=$(node -pe 'const s=require(process.argv[1]); console.log(s.processedThreads||0)' "$STATE" 2>/dev/null || echo 0)
-UPDATED=$(node -pe 'const s=require(process.argv[1]); console.log(s.updatedAt||"")' "$STATE" 2>/dev/null || echo "")
+PROCESSED=$(node -e 'const fs=require("fs"); try { const s=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(s.processedThreads||0)); } catch { process.stdout.write("0"); }' "$STATE")
+UPDATED=$(node -e 'const fs=require("fs"); try { const s=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(s.updatedAt||"")); } catch { process.stdout.write(""); }' "$STATE")
 
 PCT=$(node - <<NODE
 const initial=${INITIAL};
@@ -26,7 +26,13 @@ NODE
 )
 
 TOP=$(node - "$STATE" <<'NODE'
-const st = require(process.argv[1]);
+const fs = require('fs');
+let st = {};
+try {
+  st = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+} catch {
+  st = {};
+}
 const top = Object.entries(st.offenders||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
 console.log(top.map(([k,v])=>`${k}(${v})`).join(', '));
 NODE
