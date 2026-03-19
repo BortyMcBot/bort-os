@@ -23,12 +23,16 @@ function arg(name, fallback) {
   return fallback;
 }
 
-async function listAllThreads(gmail, q) {
+async function listAllThreads(gmail, q, maxThreads = Infinity) {
   let pageToken;
   const out = [];
   while (true) {
     const res = await withBackoff(() => gmail.users.threads.list({ userId: 'me', q, maxResults: 500, pageToken }));
     out.push(...(res.data.threads || []));
+    if (out.length >= maxThreads) {
+      out.length = maxThreads;
+      break;
+    }
     pageToken = res.data.nextPageToken;
     if (!pageToken) break;
   }
@@ -40,6 +44,7 @@ async function listAllThreads(gmail, q) {
   const tokenPath = arg('token');
   const label = arg('label', 'Bort/Other');
   const threshold = parseInt(arg('threshold', '3'), 10);
+  const maxThreads = parseInt(arg('maxThreads', '1000'), 10);
   if (!credsPath || !tokenPath) {
     console.error('Usage: node other-prune.js --creds /path/credentials.json --token /path/token.json');
     process.exit(2);
@@ -49,7 +54,7 @@ async function listAllThreads(gmail, q) {
   const gmail = google.gmail({ version: 'v1', auth });
 
   const q = `label:"${label}" is:unread`;
-  const threads = await listAllThreads(gmail, q);
+  const threads = await listAllThreads(gmail, q, maxThreads);
 
   // Pass 1: gather sender per thread, count senders.
   const items = [];
