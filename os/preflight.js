@@ -13,7 +13,9 @@ const path = require('path');
 function runProjectSourceCheck() {
   try {
     // Quiet when no changes; prints the update block only if changes are detected.
-    spawnSync('node', ['/root/.openclaw/workspace/scripts/run-project-source-check.mjs'], {
+    const workspaceRoot = process.env.BORT_WORKSPACE || process.cwd();
+    const checkScript = path.join(workspaceRoot, 'scripts', 'run-project-source-check.mjs');
+    spawnSync('node', [checkScript], {
       stdio: 'inherit',
     });
   } catch {
