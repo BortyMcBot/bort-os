@@ -13,7 +13,7 @@ const WORKSPACE = process.cwd();
 const LEDGER_PATH = path.join(WORKSPACE, 'memory', 'x_budget_ledger.json');
 const QUEUE_PATH = path.join(WORKSPACE, 'memory', 'x_queue.md');
 
-const DAILY_CAP_USD = 0.25;
+const DAILY_CAP_USD = Number(process.env.X_DAILY_CAP_USD || 0.25);
 
 function ensureParent(p) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
@@ -110,8 +110,7 @@ function canSpend(amount) {
 function recordSpend({ amount, metadata }) {
   const ledger = loadLedger();
   const key = getTodayKey();
-  ledger[key] = ledger[key] || { capUsd: DAILY_CAP_USD, entries: [] };
-  ledger[key].capUsd = DAILY_CAP_USD;
+  ledger[key] = ledger[key] || { entries: [] };
   ledger[key].entries = Array.isArray(ledger[key].entries) ? ledger[key].entries : [];
 
   ledger[key].entries.push({
