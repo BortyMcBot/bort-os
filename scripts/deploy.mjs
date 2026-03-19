@@ -97,6 +97,8 @@ async function main() {
     dryRun,
   }
 
+  const beforePullSha = runReadOnly('git rev-parse HEAD', { cwd: WORKSPACE })
+
   // Pull latest (mutating)
   try {
     if (dryRun) {
@@ -112,7 +114,10 @@ async function main() {
   }
 
   // Determine changed files (read-only)
-  const diffOut = runReadOnly('git diff --name-only HEAD~1 HEAD', { cwd: WORKSPACE })
+  const afterPullSha = runReadOnly('git rev-parse HEAD', { cwd: WORKSPACE })
+  const diffOut = beforePullSha === afterPullSha
+    ? ''
+    : runReadOnly(`git diff --name-only ${beforePullSha} ${afterPullSha}`, { cwd: WORKSPACE })
   const changedFiles = diffOut ? diffOut.split('\n').filter(Boolean) : []
   const restartRequired = changedFiles.some((f) => f.startsWith('os/') || f.startsWith('scripts/'))
 
@@ -126,7 +131,7 @@ async function main() {
     return
   }
 
-  const prevCommit = runReadOnly('git rev-parse HEAD~1', { cwd: WORKSPACE })
+  const prevCommit = beforePullSha
 
   const restartStart = Date.now()
   run('openclaw gateway restart')
