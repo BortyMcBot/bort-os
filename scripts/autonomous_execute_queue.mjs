@@ -25,7 +25,11 @@ function log(line) {
 
 function run(cmd, cwd) {
   const r = spawnSync(cmd, { shell: true, cwd, stdio: 'inherit' })
-  return r.status ?? 1
+  const status = r.status ?? 1
+  if (status !== 0) {
+    throw new Error(`command failed (${status}): ${cmd}`)
+  }
+  return status
 }
 
 function ensureQueue() {
