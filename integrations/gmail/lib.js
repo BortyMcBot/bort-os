@@ -2,9 +2,35 @@ const fs = require('fs');
 const { google } = require('googleapis');
 
 function loadOAuthClient({ credsPath, tokenPath }) {
-  const creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
-  const token = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
-  const { client_secret, client_id, redirect_uris } = creds.installed || creds.web || {};
+  let creds;
+  let token;
+
+  try {
+    creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
+  } catch (e) {
+    throw new Error(`Invalid Gmail credentials JSON at ${credsPath}: ${e.message}`);
+  }
+
+  try {
+    token = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
+  } catch (e) {
+    throw new Error(`Invalid Gmail token JSON at ${tokenPath}: ${e.message}`);
+  }
+
+  const oauth = creds.installed || creds.web;
+  if (!oauth || typeof oauth !== 'object') {
+    throw new Error('Gmail credentials missing OAuth client config (expected "installed" or "web").');
+  }
+
+  const { client_secret, client_id, redirect_uris } = oauth;
+  if (!client_id || !client_secret || !Array.isArray(redirect_uris) || !redirect_uris[0]) {
+    throw new Error('Gmail credentials missing required OAuth fields: client_id, client_secret, redirect_uris[0].');
+  }
+
+  if (!token || typeof token !== 'object') {
+    throw new Error('Gmail token JSON must be an object.');
+  }
+
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
   oAuth2Client.setCredentials(token);
   return oAuth2Client;
