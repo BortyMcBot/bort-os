@@ -10,7 +10,7 @@ LOG="${LOG:-$GMAIL_DIR/backlog-sweep.log}"
 INITIAL="${INITIAL:-13888}"
 
 cd "$GMAIL_DIR"
-TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -p "require('${WORKSPACE}/os/constants').TELEGRAM_CHAT_ID" 2>/dev/null || true)}"
 
 UNREAD_JSON=$(GMAIL_CREDS="$CREDS" GMAIL_TOKEN="$TOKEN" node ./count-unread.js)
 UNREAD=$(echo "$UNREAD_JSON" | node -pe 'JSON.parse(fs.readFileSync(0,"utf8")).total')
