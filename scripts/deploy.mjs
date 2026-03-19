@@ -126,7 +126,15 @@ async function main() {
     return
   }
 
-  const prevCommit = runReadOnly('git rev-parse HEAD~1', { cwd: WORKSPACE })
+  let prevCommit = null
+  try {
+    prevCommit = runReadOnly('git rev-parse HEAD~1', { cwd: WORKSPACE })
+  } catch (err) {
+    const msg = `🚨 Deploy aborted for PR #${prNumber}: rollback base commit (HEAD~1) unavailable. Manual intervention required.`
+    if (!dryRun) sendTelegram(msg)
+    logLine({ ...context, action: 'rollback-base-missing', changedFiles, error: err.message })
+    process.exit(1)
+  }
 
   const restartStart = Date.now()
   run('openclaw gateway restart')
