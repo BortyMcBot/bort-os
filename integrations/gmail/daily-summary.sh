@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+WORKSPACE="${BORT_WORKSPACE:-/root/.openclaw/workspace}"
+GMAIL_DIR="${GMAIL_DIR:-$WORKSPACE/integrations/gmail}"
 CREDS="${CREDS:-/root/.openclaw/secrets/gmail/gobuffs10/credentials.json}"
 TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/gobuffs10/token.json}"
-PREFS="${PREFS:-/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.json}"
+PREFS="${PREFS:-$GMAIL_DIR/prefs-gobuffs10.json}"
 OUT="${OUT:-/tmp/gmail-daily.json}"
 
-cd /root/.openclaw/workspace/integrations/gmail
-TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
+mkdir -p "$(dirname "$OUT")"
+touch "$OUT"
+
+cd "$GMAIL_DIR"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
 
 node ./daily-review.js --creds "$CREDS" --token "$TOKEN" --prefs "$PREFS" --max 50 > "$OUT"
 
 # Auto-unsubscribe from anything in SpamReview (best-effort). These are already marked read by daily-review.js.
-SPAM_SENDERS=$(node - <<'NODE'
+SPAM_SENDERS=$(OUT="$OUT" node - <<'NODE'
 const fs = require('fs');
-const d = JSON.parse(fs.readFileSync('/tmp/gmail-daily.json','utf8'));
+const d = JSON.parse(fs.readFileSync(process.env.OUT,'utf8'));
 const spam = d.spamReview || [];
 const set = new Set();
 for (const it of spam) {
@@ -29,9 +34,9 @@ if [[ -n "$SPAM_SENDERS" ]]; then
   node ./unsubscribe.js --creds "$CREDS" --token "$TOKEN" --senders "$SPAM_SENDERS" --maxPerSender 1 || true
 fi
 
-MSG=$(node - <<'NODE'
+MSG=$(OUT="$OUT" node - <<'NODE'
 const fs = require('fs');
-const d = JSON.parse(fs.readFileSync('/tmp/gmail-daily.json','utf8'));
+const d = JSON.parse(fs.readFileSync(process.env.OUT,'utf8'));
 const imp = d.important||[];
 const oth = d.other||[];
 const sub = d.subscriptions||[];
@@ -66,4 +71,6 @@ console.log(msg);
 NODE
 )
 
-openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+if [[ -n "$TELEGRAM_CHAT_ID" ]]; then
+  openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+fi
