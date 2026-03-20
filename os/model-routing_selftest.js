@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-// Routing self-test: prints chosen model ids and flags.
+// Routing self-test: prints chosen model ids and flags for the current routing policy.
+// Keep this aligned with os/model-routing.js; do not assume legacy Gemini/OpenAI Pro expectations.
 
 const { routeModel } = require('./model-routing');
 
