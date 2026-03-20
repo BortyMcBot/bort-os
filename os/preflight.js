@@ -13,9 +13,13 @@ const path = require('path');
 function runProjectSourceCheck() {
   try {
     // Quiet when no changes; prints the update block only if changes are detected.
-    spawnSync('node', ['/root/.openclaw/workspace/scripts/run-project-source-check.mjs'], {
+    const r = spawnSync('node', ['/root/.openclaw/workspace/scripts/run-project-source-check.mjs'], {
       stdio: 'inherit',
     });
+    if (r.error || (r.status ?? 0) !== 0) {
+      const detail = r.error ? String(r.error.message || r.error) : `exit=${r.status}`;
+      console.warn(`[preflight] project source check warning: ${detail}`);
+    }
   } catch {
     // Never block preflight on source check.
   }
