@@ -209,7 +209,7 @@ async function scanTopSenders(gmail, maxPages, checkpointPath, doResume) {
 (async () => {
   const credsPath = arg('creds') || process.env.GMAIL_CREDS;
   const tokenPath = arg('token') || process.env.GMAIL_TOKEN;
-  const senderPages = parseInt(arg('senderPages', '20'), 10);
+  const senderPages = parseInt(arg('senderPages', '5'), 10);
   const checkpointPath = arg('checkpoint', path.join(__dirname, 'reports', 'audit-checkpoint.json'));
   const doResume = flag('resume');
   const skipSenders = flag('skipSenders');
