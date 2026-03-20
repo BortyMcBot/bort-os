@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'fs'
 import path from 'path'
+import { spawnSync } from 'child_process'
 
 const WORKSPACE = '/root/.openclaw/workspace'
 const STATE_PATH = path.join(WORKSPACE, 'memory', 'autonomous_state.json')
@@ -41,7 +42,6 @@ function readState() {
 }
 
 function stopAutonomous() {
-  const { spawnSync } = require('child_process')
   spawnSync('node', [STOP_SCRIPT], { stdio: 'inherit' })
 }
 
