@@ -20,7 +20,8 @@ function parseUntilArg() {
   const args = process.argv.slice(2)
   const idx = args.indexOf('until')
   if (idx === -1 || !args[idx + 1]) return null
-  return args[idx + 1]
+  const until = args[idx + 1]
+  return /^([0-1]\d|2[0-3]):([0-5]\d)$/.test(until) ? until : null
 }
 
 async function main() {
