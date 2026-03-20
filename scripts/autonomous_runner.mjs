@@ -6,7 +6,6 @@ import { spawnSync } from 'child_process'
 const WORKSPACE = '/root/.openclaw/workspace'
 const STATE_PATH = path.join(WORKSPACE, 'memory', 'autonomous_state.json')
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'autonomous_log.md')
-const RUN_QUEUE = path.join(WORKSPACE, 'memory', 'autonomous_queue.md')
 
 function nowPhoenix() {
   const dtf = new Intl.DateTimeFormat('en-CA', {
@@ -27,25 +26,6 @@ function log(line) {
   fs.appendFileSync(LOG_PATH, `${line}\n`)
 }
 
-function ensureQueue() {
-  if (fs.existsSync(RUN_QUEUE)) return
-  const seed = [
-    '# AUTONOMOUS_QUEUE.md',
-    '',
-    '## Bort‑OS candidates',
-    '- Add X token refresh hardening (PR‑only)',
-    '- Add model availability audit job (PR‑only)',
-    '- Improve repo hygiene automation (PR‑only)',
-    '',
-    '## Personal‑website candidates',
-    '- UX polish: spacing/typography cleanup (PR‑only)',
-    '- Add “Now” or “Highlights” section (PR‑only)',
-    '- Performance: lazy‑load heavy components (PR‑only)',
-    '',
-  ].join('\n')
-  fs.writeFileSync(RUN_QUEUE, seed + '\n')
-}
-
 function mainLoop() {
   const state = readState()
   if (!state || state.active !== true) return
@@ -61,7 +41,6 @@ function runOnce() {
   // Generate a fresh queue at start of each autonomous window
   const gen = spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_generate_queue.mjs'], { stdio: 'inherit' })
 
-  ensureQueue()
   log(`## ${nowPhoenix()} — autonomous runner tick`)
   if ((gen.status ?? 1) !== 0) {
     log(`- status: queue_generate_failed (code=${gen.status ?? 1})`)
