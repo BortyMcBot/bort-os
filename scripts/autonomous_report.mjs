@@ -2,20 +2,24 @@
 import fs from 'fs'
 import path from 'path'
 import { spawnSync } from 'child_process'
-import { TELEGRAM_CHAT_ID, BORT_WORKSPACE } from '../os/constants.js'
+import constants from '../os/constants.js'
 
+const { TELEGRAM_CHAT_ID, BORT_WORKSPACE } = constants
 const WORKSPACE = BORT_WORKSPACE
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'autonomous_log.md')
 const REPORT_PATH = path.join(WORKSPACE, 'memory', 'autonomous_report.md')
 
-function run(cmd, cwd) {
-  const r = spawnSync(cmd, { shell: true, cwd, encoding: 'utf8' })
+function run(bin, args, cwd) {
+  const r = spawnSync(bin, args, { cwd, encoding: 'utf8' })
   return { code: r.status ?? 1, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() }
 }
 
 function collectPrs() {
-  const bort = run('gh pr list --limit 10 --json number,title,headRefName,url --repo BortyMcBot/bort-os', WORKSPACE)
-  const site = run('gh pr list --limit 10 --json number,title,headRefName,url', path.join(WORKSPACE, 'external', 'personal-website'))
+  const bort = run('gh', ['pr', 'list', '--limit', '10', '--json', 'number,title,headRefName,url', '--repo', 'BortyMcBot/bort-os'], WORKSPACE)
+  const siteRepo = process.env.PERSONAL_WEBSITE_REPO || path.join(WORKSPACE, 'tmp', 'site-review', 'repo')
+  const site = fs.existsSync(siteRepo)
+    ? run('gh', ['pr', 'list', '--limit', '10', '--json', 'number,title,headRefName,url'], siteRepo)
+    : { out: '[]' }
 
   return {
     bort: bort.code === 0 ? (bort.out || '[]') : `ERROR: gh pr list failed (${bort.code})${bort.err ? ` — ${bort.err}` : ''}`,
@@ -62,7 +66,7 @@ function main() {
     prs.site.startsWith('ERROR:') ? prs.site : fmt(siteList),
   ].join('\n')
 
-  run(`openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(msg)}`, WORKSPACE)
+  run('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(msg)], WORKSPACE)
 }
 
 main()
