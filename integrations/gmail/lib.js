@@ -5,6 +5,9 @@ function loadOAuthClient({ credsPath, tokenPath }) {
   const creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
   const token = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
   const { client_secret, client_id, redirect_uris } = creds.installed || creds.web || {};
+  if (!client_id || !client_secret || !Array.isArray(redirect_uris) || !redirect_uris[0]) {
+    throw new Error(`Invalid OAuth credentials in ${credsPath}: expected client_id, client_secret, and redirect_uris[0]`);
+  }
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
   oAuth2Client.setCredentials(token);
   return oAuth2Client;
