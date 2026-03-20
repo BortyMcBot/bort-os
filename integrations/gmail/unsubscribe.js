@@ -105,6 +105,7 @@ function makeRawEmail({ to, subject, body }) {
   const tokenPath = arg('token');
   const senders = parseCsv(arg('senders'));
   const maxPerSender = parseInt(arg('maxPerSender', '2'), 10);
+  const maxSenders = parseInt(arg('maxSenders', '20'), 10);
 
   if (!credsPath || !tokenPath || !senders.length) {
     console.error('Usage: node unsubscribe.js --creds /path/credentials.json --token /path/token.json --senders a@b.com,b@c.com');
@@ -116,7 +117,7 @@ function makeRawEmail({ to, subject, body }) {
 
   const results = [];
 
-  for (const sender of senders) {
+  for (const sender of senders.slice(0, maxSenders)) {
     const r = { sender, attempts: [], ok: false };
 
     // Search recent messages from sender in any mailbox.
@@ -174,12 +175,16 @@ function makeRawEmail({ to, subject, body }) {
       }
 
       if (mailtoTargets.length) {
-        const { to, subject, body } = parseMailto(mailtoTargets[0]);
-        const raw = makeRawEmail({ to, subject, body });
-        const sent = await withBackoff(() => gmail.users.messages.send({ userId: 'me', requestBody: { raw } }));
-        r.attempts.push({ kind: 'mailto-send', to, subject, messageId: sent.data.id });
-        r.ok = true;
-        break;
+        try {
+          const { to, subject, body } = parseMailto(mailtoTargets[0]);
+          const raw = makeRawEmail({ to, subject, body });
+          const sent = await withBackoff(() => gmail.users.messages.send({ userId: 'me', requestBody: { raw } }));
+          r.attempts.push({ kind: 'mailto-send', to, subject, messageId: sent.data.id });
+          r.ok = true;
+          break;
+        } catch (err) {
+          r.attempts.push({ kind: 'mailto-parse-error', url: mailtoTargets[0], error: String(err?.code || err?.message || err) });
+        }
       }
 
       r.attempts.push({ kind: 'no-unsub-header', messageId: m.id });
