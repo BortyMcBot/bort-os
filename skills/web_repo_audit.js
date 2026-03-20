@@ -36,10 +36,16 @@ console.log(executionHeader(envelope));
 console.log('');
 
 if (!repoPath) {
+  const heading = `${nowUtcStamp()} — web_repo_audit (validation failed)`;
+  appendLog({ heading, lines: ['Missing WEB_REPO_PATH; audit not run.'] });
+  appendHatLog({ hat: envelope.hat, dataSensitivity: envelope.dataSensitivity, heading, lines: ['Missing WEB_REPO_PATH; audit not run.'] });
   console.log('Need: WEB_REPO_PATH (path to BryanDuckworth.com repo)');
   process.exit(2);
 }
 if (!/^[\w./-]+$/.test(repoPath)) {
+  const heading = `${nowUtcStamp()} — web_repo_audit (validation failed)`;
+  appendLog({ heading, lines: ['Unsafe WEB_REPO_PATH; audit not run.'] });
+  appendHatLog({ hat: envelope.hat, dataSensitivity: envelope.dataSensitivity, heading, lines: ['Unsafe WEB_REPO_PATH; audit not run.'] });
   console.log('Need: WEB_REPO_PATH (safe path characters only)');
   process.exit(2);
 }
