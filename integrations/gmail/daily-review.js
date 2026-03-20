@@ -122,9 +122,11 @@ function senderMatches(list, fromEmail) {
       }
     }
 
-    // Apply bucket label (and mark spam as read)
+    // Apply bucket label
     const removeLabelIds = [];
-    if (bucket === 'spamReview') removeLabelIds.push('UNREAD');
+    if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
+      removeLabelIds.push('INBOX');
+    }
 
     const addLabelIds = [labelId];
     if (bucket === 'important') addLabelIds.push('STARRED');
@@ -139,11 +141,6 @@ function senderMatches(list, fromEmail) {
     }));
 
     if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
-      await withBackoff(() => gmail.users.threads.modify({
-        userId: 'me',
-        id: t.id,
-        requestBody: { removeLabelIds: ['INBOX'] },
-      }));
       summary.archivedByRule.push({ threadId: t.id, from, fromEmail, subject });
     }
 
