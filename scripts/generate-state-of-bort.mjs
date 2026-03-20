@@ -38,21 +38,6 @@ function listDirNames(p) {
   }
 }
 
-function countFiles(p) {
-  let n = 0
-  function walk(cur) {
-    let entries = []
-    try { entries = fs.readdirSync(cur, { withFileTypes: true }) } catch { return }
-    for (const e of entries) {
-      const full = path.join(cur, e.name)
-      if (e.isDirectory()) walk(full)
-      else n += 1
-    }
-  }
-  walk(p)
-  return n
-}
-
 function parseJsonSafe(s) {
   try { return JSON.parse(s) } catch { return null }
 }
@@ -103,7 +88,6 @@ function main() {
     `- allowed_model_count: ${allowedModels.length}`,
     `- cron_job_count: ${jobs.length}`,
     `- workspace_top_level_dirs: ${topDirs.length}`,
-    `- workspace_file_count_recursive: ${countFiles(WORKSPACE)}`,
     '',
     '## Allowed model IDs',
     ...(allowedModels.length ? allowedModels.map((m) => `- ${m}`) : ['- (none detected)']),
