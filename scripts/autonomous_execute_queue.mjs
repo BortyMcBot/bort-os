@@ -30,6 +30,15 @@ function run(cmd, cwd) {
   return code
 }
 
+function runCritical(cmd, cwd, step) {
+  const status = run(cmd, cwd)
+  if (status !== 0) {
+    log(`- error: ${step} failed (status=${status})`)
+    throw new Error(`${step} failed`)
+  }
+  return status
+}
+
 function ensureQueue() {
   if (!fs.existsSync(QUEUE_PATH)) return null
   try { return JSON.parse(fs.readFileSync(QUEUE_PATH, 'utf8')) } catch { return null }
@@ -60,7 +69,7 @@ function writePRBody({ summary, testing }) {
 function execBortOsTask(task, policy) {
   if (task.id === 'bort-os:secrets-policy') {
     const repo = WORKSPACE
-    run('git checkout -b autonomous/secrets-policy', repo)
+    runCritical('git checkout -b autonomous/secrets-policy', repo, 'checkout')
     const secrets = [
       '# SECRETS.md',
       '',
@@ -82,19 +91,19 @@ function execBortOsTask(task, policy) {
     fs.writeFileSync(path.join(WORKSPACE, 'SECRETS.md'), secrets)
 
     run('git add SECRETS.md SECURITY.md', repo)
-    run('git commit -m "docs(security): add secrets handling policy"', repo)
+    runCritical('git commit -m "docs(security): add secrets handling policy"', repo, 'commit')
 
     if (policy.requireTests) {
       // docs-only; no tests required
     }
 
-    run('git push -u origin autonomous/secrets-policy', repo)
+    runCritical('git push -u origin autonomous/secrets-policy', repo, 'push')
 
     writePRBody({
       summary: 'Adds SECRETS.md with explicit guardrails and references.',
       testing: 'Not run (docs only).',
     })
-    run(`gh pr create --title "Security: add secrets handling policy" --body-file ${PR_BODY_PATH} --base main --head autonomous/secrets-policy`, repo)
+    runCritical(`gh pr create --title "Security: add secrets handling policy" --body-file ${PR_BODY_PATH} --base main --head autonomous/secrets-policy`, repo, 'pr-create')
     return
   }
 }
@@ -102,7 +111,7 @@ function execBortOsTask(task, policy) {
 function execPersonalWebsiteTask(task, policy) {
   const repo = path.join(WORKSPACE, 'external', 'personal-website')
   if (task.id === 'personal-website:now-section') {
-    run('git checkout -b autonomous/now-section', repo)
+    runCritical('git checkout -b autonomous/now-section', repo, 'checkout')
 
     const nowSection = `import { site } from '@/lib/site';\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';\n\nexport function NowSection() {\n  if (!site.now || site.now.length === 0) return null;\n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle className=\"text-base font-normal tracking-tight\">Now</CardTitle>\n        <CardDescription>What I'm focused on right now</CardDescription>\n      </CardHeader>\n      <CardContent>\n        <ul className=\"list-disc pl-5\">\n          {site.now.map((item) => (\n            <li key={item}>{item}</li>\n          ))}\n        </ul>\n      </CardContent>\n    </Card>\n  );\n}\n`;
     fs.writeFileSync(path.join(repo, 'src/components/home/nowSection.tsx'), nowSection)
@@ -130,19 +139,19 @@ function execPersonalWebsiteTask(task, policy) {
     fs.writeFileSync(pagePath, page)
 
     run('git add src/components/home/nowSection.tsx src/lib/site.ts src/app/page.tsx', repo)
-    run('git commit -m "feat(ui): add configurable Now section"', repo)
+    runCritical('git commit -m "feat(ui): add configurable Now section"', repo, 'commit')
 
     if (policy.requireTests) {
       // UI-only; no tests required
     }
 
-    run('git push -u origin autonomous/now-section', repo)
+    runCritical('git push -u origin autonomous/now-section', repo, 'push')
 
     writePRBody({
       summary: 'Adds a configurable “Now” section driven by site config.',
       testing: 'Not run (UI changes only).',
     })
-    run(`gh pr create --title "UI: add configurable Now section" --body-file ${PR_BODY_PATH} --base main --head autonomous/now-section`, repo)
+    runCritical(`gh pr create --title "UI: add configurable Now section" --body-file ${PR_BODY_PATH} --base main --head autonomous/now-section`, repo, 'pr-create')
   }
 }
 
