@@ -23,6 +23,7 @@ const {
   pickHeaders,
   normalizeFrom,
   extractEmailAddress,
+  withBackoff,
 } = require('./lib');
 
 function arg(name, fallback) {
@@ -41,7 +42,7 @@ function saveJson(p, obj) {
 }
 
 async function listThreadsPage(gmail, q, pageToken) {
-  const res = await gmail.users.threads.list({ userId: 'me', q, maxResults: 500, pageToken });
+  const res = await withBackoff(() => gmail.users.threads.list({ userId: 'me', q, maxResults: 500, pageToken }));
   return {
     threads: res.data.threads || [],
     nextPageToken: res.data.nextPageToken || null,
@@ -114,12 +115,12 @@ async function listThreadsPage(gmail, q, pageToken) {
       if (scannedThisRun >= scanLimit) break;
       if (state.threadToSender[t.id]) continue;
 
-      const thr = await gmail.users.threads.get({
+      const thr = await withBackoff(() => gmail.users.threads.get({
         userId: 'me',
         id: t.id,
         format: 'metadata',
         metadataHeaders: ['From', 'Subject', 'Date'],
-      });
+      }));
       const msg = thr.data.messages?.[0];
       const hdr = pickHeaders(msg.payload);
       const fromEmail = (extractEmailAddress(hdr.from) || '').toLowerCase();
@@ -161,11 +162,11 @@ async function listThreadsPage(gmail, q, pageToken) {
     const c = state.senderCounts[sender] || 0;
 
     if (c >= threshold) {
-      await gmail.users.threads.modify({
+      await withBackoff(() => gmail.users.threads.modify({
         userId: 'me',
         id: tid,
         requestBody: { removeLabelIds: ['UNREAD'] },
-      });
+      }));
       state.apply.markedRead += 1;
       appliedThisRun += 1;
     }
