@@ -95,6 +95,7 @@ function senderMatches(list, fromEmail) {
     offenders: {},
     startedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    errors: [],
   });
 
   if (state.q !== q) {
@@ -131,79 +132,86 @@ function senderMatches(list, fromEmail) {
     }
 
     for (const t of threads) {
-      const thr = await withBackoff(() => gmail.users.threads.get({
-        userId: 'me',
-        id: t.id,
-        format: 'metadata',
-        metadataHeaders: ['From', 'Subject', 'Date', 'List-Unsubscribe', 'List-Unsubscribe-Post'],
-      }));
-      const msg = thr.data.messages?.[0];
-      const hdr = pickHeaders(msg.payload);
+      try {
+        const thr = await withBackoff(() => gmail.users.threads.get({
+          userId: 'me',
+          id: t.id,
+          format: 'metadata',
+          metadataHeaders: ['From', 'Subject', 'Date', 'List-Unsubscribe', 'List-Unsubscribe-Post'],
+        }));
+        const msg = thr.data.messages?.[0];
+        const hdr = pickHeaders(msg.payload);
 
-      const from = normalizeFrom(hdr.from);
-      const fromEmail = extractEmailAddress(hdr.from);
-      const fromEmailLc = (fromEmail || '').toLowerCase();
-      const subject = hdr.subject || '';
-      const unsubTargets = extractUnsubTargets(hdr.listUnsubscribe);
-      const hasUnsub = unsubTargets.length > 0;
+        const from = normalizeFrom(hdr.from);
+        const fromEmail = extractEmailAddress(hdr.from);
+        const fromEmailLc = (fromEmail || '').toLowerCase();
+        const subject = hdr.subject || '';
+        const unsubTargets = extractUnsubTargets(hdr.listUnsubscribe);
+        const hasUnsub = unsubTargets.length > 0;
 
-      let bucket;
-      let labelId;
-      let shouldStar = false;
-      let shouldMarkRead = false;
+        let labelId;
+        let shouldStar = false;
+        let shouldMarkRead = false;
 
-      if (hasUnsub) {
-        inc(state.offenders, fromEmailLc || from);
-        if (looksSpammy(subject, from)) {
-          bucket = 'spamReview';
-          labelId = lblSpam.id;
-          state.labeledSpamReview += 1;
+        if (hasUnsub) {
+          inc(state.offenders, fromEmailLc || from);
+          if (looksSpammy(subject, from)) {
+            labelId = lblSpam.id;
+            state.labeledSpamReview += 1;
+          } else {
+            labelId = lblSub.id;
+            state.labeledSubscription += 1;
+          }
+          shouldMarkRead = true; // cleanup rule
         } else {
-          bucket = 'subscription';
-          labelId = lblSub.id;
-          state.labeledSubscription += 1;
+          if (looksImportant({ fromEmail, subject }, prefs)) {
+            labelId = lblImportant.id;
+            state.labeledImportant += 1;
+            shouldStar = true;
+          } else {
+            labelId = lblOther.id;
+            state.labeledOther += 1;
+          }
         }
-        shouldMarkRead = true; // cleanup rule
-      } else {
-        if (looksImportant({ fromEmail, subject }, prefs)) {
-          bucket = 'important';
-          labelId = lblImportant.id;
-          state.labeledImportant += 1;
-          shouldStar = true;
-        } else {
-          bucket = 'other';
-          labelId = lblOther.id;
-          state.labeledOther += 1;
+
+        const addLabelIds = [labelId];
+        if (shouldStar) addLabelIds.push('STARRED');
+
+        const removeLabelIds = [];
+        if (shouldMarkRead) removeLabelIds.push('UNREAD');
+
+        if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
+          removeLabelIds.push('INBOX');
+          state.archivedByRule += 1;
         }
-      }
 
-      const addLabelIds = [labelId];
-      if (shouldStar) addLabelIds.push('STARRED');
+        await withBackoff(() => gmail.users.threads.modify({
+          userId: 'me',
+          id: t.id,
+          requestBody: {
+            addLabelIds,
+            ...(removeLabelIds.length ? { removeLabelIds } : {}),
+          },
+        }));
 
-      const removeLabelIds = [];
-      if (shouldMarkRead) removeLabelIds.push('UNREAD');
+        if (shouldStar) state.starred += 1;
+        if (shouldMarkRead) state.markedRead += 1;
 
-      if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
-        removeLabelIds.push('INBOX');
-        state.archivedByRule += 1;
-      }
+        state.processedThreads += 1;
 
-      await withBackoff(() => gmail.users.threads.modify({
-        userId: 'me',
-        id: t.id,
-        requestBody: {
-          addLabelIds,
-          ...(removeLabelIds.length ? { removeLabelIds } : {}),
-        },
-      }));
-
-      if (shouldStar) state.starred += 1;
-      if (shouldMarkRead) state.markedRead += 1;
-
-      state.processedThreads += 1;
-
-      // Persist progress periodically (every 10 threads) to reduce IO overhead.
-      if (state.processedThreads % 10 === 0) {
+        // Persist progress periodically (every 10 threads) to reduce IO overhead.
+        if (state.processedThreads % 10 === 0) {
+          state.updatedAt = new Date().toISOString();
+          saveJson(statePath, state);
+        }
+      } catch (err) {
+        state.errors = Array.isArray(state.errors) ? state.errors : [];
+        state.errors.push({
+          threadId: t.id,
+          error: String(err?.message || err),
+          ts: new Date().toISOString(),
+        });
+        state.errors = state.errors.slice(-20);
         state.updatedAt = new Date().toISOString();
         saveJson(statePath, state);
       }
