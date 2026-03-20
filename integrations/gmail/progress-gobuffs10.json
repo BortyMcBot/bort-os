@@ -1,4 +1,5 @@
 {
   "milestones": [0.25, 0.5, 0.75, 1.0],
-  "notified": [0.25]
+  "notified": [],
+  "notes": "Template only. Real per-account progress state should live in an ignored runtime/state path outside version control."
 }
