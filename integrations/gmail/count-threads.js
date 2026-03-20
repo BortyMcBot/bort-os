@@ -4,33 +4,12 @@
 // Outputs JSON: { query, threadCount, pages, elapsedMs }
 
 const { google } = require('googleapis');
-const fs = require('fs');
+const { loadOAuthClient, withBackoff } = require('./lib');
 
 function arg(name, def = undefined) {
   const i = process.argv.indexOf(`--${name}`);
   if (i === -1) return def;
   return process.argv[i + 1];
-}
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-async function withBackoff(fn, { maxRetries = 6, baseMs = 750, maxMs = 15000 } = {}) {
-  let attempt = 0;
-  while (true) {
-    try {
-      return await fn();
-    } catch (e) {
-      const status = e?.code || e?.response?.status;
-      const msg = String(e?.message || '');
-      const isRate = status === 429 || /rate|quota|userRateLimitExceeded|resource exhausted/i.test(msg);
-      if (!isRate || attempt >= maxRetries) throw e;
-      const wait = Math.min(maxMs, baseMs * Math.pow(2, attempt));
-      await sleep(wait);
-      attempt++;
-    }
-  }
 }
 
 async function main() {
@@ -44,13 +23,8 @@ async function main() {
     process.exit(2);
   }
 
-  const creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
-  const token = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
-  const { client_secret, client_id, redirect_uris } = creds.installed || creds.web || {};
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-  oAuth2Client.setCredentials(token);
-
-  const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+  const auth = loadOAuthClient({ credsPath, tokenPath });
+  const gmail = google.gmail({ version: 'v1', auth });
 
   const started = Date.now();
   let pageToken = undefined;
