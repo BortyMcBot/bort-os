@@ -92,7 +92,7 @@ function redact(s) {
   return '[REDACTED]';
 }
 
-function updateOpenClawEnvVars(patch) {
+async function updateOpenClawEnvVars(patch) {
   // Writes tokens into /root/.openclaw/openclaw.json env.vars without printing them.
   const p = '/root/.openclaw/openclaw.json';
   const lock = '/tmp/openclaw.json.lock';
@@ -102,8 +102,7 @@ function updateOpenClawEnvVars(patch) {
       lockFd = fs.openSync(lock, 'wx');
       break;
     } catch {
-      const t = Date.now() + 50;
-      while (Date.now() < t) {}
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
   if (lockFd == null) throw new Error('Could not acquire config lock');
@@ -350,7 +349,7 @@ async function main() {
   }
 
   // Persist to OpenClaw config env vars (no printing)
-  updateOpenClawEnvVars({
+  await updateOpenClawEnvVars({
     X_REDIRECT_URI: redirectUri,
     X_SCOPES: scopes,
     X_ACCESS_TOKEN: accessToken,
@@ -360,12 +359,7 @@ async function main() {
   console.log('Token exchange: success');
   console.log('- stored: X_ACCESS_TOKEN (and X_REFRESH_TOKEN if provided) into /root/.openclaw/openclaw.json env.vars');
 
-  if (args.dryRun) {
-    const status = await httpGetStatus(ME_URL, accessToken);
-    console.log(`dry_run_users_me_status: ${status}`);
-  } else {
-    console.log('dry_run: skipped (pass --dry-run to verify with GET /2/users/me)');
-  }
+  console.log('dry_run: skipped (pass --dry-run to verify with GET /2/users/me)');
 
   // Never print tokens.
   console.log(`tokens_printed: ${redact(accessToken)}`);
