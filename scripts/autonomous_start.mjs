@@ -26,7 +26,7 @@ function parseUntilArg() {
 
 async function main() {
   const until = parseUntilArg()
-  if (!until) {
+  if (!until || !/^([01]\d|2[0-3]):[0-5]\d$/.test(until)) {
     console.error('Usage: autonomous_start.mjs until HH:MM')
     process.exit(2)
   }
