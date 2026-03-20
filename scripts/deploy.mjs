@@ -50,6 +50,7 @@ function run(cmd, opts = {}) {
 function runReadOnly(cmd, opts = {}) {
   if (dryRun) {
     console.log(`[dry-run] ${cmd}`)
+    return ''
   }
   return execSync(cmd, { encoding: 'utf8', ...opts }).trim()
 }
@@ -97,6 +98,8 @@ async function main() {
     dryRun,
   }
 
+  const prevCommit = runReadOnly('git rev-parse HEAD', { cwd: WORKSPACE })
+
   // Pull latest (mutating)
   try {
     if (dryRun) {
@@ -112,7 +115,7 @@ async function main() {
   }
 
   // Determine changed files (read-only)
-  const diffOut = runReadOnly('git diff --name-only HEAD~1 HEAD', { cwd: WORKSPACE })
+  const diffOut = prevCommit ? runReadOnly(`git diff --name-only ${prevCommit} HEAD`, { cwd: WORKSPACE }) : ''
   const changedFiles = diffOut ? diffOut.split('\n').filter(Boolean) : []
   const restartRequired = changedFiles.some((f) => f.startsWith('os/') || f.startsWith('scripts/'))
 
@@ -125,8 +128,6 @@ async function main() {
     logLine({ ...context, action: 'no-restart', changedFiles, outcome: 'ok' })
     return
   }
-
-  const prevCommit = runReadOnly('git rev-parse HEAD~1', { cwd: WORKSPACE })
 
   const restartStart = Date.now()
   run('openclaw gateway restart')
