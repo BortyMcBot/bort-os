@@ -48,23 +48,9 @@ function readText(p) {
 }
 
 function lastDigestEntry(md) {
-  // Latest-digest-only: isolate ONLY the most recent digest entry by newest "- ts_utc:" marker
-  // inside the "Run metadata" section.
-  const idx = md.lastIndexOf('\n- ts_utc:');
-  if (idx === -1) return null;
-
-  const runMetaIdx = md.lastIndexOf('\nRun metadata:', idx);
-  if (runMetaIdx === -1) return null;
-
-  // Find the start of the digest entry heading preceding this Run metadata.
-  const start = md.lastIndexOf('\n## ', runMetaIdx);
-  if (start === -1) return null;
-
-  // Find end at next digest heading (or EOF).
-  const next = md.indexOf('\n## ', idx + 1);
-  const end = next === -1 ? md.length : next;
-
-  return md.slice(start + 1, end).trim();
+  const matches = md.match(/^##\s+.+?\(America\/Phoenix\)\s+—\s+x_digest[\s\S]*?(?=^##\s+.+?\(America\/Phoenix\)\s+—\s+x_digest|\s*$)/gm);
+  if (!matches || !matches.length) return null;
+  return matches[matches.length - 1].trim();
 }
 
 function parseTsUtc(entry) {
