@@ -1,12 +1,8 @@
 {
-  "version": 1,
-  "account": "gobuffs10@gmail.com",
-  "updatedAt": "2026-03-15T07:14:00.000Z",
-  "note": "Pruned local runtime maps to reduce in-repo churn; use runtime/ignored state path for full working set.",
-  "progress": {
-    "processedThreads": 0,
-    "remaining": 0
-  },
+  "account": "example@gmail.com",
+  "query": "in:inbox is:unread",
+  "processedThreads": 0,
+  "updatedAt": null,
   "offenders": {},
-  "threadMap": {}
+  "notes": "Template only. Real runtime backlog state should live in an ignored per-account state path outside version control."
 }
