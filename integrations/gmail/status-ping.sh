@@ -10,12 +10,12 @@ LOG="${LOG:-$GMAIL_DIR/backlog-sweep.log}"
 INITIAL="${INITIAL:-13888}"
 
 cd "$GMAIL_DIR"
-TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 
 UNREAD_JSON=$(GMAIL_CREDS="$CREDS" GMAIL_TOKEN="$TOKEN" node ./count-unread.js)
 UNREAD=$(echo "$UNREAD_JSON" | node -pe 'JSON.parse(fs.readFileSync(0,"utf8")).total')
-PROCESSED=$(node -pe 'const s=require(process.argv[1]); console.log(s.processedThreads||0)' "$STATE" 2>/dev/null || echo 0)
-UPDATED=$(node -pe 'const s=require(process.argv[1]); console.log(s.updatedAt||"")' "$STATE" 2>/dev/null || echo "")
+PROCESSED=$(node -e 'const s=require(process.argv[1]); process.stdout.write(String(s.processedThreads||0))' "$STATE" 2>/dev/null || echo 0)
+UPDATED=$(node -e 'const s=require(process.argv[1]); process.stdout.write(String(s.updatedAt||""))' "$STATE" 2>/dev/null || echo "")
 
 PCT=$(node - <<NODE
 const initial=${INITIAL};
