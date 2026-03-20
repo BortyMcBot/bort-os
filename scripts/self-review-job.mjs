@@ -17,7 +17,7 @@ const SELF_REVIEW_DIR = path.join(WORKSPACE, 'docs', 'self-review')
 const FINDINGS_DIR = path.join(SELF_REVIEW_DIR, 'findings')
 const RESEARCH_DIR = path.join(SELF_REVIEW_DIR, 'research')
 const PLANS_DIR = path.join(SELF_REVIEW_DIR, 'plans')
-const STALENESS_STATE_PATH = '/tmp/pr-staleness-state.json'
+const STALENESS_STATE_PATH = path.join(WORKSPACE, 'memory', 'pr-staleness-state.json')
 
 const LEARNINGS_DIR = path.join(WORKSPACE, '.learnings')
 
@@ -215,8 +215,6 @@ function runCodeReview() {
         ? `\n\nRuntime learnings (from self-improving-agent — use these as additional context for your review, especially recurring errors or known issues):\n${learnings}\n`
         : ''
       const combinedPrompt = `${prompt}${learningsSection}\n\nInstructions: Use the read tool to open each file listed above and review their contents. Do not assume file contents.`
-      const tmpPrompt = `/tmp/self-review-prompt-${slugify(dir)}.txt`
-      fs.writeFileSync(tmpPrompt, combinedPrompt)
 
       const result = runOpenClaw(
         ['agent', '--agent', AGENT_ID, '--message', combinedPrompt],
@@ -226,8 +224,6 @@ function runCodeReview() {
       const reviewedSet = new Set(groupFiles_.map(relPath))
       const findings = parseFindings(result, dir, reviewedSet)
       allFindings.push(...findings)
-
-      try { fs.unlinkSync(tmpPrompt) } catch { /* ignore */ }
     } catch (err) {
       console.log(`  Warning: review failed for ${dir}/: ${err.message}`)
     }
@@ -309,6 +305,7 @@ function createFixPRs(findings) {
     ].filter(Boolean)
 
     const bodyPath = `/tmp/pr-body-${slug}.md`
+    let pushedBranch = false
 
     try {
       // Create branch from main
@@ -325,14 +322,14 @@ function createFixPRs(findings) {
         'Make the minimal change needed. Do not refactor surrounding code.',
       ].filter(Boolean).join('\n')
 
-      const tmpFixPrompt = `/tmp/self-review-fix-${slug}.txt`
-      fs.writeFileSync(tmpFixPrompt, fixPrompt)
-
-      const fixMessage = fs.readFileSync(tmpFixPrompt, 'utf8')
       runOpenClaw(
-        ['agent', '--agent', AGENT_ID, '--message', fixMessage],
+        ['agent', '--agent', AGENT_ID, '--message', fixPrompt],
         { timeout: 120_000 }
       )
+
+      if (!fs.existsSync(path.join(WORKSPACE, file))) {
+        throw new Error(`target file missing after fixer run: ${file}`)
+      }
 
       // Enforce clean worktree: only the target file may be changed.
       // Use git status --porcelain to catch unstaged edits, staged changes,
@@ -375,6 +372,7 @@ function createFixPRs(findings) {
 
       runGit(['commit', '-m', `fix: [SELF-REVIEW] ${sanitizePrTitle(fileFindings[0].description)}`])
       runGit(['push', '-u', 'origin', branch])
+      pushedBranch = true
 
       fs.writeFileSync(bodyPath, bodyLines.join('\n'))
       const prUrl = run(`gh pr create --repo ${REPO} --title ${JSON.stringify(prTitle)} --body-file ${bodyPath}`)
@@ -382,9 +380,11 @@ function createFixPRs(findings) {
       prsOpened.push({ title: prTitle, url: prUrl, file, riskTag })
       console.log(`  PR opened: ${prUrl}`)
 
-      try { fs.unlinkSync(tmpFixPrompt) } catch { /* ignore */ }
       try { fs.unlinkSync(bodyPath) } catch { /* ignore */ }
     } catch (err) {
+      if (pushedBranch) {
+        try { runGit(['push', 'origin', '--delete', branch]) } catch { /* ignore */ }
+      }
       console.log(`  Warning: failed to create PR for ${file}: ${err.message}`)
     } finally {
       // Always return to main
@@ -445,6 +445,7 @@ function runStalenessCheck() {
   }
 
   // Save state
+  ensureDir(path.dirname(STALENESS_STATE_PATH))
   fs.writeFileSync(STALENESS_STATE_PATH, JSON.stringify(state, null, 2))
   return notified
 }
