@@ -7,14 +7,14 @@ PREFS="${PREFS:-/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.jso
 OUT="${OUT:-/tmp/gmail-daily.json}"
 
 cd /root/.openclaw/workspace/integrations/gmail
-TELEGRAM_CHAT_ID="$(node -p "require('/root/.openclaw/workspace/os/constants').TELEGRAM_CHAT_ID")"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 
 node ./daily-review.js --creds "$CREDS" --token "$TOKEN" --prefs "$PREFS" --max 50 > "$OUT"
 
 # Auto-unsubscribe from anything in SpamReview (best-effort). These are already marked read by daily-review.js.
-SPAM_SENDERS=$(node - <<'NODE'
+SPAM_SENDERS=$(OUT_PATH="$OUT" node - <<'NODE'
 const fs = require('fs');
-const d = JSON.parse(fs.readFileSync('/tmp/gmail-daily.json','utf8'));
+const d = JSON.parse(fs.readFileSync(process.env.OUT_PATH,'utf8'));
 const spam = d.spamReview || [];
 const set = new Set();
 for (const it of spam) {
@@ -29,9 +29,9 @@ if [[ -n "$SPAM_SENDERS" ]]; then
   node ./unsubscribe.js --creds "$CREDS" --token "$TOKEN" --senders "$SPAM_SENDERS" --maxPerSender 1 || true
 fi
 
-MSG=$(node - <<'NODE'
+MSG=$(OUT_PATH="$OUT" node - <<'NODE'
 const fs = require('fs');
-const d = JSON.parse(fs.readFileSync('/tmp/gmail-daily.json','utf8'));
+const d = JSON.parse(fs.readFileSync(process.env.OUT_PATH,'utf8'));
 const imp = d.important||[];
 const oth = d.other||[];
 const sub = d.subscriptions||[];
@@ -66,4 +66,8 @@ console.log(msg);
 NODE
 )
 
-openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+if [[ -n "$TELEGRAM_CHAT_ID" ]]; then
+  openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+else
+  echo "TELEGRAM_CHAT_ID not set; skipping Telegram send." >&2
+fi
