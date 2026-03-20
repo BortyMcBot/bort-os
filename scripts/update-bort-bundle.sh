@@ -36,10 +36,17 @@ FILES=(
 
 for f in "${FILES[@]}"; do
   if [[ "$f" == "CLAUDE.md" ]]; then
-    cp -f "$ROOT/CLAUDE.md" "$PUB/$f"
+    SRC="$ROOT/CLAUDE.md"
   else
-    cp -f "$ROOT/project_source/$f" "$PUB/$f"
+    SRC="$ROOT/project_source/$f"
   fi
+
+  if [[ ! -f "$SRC" ]]; then
+    echo "Missing expected export file: $SRC" >&2
+    exit 1
+  fi
+
+  cp -f "$SRC" "$PUB/$f"
 done
 
 # Remove tgz bundle from public dir (flat file listing only)
