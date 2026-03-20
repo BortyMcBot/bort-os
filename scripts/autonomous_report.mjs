@@ -18,8 +18,8 @@ function collectPrs() {
   const site = run('gh pr list --limit 10 --json number,title,headRefName,url', path.join(WORKSPACE, 'external', 'personal-website'))
 
   return {
-    bort: bort.out || '[]',
-    site: site.out || '[]',
+    bort: bort.code === 0 ? (bort.out || '[]') : `ERROR: gh pr list failed (${bort.code})${bort.err ? ` — ${bort.err}` : ''}`,
+    site: site.code === 0 ? (site.out || '[]') : `ERROR: gh pr list failed (${site.code})${site.err ? ` — ${site.err}` : ''}`,
   }
 }
 
@@ -56,10 +56,10 @@ function main() {
     'Autonomous run completed. PR report:',
     '',
     'Bort‑OS PRs:',
-    fmt(bortList),
+    prs.bort.startsWith('ERROR:') ? prs.bort : fmt(bortList),
     '',
     'Personal‑website PRs:',
-    fmt(siteList),
+    prs.site.startsWith('ERROR:') ? prs.site : fmt(siteList),
   ].join('\n')
 
   run(`openclaw message send --channel telegram --target ${TELEGRAM_CHAT_ID} --message ${JSON.stringify(msg)}`, WORKSPACE)
