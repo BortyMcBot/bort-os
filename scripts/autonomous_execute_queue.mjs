@@ -25,7 +25,9 @@ function log(line) {
 
 function run(cmd, cwd) {
   const r = spawnSync(cmd, { shell: true, cwd, stdio: 'inherit' })
-  return r.status ?? 1
+  const code = r.status ?? 1
+  if (code !== 0) throw new Error(`command failed (${code}): ${cmd}`)
+  return code
 }
 
 function ensureQueue() {
@@ -161,8 +163,12 @@ function main() {
 
   for (const task of tasks) {
     log(`- executing: ${task.id}`)
-    if (task.repo === 'bort-os') execBortOsTask(task, policy)
-    if (task.repo === 'personal-website') execPersonalWebsiteTask(task, policy)
+    try {
+      if (task.repo === 'bort-os') execBortOsTask(task, policy)
+      if (task.repo === 'personal-website') execPersonalWebsiteTask(task, policy)
+    } catch (e) {
+      log(`- failed: ${task.id} — ${String(e.message || e)}`)
+    }
   }
 }
 
