@@ -69,6 +69,13 @@ function ensureLogDir() {
   ensureDir(path.dirname(LOG_PATH))
 }
 
+function escapeMdTableCell(value) {
+  return String(value ?? '')
+    .replace(/\|/g, '\\|')
+    .replace(/[\r\n]+/g, ' ')
+    .trim()
+}
+
 function logLine(line) {
   ensureLogDir()
   fs.appendFileSync(LOG_PATH, line + '\n')
@@ -412,7 +419,7 @@ function writeTodo(analysis) {
     lines.push('| ID | Category | Title | Effort |')
     lines.push('|---|---|---|---|')
     for (const f of prReady) {
-      lines.push(`| ${f.id} | ${f.category} | ${f.title} | ${f.effort} |`)
+      lines.push(`| ${escapeMdTableCell(f.id)} | ${escapeMdTableCell(f.category)} | ${escapeMdTableCell(f.title)} | ${escapeMdTableCell(f.effort)} |`)
     }
     lines.push('')
   }
@@ -422,7 +429,7 @@ function writeTodo(analysis) {
   lines.push('| ID | Category | Confidence | Effort | PR Ready | Title |')
   lines.push('|---|---|---|---|---|---|')
   for (const f of analysis.findings) {
-    lines.push(`| ${f.id} | ${f.category} | ${f.confidence} | ${f.effort} | ${f.pr_ready ? '✅' : '—'} | ${f.title} |`)
+    lines.push(`| ${escapeMdTableCell(f.id)} | ${escapeMdTableCell(f.category)} | ${escapeMdTableCell(f.confidence)} | ${escapeMdTableCell(f.effort)} | ${escapeMdTableCell(f.pr_ready ? '✅' : '—')} | ${escapeMdTableCell(f.title)} |`)
   }
   lines.push('')
 
