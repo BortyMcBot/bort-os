@@ -26,19 +26,36 @@ function loadOpenClawEnvVars() {
   }
 }
 
-function updateOpenClawEnvVars(patch) {
+async function updateOpenClawEnvVars(patch) {
   const p = '/root/.openclaw/openclaw.json';
-  const raw = fs.readFileSync(p, 'utf8');
-  const cfg = JSON.parse(raw);
-  cfg.env = cfg.env || {};
-  cfg.env.vars = cfg.env.vars || {};
-
-  for (const [k, v] of Object.entries(patch)) {
-    if (v == null) continue;
-    cfg.env.vars[k] = String(v);
+  const lock = '/tmp/openclaw.json.lock';
+  let lockFd = null;
+  for (let i = 0; i < 20; i++) {
+    try {
+      lockFd = fs.openSync(lock, 'wx');
+      break;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
   }
+  if (lockFd == null) throw new Error('Could not acquire config lock');
 
-  fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
+  try {
+    const raw = fs.readFileSync(p, 'utf8');
+    const cfg = JSON.parse(raw);
+    cfg.env = cfg.env || {};
+    cfg.env.vars = cfg.env.vars || {};
+
+    for (const [k, v] of Object.entries(patch)) {
+      if (v == null) continue;
+      cfg.env.vars[k] = String(v);
+    }
+
+    fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 });
+  } finally {
+    try { fs.closeSync(lockFd); } catch {}
+    try { fs.unlinkSync(lock); } catch {}
+  }
 }
 
 function mergedEnv() {
@@ -200,7 +217,7 @@ async function refreshAccessToken(envObj) {
     const access = j.access_token;
     const refresh = j.refresh_token || refreshToken;
     if (access) {
-      updateOpenClawEnvVars({ X_ACCESS_TOKEN: access, X_REFRESH_TOKEN: refresh });
+      await updateOpenClawEnvVars({ X_ACCESS_TOKEN: access, X_REFRESH_TOKEN: refresh });
       return { ok: true, status: res.status };
     }
   } catch {
@@ -290,15 +307,15 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
   xb.ensureLedgerFile();
   xb.ensureQueueFile();
 
-  const gate = xb.guardOrQueue({
-    actionType,
-    method: m,
-    endpoint: ep,
-    details: details || '',
-  });
-
-  // Note: guardOrQueue uses its own estimate; we keep ours for reporting/ledger.
-  if (!gate.ok) {
+  if (!xb.canSpend(estimateUsd)) {
+    xb.queueAction({
+      reason: 'blocked_by_budget',
+      actionType,
+      method: m,
+      endpoint: ep,
+      estimateUsd,
+      details: details || '',
+    });
     return { ok: false, blocked: true, reason: 'blocked_by_budget', estimateUsd, actionId };
   }
 
@@ -317,16 +334,6 @@ async function xCall({ actionType, method, endpoint, body, details, costUsdOverr
   if (status === 401) {
     const refreshed = await refreshAccessToken(envObj);
     if (refreshed.ok) {
-      const retryGate = xb.guardOrQueue({
-        actionType: `${actionType || 'other'}:retry`,
-        method: m,
-        endpoint: ep,
-        details: 'retry-after-refresh',
-      });
-      if (!retryGate.ok) {
-        return { ok: false, blocked: true, reason: 'blocked_by_budget', estimateUsd, actionId };
-      }
-
       const envObjRetry = mergedEnv();
       const retry = await doRequest({
         actionType,
