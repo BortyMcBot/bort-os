@@ -12,9 +12,10 @@ const args = new Set(process.argv.slice(2))
 const dryRun = args.has('--dry-run')
 
 const TODAY = new Date().toISOString().slice(0, 10)
-const SITE_URL = 'https://bryanduckworth.com'
-const REVIEW_DIR = '/tmp/site-review'
-const PR_DIR = '/tmp/site-prs'
+const SITE_URL = process.env.SITE_URL || 'https://bryanduckworth.com'
+const SITE_REPO_OWNER = process.env.SITE_REPO_OWNER || 'NewWorldOrderly'
+const REVIEW_DIR = process.env.SITE_REVIEW_DIR || '/tmp/site-review'
+const PR_DIR = process.env.SITE_PR_DIR || '/tmp/site-prs'
 const TODO_DIR = path.join(WORKSPACE, 'docs', 'site-review')
 const LOG_PATH = path.join(WORKSPACE, 'logs', 'site-improvement.log')
 const PINCHTAB_PID = '/tmp/pinchtab.pid'
@@ -101,7 +102,7 @@ function discoverSiteRepo() {
   console.log(`\n=== Phase 1a: Discover site repo (${now()}) ===\n`)
 
   const listJson = run(
-    'gh repo list NewWorldOrderly --limit 20 --json name,url,description',
+    `gh repo list ${SITE_REPO_OWNER} --limit 20 --json name,url,description`,
     { allowDryRun: true }
   )
   const repos = JSON.parse(listJson)
@@ -121,13 +122,13 @@ function discoverSiteRepo() {
   })
 
   if (!siteRepo) {
-    console.error('Could not find bryanduckworth.com repo in NewWorldOrderly repos.')
+    console.error(`Could not find bryanduckworth.com repo in ${SITE_REPO_OWNER} repos.`)
     sendTelegram('[SITE_REVIEW] ❌ Could not find bryanduckworth.com repo via gh repo list. Aborting.')
     logLine(`${now()} ABORT — site repo not found`)
     process.exit(1)
   }
 
-  const repoRef = `NewWorldOrderly/${siteRepo.name}`
+  const repoRef = `${SITE_REPO_OWNER}/${siteRepo.name}`
   console.log(`  Found site repo: ${repoRef}`)
   return { repoRef, repoName: siteRepo.name }
 }
