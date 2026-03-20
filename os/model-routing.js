@@ -93,13 +93,18 @@ function isExplicitOpenRouterOpenAIRequest(envelope = {}) {
   );
 }
 
+let hatProfilesCache = null;
+
 function loadHatProfiles() {
+  if (hatProfilesCache) return hatProfilesCache;
   try {
     const p = path.join(__dirname, 'hat-profiles.json');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-    return j?.hats || {};
+    hatProfilesCache = j?.hats || {};
+    return hatProfilesCache;
   } catch {
-    return {};
+    hatProfilesCache = {};
+    return hatProfilesCache;
   }
 }
 
@@ -237,7 +242,7 @@ function routeModel(envelope = {}) {
   ]);
 
   return {
-    model: model || 'openai/gpt-5.2-chat-latest',
+    model: model || null,
     reason: category,
     requiresWebSearch,
   };
