@@ -292,7 +292,6 @@ function main() {
     if (decision === 'APPROVE') {
       if (dryRun) {
         mergedCount++
-        runDeploy(pr.number, pr.title)
         continue
       }
       try {
