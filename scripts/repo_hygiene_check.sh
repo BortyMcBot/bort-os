@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO="/root/.openclaw/workspace"
-TELEGRAM_CHAT_ID="$(node -p "require('${REPO}/os/constants').TELEGRAM_CHAT_ID")"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
 STATUS=$(git -C "$REPO" status --porcelain=v1)
 
 if [ -z "$STATUS" ]; then
@@ -36,8 +36,12 @@ MESSAGE="chore(repo): automated hygiene sync (${DATE})"
 git -C "$REPO" add -- "${ALLOWLIST_PATHS[@]}"
 if git -C "$REPO" commit -m "$MESSAGE"; then
   git -C "$REPO" push origin main
-  openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "Repo hygiene: auto-committed and pushed."
+  if [ -n "$TELEGRAM_CHAT_ID" ]; then
+    openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "Repo hygiene: auto-committed and pushed."
+  fi
 else
   MSG=$'Repo hygiene check: uncommitted changes detected.\n\n'"$STATUS"
-  openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+  if [ -n "$TELEGRAM_CHAT_ID" ]; then
+    openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+  fi
 fi
