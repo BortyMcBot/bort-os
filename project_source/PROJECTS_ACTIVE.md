@@ -106,6 +106,16 @@ Purpose: Continuity layer for multi-step projects across sessions.
 - notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
 - last_updated: 2026-03-05
 
+### SURVIVAL_HANDBOOK_V1
+- status: in_progress
+- hat_sequence: [ops-core]
+- last_completed_step: Both repos created and verified. Initial research committed. First intake batch sent and answered. Daily cron registered.
+- next_action: Daily autonomous loop running. Monitor intake progress via Telegram. Generalize public repo for stranger use.
+- blocking_issue: none
+- relevant_files: BortyMcBot/shtfx (public generator), NewWorldOrderly/shtfx-duckworth (private Duckworth handbook)
+- notes: Daily cron at 8am Phoenix. Public/private separation enforced. dataSensitivity:high on all private repo tasks. Intake loop running — X of 39 questions answered as of session close 2026-03-19.
+- last_updated: 2026-03-20
+
 ---
 
 ## Entry template

@@ -29,16 +29,19 @@ const blacklistedModels = new Set(['openrouter/openrouter/auto', 'openrouter/aut
 
 const modelHealth = {
   // Codex-first for code/ops
+  'openai-codex/gpt-5.4': { provider: 'openai-codex', verified: true },
   'openai-codex/gpt-5.3-codex': { provider: 'openai-codex', verified: true },
   'openai-codex/gpt-5.2': { provider: 'openai-codex', verified: true },
   'openai-codex/gpt-5.2-codex': { provider: 'openai-codex', verified: true },
 
   // OpenRouter fallback lane
-  'openrouter/nvidia/nemotron-nano-9b-v2:free': { provider: 'openrouter', verified: true },
-  'openrouter/arcee-ai/trinity-mini:free': { provider: 'openrouter', verified: true },
+'openrouter/nvidia/nemotron-nano-9b-v2:free': { provider: 'openrouter', verified: true },
+'openrouter/arcee-ai/trinity-mini:free': { provider: 'openrouter', verified: true },
 
-  // Explicit fallback used when no route candidate is available
-  'openai/gpt-5.2-chat-latest': { provider: 'openai', verified: true },
+// Explicit fallback used when no route candidate is available
+'openai/gpt-5.2-chat-latest': { provider: 'openai', verified: true },
+
+'openrouter/anthropic/claude-3.7-sonnet': { provider: 'openrouter', verified: true },
 };
 
 /* ------------------------------
@@ -125,47 +128,47 @@ function hatDefaultChain(envelope = {}) {
 const ROUTES = {
   // Codex-first unless unavailable.
   code_ops: [
+    'openai-codex/gpt-5.4',
     'openai-codex/gpt-5.3-codex',
-    'openai-codex/gpt-5.2-codex',
     'openai-codex/gpt-5.2',
-    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    'openrouter/anthropic/claude-3.7-sonnet',
   ],
 
   // Cost-lean Codex default, then Codex fallback, then OpenRouter fallback lane.
   lightweight: [
-    'openai-codex/gpt-5.2-codex',
-    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.4',
     'openai-codex/gpt-5.3-codex',
-    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    'openai-codex/gpt-5.2',
+    'openrouter/anthropic/claude-3.7-sonnet',
   ],
 
   // Quality-first within Codex family.
   research_web: [
+    'openai-codex/gpt-5.4',
     'openai-codex/gpt-5.3-codex',
-    'openai-codex/gpt-5.2-codex',
     'openai-codex/gpt-5.2',
-    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    'openrouter/anthropic/claude-3.7-sonnet',
   ],
 
   social_drafting: [
-    'openai-codex/gpt-5.2-codex',
-    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.4',
     'openai-codex/gpt-5.3-codex',
-    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    'openai-codex/gpt-5.2',
+    'openrouter/anthropic/claude-3.7-sonnet',
   ],
 
   spec_large: [
+    'openai-codex/gpt-5.4',
     'openai-codex/gpt-5.3-codex',
-    'openai-codex/gpt-5.2-codex',
     'openai-codex/gpt-5.2',
-    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    'openrouter/anthropic/claude-3.7-sonnet',
   ],
 
   default: [
-    'openai-codex/gpt-5.2-codex',
-    'openai-codex/gpt-5.2',
+    'openai-codex/gpt-5.4',
     'openai-codex/gpt-5.3-codex',
-    'openrouter/nvidia/nemotron-nano-9b-v2:free',
+    'openai-codex/gpt-5.2',
+    'openrouter/anthropic/claude-3.7-sonnet',
   ],
 };
 

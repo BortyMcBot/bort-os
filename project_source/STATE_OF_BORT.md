@@ -1,25 +1,22 @@
 # STATE_OF_BORT.md
 
-Generated: Mar 19, 2026, 6:02 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:02 AM (America/Phoenix)
 
 ## Runtime snapshot
-- model_default: openai-codex/gpt-5.3-codex
-- model_resolved_default: openai-codex/gpt-5.3-codex
-- model_fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
-- allowed_model_count: 8
-- cron_job_count: 9
-- workspace_top_level_dirs: 19
-- workspace_file_count_recursive: 46117
+- model_default: openai-codex/gpt-5.4
+- model_resolved_default: openai-codex/gpt-5.4
+- model_fallbacks: openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
+- allowed_model_count: 6
+- cron_job_count: 0
+- workspace_top_level_dirs: 22
 
 ## Allowed model IDs
-- openrouter/auto
-- openrouter/arcee-ai/trinity-mini:free
-- openrouter/nvidia/nemotron-nano-9b-v2:free
 - openai-codex/gpt-5.3-codex
 - openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
 - openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex-spark
+- openrouter/anthropic/claude-3.7-sonnet
 
 ## Installed / available skills
 - 1password
@@ -47,22 +44,14 @@ Generated: Mar 19, 2026, 6:02 AM (America/Phoenix)
 - model-usage
 - nano-banana-pro
 - nano-pdf
+- node-connect
 - notion
 - obsidian
 - openai-image-gen
 - openai-whisper
-- openai-whisper-api
 
 ## Scheduled jobs (cron)
-- Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
-- Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
-- Bort bundle update (daily) (cron: 0 6,18 * * * America/Phoenix)
-- PR review (morning) (cron: 0 7 * * * America/Phoenix)
-- Repo hygiene check (daily) (cron: 0 7 * * * America/Phoenix)
-- X engagement snapshot (daily 8am) (cron: 0 8 * * * America/Phoenix)
-- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
-- X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
-- PR review (evening) (cron: 0 18 * * * America/Phoenix)
+- (none)
 
 ## Export artifacts
 - project_source/EXPORT_LATEST.md

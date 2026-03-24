@@ -1,6 +1,6 @@
 # Project Source Export (UPLOAD THIS FILE)
 
-Generated: Mar 19, 2026 • 6:02 AM (America/Phoenix)
+Generated: Mar 24, 2026 • 6:02 AM (America/Phoenix)
 
 Changed files since last export:
 - STATE_OF_BORT.md
@@ -262,26 +262,23 @@ Ownership zones:
 
 # STATE_OF_BORT.md
 
-Generated: Mar 19, 2026, 6:02 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:02 AM (America/Phoenix)
 
 ## Runtime snapshot
-- model_default: openai-codex/gpt-5.3-codex
-- model_resolved_default: openai-codex/gpt-5.3-codex
-- model_fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
-- allowed_model_count: 8
-- cron_job_count: 9
-- workspace_top_level_dirs: 19
-- workspace_file_count_recursive: 46117
+- model_default: openai-codex/gpt-5.4
+- model_resolved_default: openai-codex/gpt-5.4
+- model_fallbacks: openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
+- allowed_model_count: 6
+- cron_job_count: 0
+- workspace_top_level_dirs: 22
 
 ## Allowed model IDs
-- openrouter/auto
-- openrouter/arcee-ai/trinity-mini:free
-- openrouter/nvidia/nemotron-nano-9b-v2:free
 - openai-codex/gpt-5.3-codex
 - openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
 - openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex-spark
+- openrouter/anthropic/claude-3.7-sonnet
 
 ## Installed / available skills
 - 1password
@@ -309,22 +306,14 @@ Generated: Mar 19, 2026, 6:02 AM (America/Phoenix)
 - model-usage
 - nano-banana-pro
 - nano-pdf
+- node-connect
 - notion
 - obsidian
 - openai-image-gen
 - openai-whisper
-- openai-whisper-api
 
 ## Scheduled jobs (cron)
-- Daily Gmail summary (gobuffs10) 6am PST (cron: 0 6 * * * America/Los_Angeles)
-- Bort project_source refresh (twice daily) (cron: 0 6,18 * * * America/Phoenix)
-- Bort bundle update (daily) (cron: 0 6,18 * * * America/Phoenix)
-- PR review (morning) (cron: 0 7 * * * America/Phoenix)
-- Repo hygiene check (daily) (cron: 0 7 * * * America/Phoenix)
-- X engagement snapshot (daily 8am) (cron: 0 8 * * * America/Phoenix)
-- X digest refresh (every 4h budget-safe) (cron: 0 */4 * * * America/Phoenix)
-- X daily post (BortyMcBot min 1/day) (cron: 0 9 * * * America/Phoenix)
-- PR review (evening) (cron: 0 18 * * * America/Phoenix)
+- (none)
 
 ## Export artifacts
 - project_source/EXPORT_LATEST.md
@@ -373,7 +362,7 @@ Output: timeline, root cause, fix, prevention items.
 
 # HAT_STATE.md
 
-Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:01 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -387,7 +376,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: low
 - allowedSkills: coding-agent, github, gh-issues, openai-image-gen, bluebubbles
 - allowedCommands: git status | git diff | git add | git commit | git push | gh pr create | gh pr edit
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: engineering_brief
 
 ### inbox
@@ -397,7 +386,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: medium
 - allowedSkills: himalaya, apple-notes, apple-reminders, bluebubbles, imsg
 - allowedCommands: node /root/.openclaw/workspace/integrations/gmail/daily-review.js
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: concise_operational
 
 ### ops-core
@@ -407,7 +396,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: medium
 - allowedSkills: 1password, apple-notes, apple-reminders, bear-notes, blucli, bluebubbles, camsnap, clawhub, coding-agent, discord, eightctl, gemini, gh-issues, github, healthcheck, imsg, mcporter, model-usage, nano-pdf, notion, obsidian, openai-image-gen, openai-whisper, openai-whisper-api, pinchtab
 - allowedCommands: node /root/.openclaw/workspace/scripts/arch-drift-check.mjs | node /root/.openclaw/workspace/scripts/export-project-source.mjs | node /root/.openclaw/workspace/scripts/refresh-project-source.mjs
-- defaultModelChain: openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: engineering_brief
 
 ### resale
@@ -417,7 +406,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: medium
 - allowedSkills: eightctl, gog, nano-banana-pro, pinchtab
 - allowedCommands: (none)
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: actionable_checklist
 
 ### web
@@ -427,14 +416,14 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: low
 - allowedSkills: blogwatcher, gemini, gifgrep, goplaces, pinchtab
 - allowedCommands: (none)
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: cited_summary
 
 ## ARCHITECTURE_SUMMARY.md
 
 # ARCHITECTURE_SUMMARY.md
 
-Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:01 AM (America/Phoenix)
 
 ## Execution flow (workspace level)
 - os/preflight.js runs before hat execution and validates the Task Envelope contract.
@@ -455,49 +444,49 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 
 # ROUTING_STATE.md
 
-Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:01 AM (America/Phoenix)
 
 ## Global configured defaults
-- primary: openai-codex/gpt-5.3-codex
-- fallbacks: openrouter/auto, openrouter/arcee-ai/trinity-mini:free, openrouter/nvidia/nemotron-nano-9b-v2:free, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex-spark
+- primary: openai-codex/gpt-5.4
+- fallbacks: openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 
 ## Workspace routing categories (from os/model-routing.js ROUTES)
 
 ### code_ops
+- openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex
-- openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
-- openrouter/nvidia/nemotron-nano-9b-v2:free
+- openrouter/anthropic/claude-3.7-sonnet
 
 ### lightweight
-- openai-codex/gpt-5.2-codex
-- openai-codex/gpt-5.2
+- openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex
-- openrouter/nvidia/nemotron-nano-9b-v2:free
+- openai-codex/gpt-5.2
+- openrouter/anthropic/claude-3.7-sonnet
 
 ### research_web
+- openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex
-- openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
-- openrouter/nvidia/nemotron-nano-9b-v2:free
+- openrouter/anthropic/claude-3.7-sonnet
 
 ### social_drafting
-- openai-codex/gpt-5.2-codex
-- openai-codex/gpt-5.2
+- openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex
-- openrouter/nvidia/nemotron-nano-9b-v2:free
+- openai-codex/gpt-5.2
+- openrouter/anthropic/claude-3.7-sonnet
 
 ### spec_large
+- openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex
-- openai-codex/gpt-5.2-codex
 - openai-codex/gpt-5.2
-- openrouter/nvidia/nemotron-nano-9b-v2:free
+- openrouter/anthropic/claude-3.7-sonnet
 
 ### default
-- openai-codex/gpt-5.2-codex
-- openai-codex/gpt-5.2
+- openai-codex/gpt-5.4
 - openai-codex/gpt-5.3-codex
-- openrouter/nvidia/nemotron-nano-9b-v2:free
+- openai-codex/gpt-5.2
+- openrouter/anthropic/claude-3.7-sonnet
 
 ## Notes
 - This file is regenerated automatically; manual edits may be overwritten.
@@ -506,7 +495,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 
 # OPERATIONS_STATE.md
 
-Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:01 AM (America/Phoenix)
 
 ## Operations checklist
 - Use openclaw models status --json to verify default/fallback chain.
@@ -930,6 +919,16 @@ Purpose: Continuity layer for multi-step projects across sessions.
 - relevant_files: scripts/pr-review-job.mjs, logs/pr-review.log, project_source/SYSTEM_CONTEXT.md
 - notes: Bort auto-merges approved PRs via squash. Escalates to Bryan via Telegram for flagged PRs. Branch convention is claude/ for Claude Code sessions, bort/ for Bort autonomous work.
 - last_updated: 2026-03-05
+
+### SURVIVAL_HANDBOOK_V1
+- status: in_progress
+- hat_sequence: [ops-core]
+- last_completed_step: Both repos created and verified. Initial research committed. First intake batch sent and answered. Daily cron registered.
+- next_action: Daily autonomous loop running. Monitor intake progress via Telegram. Generalize public repo for stranger use.
+- blocking_issue: none
+- relevant_files: BortyMcBot/shtfx (public generator), NewWorldOrderly/shtfx-duckworth (private Duckworth handbook)
+- notes: Daily cron at 8am Phoenix. Public/private separation enforced. dataSensitivity:high on all private repo tasks. Intake loop running — X of 39 questions answered as of session close 2026-03-19.
+- last_updated: 2026-03-20
 
 ---
 

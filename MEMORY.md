@@ -27,3 +27,9 @@
 ## Codex quota alert preference
 
 - Alert Bryan when Codex remaining quota gets close to **25% remaining**.
+
+## SHTFx repo workflow preference
+
+- For both `BortyMcBot/shtfx` and `NewWorldOrderly/shtfx-duckworth`, default to pushing directly to `main`.
+- Do not require PRs for normal work on either repo.
+- Only ask Bryan for approval if the task is destructive, breaks the schema, or irreversibly affects the Duckworth family handbook.

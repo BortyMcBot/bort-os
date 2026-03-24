@@ -1,6 +1,6 @@
 # HAT_STATE.md
 
-Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
+Generated: Mar 24, 2026, 6:01 AM (America/Phoenix)
 
 - profile_source: /root/.openclaw/workspace/os/hat-profiles.json
 - hat_count: 5
@@ -14,7 +14,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: low
 - allowedSkills: coding-agent, github, gh-issues, openai-image-gen, bluebubbles
 - allowedCommands: git status | git diff | git add | git commit | git push | gh pr create | gh pr edit
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: engineering_brief
 
 ### inbox
@@ -24,7 +24,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: medium
 - allowedSkills: himalaya, apple-notes, apple-reminders, bluebubbles, imsg
 - allowedCommands: node /root/.openclaw/workspace/integrations/gmail/daily-review.js
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: concise_operational
 
 ### ops-core
@@ -34,7 +34,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: medium
 - allowedSkills: 1password, apple-notes, apple-reminders, bear-notes, blucli, bluebubbles, camsnap, clawhub, coding-agent, discord, eightctl, gemini, gh-issues, github, healthcheck, imsg, mcporter, model-usage, nano-pdf, notion, obsidian, openai-image-gen, openai-whisper, openai-whisper-api, pinchtab
 - allowedCommands: node /root/.openclaw/workspace/scripts/arch-drift-check.mjs | node /root/.openclaw/workspace/scripts/export-project-source.mjs | node /root/.openclaw/workspace/scripts/refresh-project-source.mjs
-- defaultModelChain: openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: engineering_brief
 
 ### resale
@@ -44,7 +44,7 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: medium
 - allowedSkills: eightctl, gog, nano-banana-pro, pinchtab
 - allowedCommands: (none)
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: actionable_checklist
 
 ### web
@@ -54,6 +54,6 @@ Generated: Mar 19, 2026, 6:01 AM (America/Phoenix)
 - defaultDataSensitivity: low
 - allowedSkills: blogwatcher, gemini, gifgrep, goplaces, pinchtab
 - allowedCommands: (none)
-- defaultModelChain: openai-codex/gpt-5.2-codex, openai-codex/gpt-5.2, openai-codex/gpt-5.3-codex, openrouter/nvidia/nemotron-nano-9b-v2:free
+- defaultModelChain: openai-codex/gpt-5.4, openai-codex/gpt-5.3-codex, openai-codex/gpt-5.2, openrouter/anthropic/claude-3.7-sonnet
 - outputStyle: cited_summary
 
