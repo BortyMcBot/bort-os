@@ -24,6 +24,7 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { google } = require('googleapis');
 const {
@@ -46,11 +47,21 @@ function arg(name, fallback) {
 function loadJson(p, fallback) {
   if (!p) return fallback;
   if (!fs.existsSync(p)) return fallback;
-  return JSON.parse(fs.readFileSync(p, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (err) {
+    console.error(`Failed to load JSON from ${p}: ${String(err?.message || err)}. Using fallback.`);
+    return fallback;
+  }
 }
 
 function saveJson(p, obj) {
-  fs.writeFileSync(p, JSON.stringify(obj, null, 2));
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(obj, null, 2));
+  } catch (err) {
+    throw new Error(`Failed to save JSON to ${p}: ${String(err?.message || err)}`);
+  }
 }
 
 function inc(map, key, by = 1) {
@@ -66,11 +77,12 @@ function senderMatches(list, fromEmail) {
 (async () => {
   const credsPath = arg('creds');
   const tokenPath = arg('token');
-  const prefsPath = arg('prefs', path.join(__dirname, 'prefs-gobuffs10.json'));
+  const runtimeDir = path.join(os.homedir(), '.openclaw', 'state', 'gmail');
+  const prefsPath = arg('prefs', path.join(runtimeDir, 'prefs-gobuffs10.json'));
   const q = arg('q', 'in:inbox is:unread');
   const batch = parseInt(arg('batch', '200'), 10);
   const maxBatches = parseInt(arg('maxBatches', '20'), 10);
-  const statePath = arg('state', path.join(__dirname, 'backlog-state-gobuffs10.json'));
+  const statePath = arg('state', path.join(runtimeDir, 'backlog-state-gobuffs10.json'));
 
   if (!credsPath || !tokenPath) {
     console.error('Missing --creds/--token');
