@@ -13,9 +13,14 @@ function loadOAuthClient({ credsPath, tokenPath }) {
   return oAuth2Client;
 }
 
+let labelCache = null;
+
 async function getOrCreateLabel(gmail, name) {
-  const list = await withBackoff(() => gmail.users.labels.list({ userId: 'me' }));
-  const found = (list.data.labels || []).find((l) => l.name === name);
+  if (!labelCache) {
+    const list = await withBackoff(() => gmail.users.labels.list({ userId: 'me' }));
+    labelCache = list.data.labels || [];
+  }
+  const found = labelCache.find((l) => l.name === name);
   if (found) return found;
   const created = await withBackoff(() => gmail.users.labels.create({
     userId: 'me',
@@ -26,6 +31,7 @@ async function getOrCreateLabel(gmail, name) {
       type: 'user',
     },
   }));
+  labelCache.push(created.data);
   return created.data;
 }
 
