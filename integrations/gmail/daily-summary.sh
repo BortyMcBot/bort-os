@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CREDS="${CREDS:-/root/.openclaw/secrets/gmail/gobuffs10/credentials.json}"
-TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/gobuffs10/token.json}"
-PREFS="${PREFS:-/root/.openclaw/workspace/integrations/gmail/prefs-gobuffs10.json}"
-OUT="${OUT:-/tmp/gmail-daily.json}"
+WORKSPACE="${BORT_WORKSPACE:-/root/.openclaw/workspace}"
+ACCOUNT_SLUG="${ACCOUNT_SLUG:-gobuffs10}"
+ACCOUNT_LABEL="${ACCOUNT_LABEL:-$ACCOUNT_SLUG}"
+CREDS="${CREDS:-/root/.openclaw/secrets/gmail/${ACCOUNT_SLUG}/credentials.json}"
+TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/${ACCOUNT_SLUG}/token.json}"
+PREFS="${PREFS:-${WORKSPACE}/integrations/gmail/prefs-${ACCOUNT_SLUG}.json}"
+OUT="${OUT:-/tmp/gmail-daily-${ACCOUNT_SLUG}.json}"
 
-cd /root/.openclaw/workspace/integrations/gmail
+cd "${WORKSPACE}/integrations/gmail"
 TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 
 node ./daily-review.js --creds "$CREDS" --token "$TOKEN" --prefs "$PREFS" --max 50 > "$OUT"
@@ -29,7 +32,7 @@ if [[ -n "$SPAM_SENDERS" ]]; then
   node ./unsubscribe.js --creds "$CREDS" --token "$TOKEN" --senders "$SPAM_SENDERS" --maxPerSender 1 || true
 fi
 
-MSG=$(OUT_PATH="$OUT" node - <<'NODE'
+MSG=$(OUT_PATH="$OUT" ACCOUNT_LABEL="$ACCOUNT_LABEL" ACCOUNT_SLUG="$ACCOUNT_SLUG" node - <<'NODE'
 const fs = require('fs');
 const d = JSON.parse(fs.readFileSync(process.env.OUT_PATH,'utf8'));
 const imp = d.important||[];
@@ -38,7 +41,7 @@ const sub = d.subscriptions||[];
 const spam = d.spamReview||[];
 const line = (s)=>String(s||'').replace(/\s+/g,' ').trim();
 
-let msg = `Gmail summary (gobuffs10)\n\n`;
+let msg = `Gmail summary (${process.env.ACCOUNT_LABEL || process.env.ACCOUNT_SLUG || 'gmail'})\n\n`;
 msg += `IMPORTANT (starred): ${imp.length}\n`;
 for (const it of imp.slice(0,10)) msg += `• ${line(it.fromEmail||it.from)} — ${line(it.subject)}\n`;
 
