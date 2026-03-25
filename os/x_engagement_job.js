@@ -11,6 +11,7 @@ const { xCall } = require('./x_call');
 
 const WORKSPACE = process.cwd();
 const POST_LOG_PATH = path.join(WORKSPACE, 'memory', 'x_daily_post.log.md');
+const POST_RESULTS_STATE_PATH = path.join(WORKSPACE, 'memory', 'x_post_results.json');
 const ENGAGEMENT_LOG_PATH = path.join(WORKSPACE, 'memory', 'x_engagement.log.md');
 
 function parsePhoenixStampToDate(stamp) {
@@ -21,6 +22,19 @@ function parsePhoenixStampToDate(stamp) {
 }
 
 function parsePostLog() {
+  if (fs.existsSync(POST_RESULTS_STATE_PATH)) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(POST_RESULTS_STATE_PATH, 'utf8'));
+      if (Array.isArray(raw)) {
+        return raw
+          .filter((e) => e && e.status === '201' && e.tweetId)
+          .map((e) => ({ stamp: e.stamp, tweetId: String(e.tweetId), postType: e.postType || 'unknown' }));
+      }
+    } catch {
+      // fall back to legacy markdown parsing below
+    }
+  }
+
   if (!fs.existsSync(POST_LOG_PATH)) return [];
   const raw = fs.readFileSync(POST_LOG_PATH, 'utf8');
   const blocks = raw.split(/^##\s+/m).slice(1);
