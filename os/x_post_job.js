@@ -20,7 +20,11 @@ function notify(message) {
     console.log(`notify skipped (no TELEGRAM_CHAT_ID): ${message}`);
     return;
   }
-  execFileSync('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(message)], { stdio: 'inherit' });
+  try {
+    execFileSync('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(message)], { stdio: 'inherit' });
+  } catch (e) {
+    console.error(`notify failed: ${String(e?.message || e)}`);
+  }
 }
 
 const DIGEST_PATH = path.join(process.cwd(), 'memory', 'x_digest.log.md');
