@@ -58,6 +58,7 @@ function hoursSince(d) {
 }
 
 function notify(message) {
+  if (!TELEGRAM_CHAT_ID) return;
   execFileSync('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(message)], { stdio: 'inherit' });
 }
 
