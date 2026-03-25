@@ -7,7 +7,7 @@ CREDS="${CREDS:-/root/.openclaw/secrets/gmail/gobuffs10/credentials.json}"
 TOKEN="${TOKEN:-/root/.openclaw/secrets/gmail/gobuffs10/token.json}"
 STATE="${STATE:-$GMAIL_DIR/backlog-state-gobuffs10.json}"
 LOG="${LOG:-$GMAIL_DIR/backlog-sweep.log}"
-INITIAL="${INITIAL:-13888}"
+INITIAL="${INITIAL:-}"
 
 cd "$GMAIL_DIR"
 TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
@@ -16,6 +16,12 @@ UNREAD_JSON=$(GMAIL_CREDS="$CREDS" GMAIL_TOKEN="$TOKEN" node ./count-unread.js)
 UNREAD=$(echo "$UNREAD_JSON" | node -pe 'JSON.parse(fs.readFileSync(0,"utf8")).total')
 PROCESSED=$(node -e 'const s=require(process.argv[1]); process.stdout.write(String(s.processedThreads||0))' "$STATE" 2>/dev/null || echo 0)
 UPDATED=$(node -e 'const s=require(process.argv[1]); process.stdout.write(String(s.updatedAt||""))' "$STATE" 2>/dev/null || echo "")
+if [[ -z "$INITIAL" ]]; then
+  INITIAL=$(node -e 'const s=require(process.argv[1]); process.stdout.write(String(s.initialUnread||s.initial||""))' "$STATE" 2>/dev/null || echo "")
+fi
+if [[ -z "$INITIAL" ]]; then
+  INITIAL="$UNREAD"
+fi
 
 PCT=$(node - <<NODE
 const initial=${INITIAL};
@@ -32,7 +38,11 @@ console.log(top.map(([k,v])=>`${k}(${v})`).join(', '));
 NODE
 )
 
-LASTERR=$(tail -n 30 "$LOG" | grep -E "ERROR|rateLimit|429|timeout" | tail -n 2 | tr '\n' ' ' || true)
+if [[ -f "$LOG" ]]; then
+  LASTERR=$(tail -n 30 "$LOG" | grep -E "ERROR|rateLimit|429|timeout" | tail -n 2 | tr '\n' ' ' || true)
+else
+  LASTERR="no log yet"
+fi
 
 MSG="Gmail cleanup status (gobuffs10): unread-in-inbox=${UNREAD}/${INITIAL} (${PCT}%). processed=${PROCESSED}. updated=${UPDATED}. top offenders: ${TOP}."
 if [[ -n "${LASTERR}" ]]; then
