@@ -36,6 +36,7 @@ function hatFilePath(hat) {
 
 function appendBlock(filePath, heading, lines) {
   const block = `\n## ${heading}\n\n${lines.map((l) => `- ${l}`).join('\n')}\n`;
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.appendFileSync(filePath, block, 'utf8');
 }
 
