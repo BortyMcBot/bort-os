@@ -65,7 +65,11 @@ function ensureLedgerFile() {
     writeJsonAtomic(LEDGER_PATH, {});
   } else {
     // Validate JSON; if invalid, do not overwrite automatically.
-    safeJsonParse(raw, {});
+    try {
+      JSON.parse(raw);
+    } catch (err) {
+      throw new Error(`x_budget ledger is corrupted at ${LEDGER_PATH}: ${String(err?.message || err)}`);
+    }
   }
 }
 
