@@ -17,17 +17,17 @@ const base = {
 };
 
 const cases = [
-  { taskType: 'code', taskSize: 'small' },
-  { taskType: 'ops', taskSize: 'small' },
-  { taskType: 'summarize', taskSize: 'small' },
-  { taskType: 'classify', taskSize: 'small' },
-  { taskType: 'triage', taskSize: 'small' },
-  { taskType: 'spec', taskSize: 'small' },
-  { taskType: 'spec', taskSize: 'large' },
-  { taskType: 'research', taskSize: 'medium' },
-  { taskType: 'web', taskSize: 'medium' },
-  { taskType: 'social', taskSize: 'small' },
-  { taskType: 'research', taskSize: 'medium', preferredModel: 'openrouter/openai/o3-mini-high' },
+  { taskType: 'code', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'ops', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'summarize', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'classify', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'triage', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'spec', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'spec', taskSize: 'large', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'research', taskSize: 'medium', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'web', taskSize: 'medium', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'social', taskSize: 'small', expectedModel: 'openai-codex/gpt-5.4' },
+  { taskType: 'research', taskSize: 'medium', preferredModel: 'openrouter/openai/o3-mini-high', expectedModel: 'openai-codex/gpt-5.4' },
 ];
 
 for (const c of cases) {
@@ -38,6 +38,7 @@ for (const c of cases) {
         taskType: c.taskType,
         taskSize: c.taskSize,
         preferredModel: c.preferredModel || null,
+        expectedModel: c.expectedModel || null,
         model: r.model,
         reason: r.reason,
         requiresWebSearch: r.requiresWebSearch,
