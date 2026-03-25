@@ -100,6 +100,20 @@ function makeRawEmail({ to, subject, body }) {
     .replace(/=+$/, '');
 }
 
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) break;
+      out[i] = await fn(items[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return out;
+}
+
 (async () => {
   const credsPath = arg('creds');
   const tokenPath = arg('token');
@@ -124,14 +138,17 @@ function makeRawEmail({ to, subject, body }) {
     const q = `from:${sender} newer_than:90d`;
     const list = await withBackoff(() => gmail.users.messages.list({ userId: 'me', q, maxResults: maxPerSender }));
     const msgs = list.data.messages || [];
-
-    for (const m of msgs) {
-      const full = await withBackoff(() => gmail.users.messages.get({
+    const fulls = await mapLimit(msgs, 3, async (m) => ({
+      m,
+      full: await withBackoff(() => gmail.users.messages.get({
         userId: 'me',
         id: m.id,
         format: 'metadata',
         metadataHeaders: ['From','Subject','List-Unsubscribe','List-Unsubscribe-Post'],
-      }));
+      })),
+    }));
+
+    for (const { m, full } of fulls) {
       const hdr = pickHeaders(full.data.payload);
       const fromEmail = extractEmailAddress(hdr.from);
       if (fromEmail.toLowerCase() !== sender.toLowerCase()) continue;
