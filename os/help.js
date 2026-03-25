@@ -40,6 +40,18 @@ function parseFrontmatter(md) {
 }
 
 function deriveFromHatsMd() {
+  const hatsJsonPath = path.join(process.cwd(), 'os', 'hat-profiles.json');
+  try {
+    const hatsJson = JSON.parse(fs.readFileSync(hatsJsonPath, 'utf8'));
+    const hats = Object.keys(hatsJson?.hats || {});
+    const requiredFields = ['hat', 'intent', 'taskType', 'taskSize', 'risk', 'dataSensitivity', 'externalStateChange', 'identityContext', 'approvalNeeded'];
+    if (hats.length) {
+      return { hats, requiredFields };
+    }
+  } catch {
+    // fall back to markdown parsing below
+  }
+
   const hatsPath = path.join(process.cwd(), 'memory', 'hats.md');
   const md = safeRead(hatsPath);
   if (!md) {
