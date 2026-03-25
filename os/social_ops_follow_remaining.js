@@ -5,21 +5,33 @@
 // Queues the remainder to memory/x_queue.md (reason=rate_limited_hourly).
 // Prints status codes only.
 
+const fs = require('fs');
+const path = require('path');
 const { xCall } = require('./x_call');
 const xb = require('./x_budget');
 
 const LOOKUP_COST = 0.005;
 const FOLLOW_COST = 0.01;
+const DEFAULT_CONFIG = {
+  hourlyCap: 3,
+  targets: ['remix_run', 'reactjs', 'vercel', 'CloudflareDev', 'github', 'PostHog'],
+};
+
+function loadConfig() {
+  try {
+    const p = path.join(__dirname, 'social_ops_follow_remaining.json');
+    const cfg = JSON.parse(fs.readFileSync(p, 'utf8'));
+    return {
+      hourlyCap: Number.isInteger(cfg?.hourlyCap) ? cfg.hourlyCap : DEFAULT_CONFIG.hourlyCap,
+      targets: Array.isArray(cfg?.targets) && cfg.targets.length ? cfg.targets : DEFAULT_CONFIG.targets,
+    };
+  } catch {
+    return DEFAULT_CONFIG;
+  }
+}
 
 async function main() {
-  const targets = [
-    'remix_run',
-    'reactjs',
-    'vercel',
-    'CloudflareDev',
-    'github',
-    'PostHog',
-  ];
+  const { hourlyCap, targets } = loadConfig();
 
   // Get source user id
   const me = await xCall({
@@ -48,7 +60,7 @@ async function main() {
   for (let i = 0; i < targets.length; i++) {
     const username = targets[i];
 
-    if (followsThisHour >= 3) {
+    if (followsThisHour >= hourlyCap) {
       // Queue the rest for next hour
       xb.ensureQueueFile();
       for (let j = i; j < targets.length; j++) {
