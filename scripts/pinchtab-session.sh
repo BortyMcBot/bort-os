@@ -67,6 +67,10 @@ cmd_start() {
     local now
     now=$(date +%s)
     if (( now - start_time >= TIMEOUT_SEC )); then
+      if is_pid_alive "$pid"; then
+        kill "$pid" >/dev/null 2>&1 || true
+      fi
+      rm -f "$PID_FILE"
       echo "Timed out waiting for pinchtab health (last=$code)" >&2
       exit 1
     fi
