@@ -41,7 +41,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('summarize', 'medium', 'low');
   const r = routeModel(env);
   console.log(`Test 1 (Summarize): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 1', r.model, 'openai-codex/gpt-5.3-codex');
+  assertEqual('Test 1', r.model, 'openai-codex/gpt-5.4');
   assertBool('Test 1 requiresWebSearch', r.requiresWebSearch, false);
 }
 
@@ -50,7 +50,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('spec', 'large', 'low');
   const r = routeModel(env);
   console.log(`Test 2 (Spec/Large): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 2', r.model, 'openai-codex/gpt-5.3-codex');
+  assertEqual('Test 2', r.model, 'openai-codex/gpt-5.4');
   assertBool('Test 2 requiresWebSearch', r.requiresWebSearch, false);
 }
 
@@ -65,7 +65,7 @@ function assertBool(name, got, expected) {
   );
   const r = routeModel(env);
   console.log(`Test 3 (Explicit OR OpenAI): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 3', r.model, 'openai-codex/gpt-5.3-codex');
+  assertEqual('Test 3', r.model, 'openai-codex/gpt-5.4');
   assertBool('Test 3 requiresWebSearch', r.requiresWebSearch, true);
 }
 
@@ -74,7 +74,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('research', 'medium', 'low', 'Research the latest trends.');
   const r = routeModel(env);
   console.log(`Test 4 (Research): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 4', r.model, 'openai-codex/gpt-5.3-codex');
+  assertEqual('Test 4', r.model, 'openai-codex/gpt-5.4');
   assertBool('Test 4 requiresWebSearch', r.requiresWebSearch, true);
 }
 
@@ -83,7 +83,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('code', 'large', 'high');
   const r = routeModel(env);
   console.log(`Test 5 (Code): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 5', r.model, 'openai-codex/gpt-5.3-codex');
+  assertEqual('Test 5', r.model, 'openai-codex/gpt-5.4');
   assertBool('Test 5 requiresWebSearch', r.requiresWebSearch, false);
 }
 
@@ -100,7 +100,7 @@ function assertBool(name, got, expected) {
   const env = mockEnvelope('summarize', 'medium', 'low', 'Summarize this.', 'openrouter/nonexistent/model');
   const r = routeModel(env);
   console.log(`Test 7 (Preferred Model - Unavailable): Got ${r.model} (Reason: ${r.reason})`);
-  assertEqual('Test 7', r.model, 'openai-codex/gpt-5.3-codex');
+  assertEqual('Test 7', r.model, 'openai-codex/gpt-5.4');
 }
 
 console.log('\nTests complete.');
