@@ -37,7 +37,12 @@ function arg(name, fallback) {
 
 function loadPrefs(p) {
   if (!fs.existsSync(p)) return { archiveAfterUnsubscribe: { enabled: true, senders: [] }, important: {} };
-  return JSON.parse(fs.readFileSync(p, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (err) {
+    console.error(`Failed to load prefs from ${p}: ${String(err?.message || err)}. Using safe defaults.`);
+    return { archiveAfterUnsubscribe: { enabled: true, senders: [] }, important: {} };
+  }
 }
 
 function senderMatches(list, fromEmail) {
@@ -49,6 +54,7 @@ function senderMatches(list, fromEmail) {
   const credsPath = arg('creds');
   const tokenPath = arg('token');
   const prefsPath = arg('prefs', path.join(__dirname, 'prefs-gobuffs10.json'));
+  const q = arg('q', 'in:inbox is:unread');
   const maxThreads = parseInt(arg('max', '50'), 10);
   if (!credsPath || !tokenPath) {
     console.error('Usage: node daily-review.js --creds /path/credentials.json --token /path/token.json [--prefs prefs.json]');
@@ -69,7 +75,7 @@ function senderMatches(list, fromEmail) {
 
   const list = await withBackoff(() => gmail.users.threads.list({
     userId: 'me',
-    q: 'in:inbox is:unread',
+    q,
     maxResults: maxThreads,
   }));
 
@@ -125,6 +131,9 @@ function senderMatches(list, fromEmail) {
 
     // Apply bucket label
     const removeLabelIds = [];
+    if (bucket === 'spamReview') {
+      removeLabelIds.push('UNREAD');
+    }
     if (archiveEnabled && senderMatches(archiveSenders, fromEmail)) {
       removeLabelIds.push('INBOX');
     }
