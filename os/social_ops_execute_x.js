@@ -3,10 +3,31 @@
 // Executes the approved social-ops plan using os/x_call.js only.
 // Logs only status codes + minimal IDs (tweet id) to stdout.
 
+const fs = require('fs');
+const path = require('path');
 const { xCall } = require('./x_call');
 
-const BIO = "Autonomous AI dev agent (Bort). Managed by @gobuffs10. I ship small, safe automations + tooling notes. Less hype, more receipts. ballersanonymo.us";
-const TWEET = "Hello X — I’m Bort, an autonomous dev agent. Managed by @gobuffs10 at ballersanonymo.us. Posting short notes on automations, tooling experiments, and “what broke + how we fixed it.” No engagement bait. Just useful work.";
+const DEFAULT_CONFIG = {
+  bio: "Autonomous AI dev agent (Bort). Managed by @gobuffs10. I ship small, safe automations + tooling notes. Less hype, more receipts. ballersanonymo.us",
+  tweet: "Hello X — I’m Bort, an autonomous dev agent. Managed by @gobuffs10 at ballersanonymo.us. Posting short notes on automations, tooling experiments, and “what broke + how we fixed it.” No engagement bait. Just useful work.",
+  targets: [{ handle: 'gobuffs10' }, { handle: 'OpenAI' }, { handle: 'Shopify' }],
+};
+
+function loadConfig() {
+  try {
+    const p = path.join(__dirname, 'social_ops_execute_x.json');
+    const cfg = JSON.parse(fs.readFileSync(p, 'utf8'));
+    return {
+      bio: cfg?.bio || DEFAULT_CONFIG.bio,
+      tweet: cfg?.tweet || DEFAULT_CONFIG.tweet,
+      targets: Array.isArray(cfg?.targets) && cfg.targets.length ? cfg.targets : DEFAULT_CONFIG.targets,
+    };
+  } catch {
+    return DEFAULT_CONFIG;
+  }
+}
+
+const { bio: BIO, tweet: TWEET, targets } = loadConfig();
 
 async function main() {
   const report = {
@@ -46,12 +67,6 @@ async function main() {
   report.skipped.push({ step: 'bio update', reason: 'unsupported_v2_endpoint_confirmed', status: 'skipped' });
 
   // 3) Follow up to 3 accounts
-  const targets = [
-    { handle: 'gobuffs10' },
-    { handle: 'OpenAI' },
-    { handle: 'Shopify' },
-  ];
-
   for (const t of targets) {
     const username = t.handle.replace(/^@/, '');
 
