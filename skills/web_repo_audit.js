@@ -3,6 +3,7 @@
 // Project 1 skeleton: Web repo audit checklist (read-only)
 // No git writes, no network pushes.
 
+const fs = require('fs');
 const { execFileSync } = require('child_process');
 const { validateEnvelope, executionHeader } = require('../os/preflight');
 const { appendLog, appendHatLog, nowUtcStamp } = require('../os/memory-log');
@@ -42,11 +43,11 @@ if (!repoPath) {
   console.log('Need: WEB_REPO_PATH (path to BryanDuckworth.com repo)');
   process.exit(2);
 }
-if (!/^[\w./-]+$/.test(repoPath)) {
+if (!fs.existsSync(repoPath) || !fs.statSync(repoPath).isDirectory()) {
   const heading = `${nowUtcStamp()} — web_repo_audit (validation failed)`;
-  appendLog({ heading, lines: ['Unsafe WEB_REPO_PATH; audit not run.'] });
-  appendHatLog({ hat: envelope.hat, dataSensitivity: envelope.dataSensitivity, heading, lines: ['Unsafe WEB_REPO_PATH; audit not run.'] });
-  console.log('Need: WEB_REPO_PATH (safe path characters only)');
+  appendLog({ heading, lines: ['WEB_REPO_PATH does not exist or is not a directory; audit not run.'] });
+  appendHatLog({ hat: envelope.hat, dataSensitivity: envelope.dataSensitivity, heading, lines: ['WEB_REPO_PATH does not exist or is not a directory; audit not run.'] });
+  console.log('Need: WEB_REPO_PATH (existing repo directory path)');
   process.exit(2);
 }
 
