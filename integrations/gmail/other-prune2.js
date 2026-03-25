@@ -34,7 +34,12 @@ function arg(name, fallback) {
 
 function loadJson(p, fallback) {
   if (!fs.existsSync(p)) return fallback;
-  return JSON.parse(fs.readFileSync(p, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (err) {
+    console.error(`Failed to load state from ${p}: ${String(err?.message || err)}. Resetting state.`);
+    return fallback;
+  }
 }
 
 function saveJson(p, obj) {
