@@ -22,7 +22,12 @@ function nowUtcStamp() {
 }
 
 function readJson(p) {
-  return JSON.parse(fs.readFileSync(p, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (err) {
+    console.error(`models_check: failed to read JSON at ${p}: ${String(err?.message || err)}`);
+    return null;
+  }
 }
 
 function safeRead(p) {
@@ -35,19 +40,19 @@ function safeRead(p) {
 
 function appendModelsCheckLog({ ts, openrouterCount, newCount, notableIds, snapshotObj }) {
   const p = path.join(process.cwd(), 'memory', 'logs.md');
+  const snapshotPath = path.join(process.cwd(), 'memory', 'models_check_snapshot.json');
   const lines = [
     `## ${ts} — models_check`,
     '',
     `- openrouter catalog: ${openrouterCount}`,
     `- new models: ${newCount}`,
     `- notable: ${notableIds.length ? notableIds.join(', ') : '(none)'}`,
-    '',
-    '```models_snapshot_json',
-    JSON.stringify(snapshotObj),
-    '```',
+    `- snapshot: ${snapshotPath}`,
     '',
   ].join('\n');
+  fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.appendFileSync(p, `\n${lines}`);
+  fs.writeFileSync(snapshotPath, JSON.stringify(snapshotObj, null, 2));
 }
 
 function parseModelListPlain(out) {
@@ -58,6 +63,10 @@ function parseModelListPlain(out) {
 }
 
 function lastSnapshotFromLogs() {
+  const snapshotPath = path.join(process.cwd(), 'memory', 'models_check_snapshot.json');
+  const direct = readJson(snapshotPath);
+  if (direct) return direct;
+
   const md = safeRead(path.join(process.cwd(), 'memory', 'logs.md'));
   // Find last fenced block: ```models_snapshot_json ... ```
   const re = /```models_snapshot_json\n([\s\S]*?)\n```/g;
