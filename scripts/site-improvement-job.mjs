@@ -518,6 +518,18 @@ After editing, respond with the exact file path(s) you changed, one per line.`
         { encoding: 'utf8', cwd: prDir, timeout: 60_000 }
       ).trim()
 
+      const expectedPaths = []
+      const suggestedPathMatch = String(finding.suggested_change || '').match(/([A-Za-z0-9._\/-]+\.[A-Za-z0-9]+)/)
+      if (suggestedPathMatch) expectedPaths.push(suggestedPathMatch[1])
+      const reportedPaths = changeResult
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l && !l.includes(' '))
+        .map((l) => l.replace(/^\.\//, ''))
+      for (const p of reportedPaths) {
+        if (!expectedPaths.includes(p)) expectedPaths.push(p)
+      }
+
       // Check if any files were actually changed
       const status = runGit(['status', '--porcelain'], { cwd: prDir, allowDryRun: true })
       if (!status.trim()) {
@@ -525,8 +537,19 @@ After editing, respond with the exact file path(s) you changed, one per line.`
         continue
       }
 
+      const changedPaths = status
+        .split('\n')
+        .filter((l) => l.trim())
+        .map((l) => l.slice(3).replace(/^\.\//, '').split(' -> ').pop())
+
+      const validatedPaths = changedPaths.filter((p) => expectedPaths.includes(p))
+      const unexpectedPaths = changedPaths.filter((p) => !expectedPaths.includes(p))
+      if (unexpectedPaths.length > 0 || validatedPaths.length === 0) {
+        throw new Error(`unexpected changed paths: ${unexpectedPaths.join(', ') || '(none)'}; validated paths: ${validatedPaths.join(', ') || '(none)'}`)
+      }
+
       // Stage and commit
-      runGit(['add', '-A'], { cwd: prDir })
+      runGit(['add', '--', ...validatedPaths], { cwd: prDir })
       runGit(['commit', '-m', `fix: ${finding.title} [Bort site-improvement-job]`], { cwd: prDir })
 
       // Push branch
