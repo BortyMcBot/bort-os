@@ -39,7 +39,7 @@
 const fs = require('fs');
 const path = require('path');
 const { google } = require('googleapis');
-const { loadOAuthClient, pickHeaders, extractEmailAddress } = require('./lib');
+const { loadOAuthClient, pickHeaders, extractEmailAddress, withBackoff } = require('./lib');
 
 // ── CLI args ──
 
@@ -60,31 +60,6 @@ function flag(name) {
 function log(msg) {
   const ts = new Date().toISOString();
   console.error(`[${ts}] ${msg}`);
-}
-
-// ── Rate-limit backoff (same pattern as backlog-sweep.js) ──
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-async function withBackoff(fn, label, { maxRetries = 6, baseMs = 750, maxMs = 15000 } = {}) {
-  let attempt = 0;
-  while (true) {
-    try {
-      log(`API: ${label}`);
-      return await fn();
-    } catch (e) {
-      const status = e?.code || e?.response?.status;
-      const msg = String(e?.message || '');
-      const isRate = status === 429 || /rate|quota|userRateLimitExceeded|resource exhausted/i.test(msg);
-      if (!isRate || attempt >= maxRetries) throw e;
-      const wait = Math.min(maxMs, baseMs * Math.pow(2, attempt));
-      log(`  rate-limited (${status}), retry ${attempt + 1}/${maxRetries} in ${wait}ms`);
-      await sleep(wait);
-      attempt++;
-    }
-  }
 }
 
 // ── Thread counting (paginated) ──
