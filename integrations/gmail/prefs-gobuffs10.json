@@ -1,5 +1,5 @@
 {
-  "account": "example@gmail.com",
+  "account": "TEMPLATE_ONLY",
   "archiveAfterUnsubscribe": {
     "enabled": true,
     "senders": []
@@ -30,5 +30,5 @@
       "reset"
     ]
   },
-  "notes": "Example/template only. Real per-account Gmail prefs should be provided via an explicit prefs path or account-specific runtime config."
+  "notes": "Template only. Do not store live account prefs in-repo; provide them via an explicit runtime prefs path instead."
 }
