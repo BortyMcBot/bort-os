@@ -66,7 +66,14 @@ function main() {
     prs.site.startsWith('ERROR:') ? prs.site : fmt(siteList),
   ].join('\n')
 
-  run('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(msg)], WORKSPACE)
+  const send = run('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(msg)], WORKSPACE)
+  if (send.code !== 0) {
+    const errLine = `telegram send failed (${send.code})${send.err ? ` — ${send.err}` : ''}`
+    console.error(errLine)
+    if (fs.existsSync(LOG_PATH)) {
+      fs.appendFileSync(LOG_PATH, `\n## report send failed\n- error: ${errLine}\n`)
+    }
+  }
 }
 
 main()
