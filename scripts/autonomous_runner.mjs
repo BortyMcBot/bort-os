@@ -2,8 +2,9 @@
 import fs from 'fs'
 import path from 'path'
 import { spawnSync } from 'child_process'
+import constants from '../os/constants.js'
 
-const WORKSPACE = '/root/.openclaw/workspace'
+const { BORT_WORKSPACE: WORKSPACE } = constants
 const STATE_PATH = path.join(WORKSPACE, 'memory', 'autonomous_state.json')
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'autonomous_log.md')
 
@@ -39,7 +40,7 @@ function runOnce() {
   if (!state || state.active !== true) return
 
   // Generate a fresh queue at start of each autonomous window
-  const gen = spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_generate_queue.mjs'], { stdio: 'inherit' })
+  const gen = spawnSync('node', [path.join(WORKSPACE, 'scripts', 'autonomous_generate_queue.mjs')], { stdio: 'inherit' })
 
   log(`## ${nowPhoenix()} — autonomous runner tick`)
   if ((gen.status ?? 1) !== 0) {
@@ -48,7 +49,7 @@ function runOnce() {
   }
   log('- status: queue_generated')
 
-  const exec = spawnSync('node', ['/root/.openclaw/workspace/scripts/autonomous_execute_queue.mjs'], { stdio: 'inherit' })
+  const exec = spawnSync('node', [path.join(WORKSPACE, 'scripts', 'autonomous_execute_queue.mjs')], { stdio: 'inherit' })
   if ((exec.status ?? 1) !== 0) {
     log(`- status: queue_execute_failed (code=${exec.status ?? 1})`)
     return
