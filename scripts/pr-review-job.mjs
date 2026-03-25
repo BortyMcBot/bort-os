@@ -165,6 +165,25 @@ function reviewPR(pr, viewerLogin) {
   const prNum = pr.number
   const prTitle = pr.title
 
+  const cheapFiles = (pr.files || []).map((f) => f.path || f.name || f)
+  const cheapReasons = []
+  const cheapAuthorLogin = pr.author?.login || ''
+  const cheapHeadRefName = pr.headRefName || ''
+
+  if (cheapAuthorLogin === 'NewWorldOrderly') cheapReasons.push('author is NewWorldOrderly (direct commit)')
+  if (cheapHeadRefName.startsWith('claude/') && hasClaudeBlockedPaths(cheapFiles)) cheapReasons.push('claude/ branch touches blocked path (project_source/*.md, .arch_drift_baseline.json, or CLAUDE.md)')
+  if (!(cheapHeadRefName.startsWith('claude/') || cheapHeadRefName.startsWith('bort/'))) cheapReasons.push('branch not prefixed claude/ or bort/')
+
+  if (cheapReasons.length) {
+    return {
+      decision: 'REQUEST_CHANGES',
+      reason: cheapReasons.join('; '),
+      prView: { author: pr.author || {}, headRefName: pr.headRefName || '', url: pr.url, title: pr.title, files: pr.files || [], reviews: [] },
+      diff: '',
+      isSelf: cheapAuthorLogin === viewerLogin,
+    }
+  }
+
   const prView = ghJsonFields(`pr view ${prNum} --repo ${REPO}`, 'author,headRefName,files,additions,deletions,changedFiles,reviews,url,title')
   const diff = gh(`pr diff ${prNum} --repo ${REPO}`)
   const diffByFile = parseDiffByFile(diff)
@@ -183,9 +202,6 @@ function reviewPR(pr, viewerLogin) {
   }
 
   // AUTO-REJECT rules
-  if (authorLogin === 'NewWorldOrderly') reasons.push('author is NewWorldOrderly (direct commit)')
-  if (headRefName.startsWith('claude/') && hasClaudeBlockedPaths(files)) reasons.push('claude/ branch touches blocked path (project_source/*.md, .arch_drift_baseline.json, or CLAUDE.md)')
-  if (!(headRefName.startsWith('claude/') || headRefName.startsWith('bort/'))) reasons.push('branch not prefixed claude/ or bort/')
   if (detectSecrets(diff)) reasons.push('possible secret/token pattern detected')
 
   if (reasons.length) {
