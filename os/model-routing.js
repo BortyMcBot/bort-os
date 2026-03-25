@@ -38,9 +38,6 @@ const modelHealth = {
 'openrouter/nvidia/nemotron-nano-9b-v2:free': { provider: 'openrouter', verified: true },
 'openrouter/arcee-ai/trinity-mini:free': { provider: 'openrouter', verified: true },
 
-// Explicit fallback used when no route candidate is available
-'openai/gpt-5.2-chat-latest': { provider: 'openai', verified: true },
-
 'openrouter/anthropic/claude-3.7-sonnet': { provider: 'openrouter', verified: true },
 };
 
