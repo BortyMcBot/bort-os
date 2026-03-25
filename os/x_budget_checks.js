@@ -4,6 +4,14 @@
 // Simulates one allowed spend record and one blocked spend that queues.
 // Output: PASS/FAIL only.
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'x-budget-checks-'));
+fs.mkdirSync(path.join(tmpDir, 'memory'), { recursive: true });
+process.chdir(tmpDir);
+
 const b = require('./x_budget');
 
 function assert(cond, msg) {
