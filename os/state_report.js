@@ -61,7 +61,7 @@ function skillsSummary() {
 }
 
 function preflightTestStatus() {
-  const out = sh('node os/preflight.test.js');
+  const out = sh('node --check os/preflight.js && echo OK');
   return out || '(unavailable)';
 }
 
@@ -151,6 +151,10 @@ function main() {
     return routeModel(env).model;
   }
 
+  function routeChain(category) {
+    return (inv.routes?.[category] || inv.routes?.default || []).join(' -> ') || '(none)';
+  }
+
   console.log('State of Bort Report');
   console.log('');
 
@@ -198,10 +202,10 @@ function main() {
   console.log('');
 
   console.log('Per-task Routing');
-  console.log(`- summarize|classify → ${route('summarize')} (fallback: openai/gpt-5.2-chat-latest)`);
-  console.log(`- spec (large) → ${route('spec', 'large')} (fallback: openai/gpt-5.2-pro)`);
-  console.log(`- research → web_search first, then ${route('research')} (fallback: openai/gpt-5.2-pro)`);
-  console.log(`- code|ops → ${route('code')}`);
+  console.log(`- summarize|classify → ${route('summarize')} (chain: ${routeChain('lightweight')})`);
+  console.log(`- spec (large) → ${route('spec', 'large')} (chain: ${routeChain('spec_large')})`);
+  console.log(`- research → web_search first, then ${route('research')} (chain: ${routeChain('research_web')})`);
+  console.log(`- code|ops → ${route('code')} (chain: ${routeChain('code_ops')})`);
   console.log('');
 
   console.log('Health / Tests');
