@@ -8,7 +8,11 @@ const { TELEGRAM_CHAT_ID } = require('./constants');
 
 function notify(message) {
   if (!TELEGRAM_CHAT_ID) return;
-  execFileSync('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(message)], { stdio: 'inherit' });
+  try {
+    execFileSync('openclaw', ['message', 'send', '--channel', 'telegram', '--target', String(TELEGRAM_CHAT_ID), '--message', String(message)], { stdio: 'inherit' });
+  } catch {
+    // best-effort notification only
+  }
 }
 
 const WORKSPACE = process.cwd();
