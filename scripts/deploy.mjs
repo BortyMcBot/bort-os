@@ -98,6 +98,14 @@ async function main() {
     dryRun,
   }
 
+  const dirty = runReadOnly('git status --porcelain', { cwd: WORKSPACE })
+  if (dirty) {
+    const msg = `🚨 Deploy aborted for PR #${prNumber}: worktree is dirty. Commit, stash, or discard local changes before deploy.`
+    if (!dryRun) sendTelegram(msg)
+    logLine({ ...context, action: 'dirty-worktree-abort', outcome: 'blocked', dirtyFiles: dirty.split('\n').filter(Boolean) })
+    process.exit(1)
+  }
+
   const prevCommit = runReadOnly('git rev-parse HEAD', { cwd: WORKSPACE })
 
   // Pull latest (mutating)
