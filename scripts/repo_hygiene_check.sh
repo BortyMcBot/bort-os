@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO="/root/.openclaw/workspace"
-TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-$(node -e "import('../os/constants.js').then(m=>process.stdout.write(String(m.default?.TELEGRAM_CHAT_ID||m.TELEGRAM_CHAT_ID||''))).catch(()=>process.stdout.write(''))")}"
 STATUS=$(git -C "$REPO" status --porcelain=v1)
 
 if [ -z "$STATUS" ]; then
@@ -30,6 +30,15 @@ if [ "$NON_ALLOWLIST" -eq 1 ] || [ "${#ALLOWLIST_PATHS[@]}" -eq 0 ]; then
 fi
 
 # Auto-commit hygiene drift
+CURRENT_BRANCH=$(git -C "$REPO" rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  MSG="Repo hygiene: refusing auto-commit on branch $CURRENT_BRANCH (expected main)."
+  if [ -n "$TELEGRAM_CHAT_ID" ]; then
+    openclaw message send --channel telegram --target "$TELEGRAM_CHAT_ID" --message "$MSG"
+  fi
+  exit 0
+fi
+
 DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 MESSAGE="chore(repo): automated hygiene sync (${DATE})"
 
