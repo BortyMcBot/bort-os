@@ -12,7 +12,7 @@ set -euo pipefail
 REPO="${BORT_WORKSPACE:-/root/.openclaw/workspace}"
 MAIN_BRANCH="main"
 DRY_RUN=true
-TELEGRAM_TARGET="${TELEGRAM_CHAT_ID:-$(node -e "try{const fs=require('fs');const c=JSON.parse(fs.readFileSync('/root/.openclaw/openclaw.json','utf8'));process.stdout.write(String(c?.env?.vars?.TELEGRAM_CHAT_ID||''));}catch{process.stdout.write('')}" )}"
+TELEGRAM_TARGET="${TELEGRAM_CHAT_ID:-$(node -e "import('../os/constants.js').then(m=>process.stdout.write(String(m.default?.TELEGRAM_CHAT_ID||m.TELEGRAM_CHAT_ID||''))).catch(()=>process.stdout.write(''))")}"
 
 for arg in "$@"; do
   case "$arg" in
