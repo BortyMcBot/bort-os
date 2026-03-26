@@ -5,7 +5,11 @@ const SNAPSHOT_PATH = '/root/.openclaw/workspace/source/bort_registry.snapshot.j
 const OUT_PATH = '/root/.openclaw/workspace/source/BORT_CAPABILITIES.md'
 
 function readJson(p) {
-  return JSON.parse(fs.readFileSync(p, 'utf8'))
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'))
+  } catch (e) {
+    throw new Error(`failed to read snapshot JSON at ${p}: ${String(e.message || e)}`)
+  }
 }
 
 function mdEscapeInline(s) {
