@@ -42,7 +42,11 @@ function readState() {
 }
 
 function stopAutonomous() {
-  spawnSync('node', [STOP_SCRIPT], { stdio: 'inherit' })
+  const r = spawnSync('node', [STOP_SCRIPT], { stdio: 'inherit' })
+  if (r.error || (r.status ?? 1) !== 0) {
+    console.error(`autonomous_guard: stop failed${r.error ? ` (${String(r.error.message || r.error)})` : ` (status=${r.status})`}`)
+    process.exit(r.status ?? 1)
+  }
 }
 
 function tick() {
