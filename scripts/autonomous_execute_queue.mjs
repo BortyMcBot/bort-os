@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import { spawnSync } from 'child_process'
 
@@ -7,7 +8,7 @@ const WORKSPACE = '/root/.openclaw/workspace'
 const QUEUE_PATH = path.join(WORKSPACE, 'memory', 'autonomous_queue.json')
 const LOG_PATH = path.join(WORKSPACE, 'memory', 'autonomous_log.md')
 
-const PR_BODY_PATH = '/tmp/autonomy_pr_body.md'
+const PR_BODY_PATH = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'autonomy-pr-')), 'body.md')
 
 function nowPhoenix() {
   const dtf = new Intl.DateTimeFormat('en-CA', {
@@ -31,12 +32,12 @@ function run(cmd, cwd) {
 }
 
 function runCritical(cmd, cwd, step) {
-  const status = run(cmd, cwd)
-  if (status !== 0) {
-    log(`- error: ${step} failed (status=${status})`)
-    throw new Error(`${step} failed`)
+  try {
+    return run(cmd, cwd)
+  } catch (e) {
+    log(`- error: ${step} failed`)
+    throw e
   }
-  return status
 }
 
 function ensureQueue() {
@@ -90,7 +91,7 @@ function execBortOsTask(task, policy) {
     ].join('\n')
     fs.writeFileSync(path.join(WORKSPACE, 'SECRETS.md'), secrets)
 
-    run('git add SECRETS.md SECURITY.md', repo)
+    run('git add SECRETS.md', repo)
     runCritical('git commit -m "docs(security): add secrets handling policy"', repo, 'commit')
 
     if (policy.requireTests) {
