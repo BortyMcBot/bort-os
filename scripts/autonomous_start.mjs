@@ -71,7 +71,7 @@ async function main() {
     const [ch, cm] = phx.split(':').map((v) => parseInt(v, 10))
     const nowMin = ch * 60 + cm
     const stopMin = h * 60 + m
-    const deltaMin = Math.max(0, stopMin - nowMin)
+    const deltaMin = stopMin >= nowMin ? (stopMin - nowMin) : ((24 * 60 - nowMin) + stopMin)
     return deltaMin * 60
   })()
 
