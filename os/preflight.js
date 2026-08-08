@@ -37,38 +37,7 @@ function loadHatProfiles() {
     if (!hats || typeof hats !== 'object') throw new Error('invalid hats object');
     return hats;
   } catch {
-    return {
-      inbox: {
-        allowedIdentityContexts: ['human'],
-        allowedTaskTypes: ['classify', 'summarize', 'research', 'ops'],
-        defaultDataSensitivity: 'medium',
-      },
-      web: {
-        allowedIdentityContexts: ['agent'],
-        allowedTaskTypes: ['research', 'summarize', 'classify'],
-        defaultDataSensitivity: 'low',
-      },
-      resale: {
-        allowedIdentityContexts: ['agent'],
-        allowedTaskTypes: ['research', 'summarize', 'classify', 'ops'],
-        defaultDataSensitivity: 'medium',
-      },
-      'ops-core': {
-        allowedIdentityContexts: ['human', 'agent'],
-        allowedTaskTypes: ['ops', 'code', 'spec', 'research', 'summarize', 'classify'],
-        defaultDataSensitivity: 'medium',
-      },
-      autonomous: {
-        allowedIdentityContexts: ['agent'],
-        allowedTaskTypes: ['ops', 'research', 'spec', 'code', 'summarize'],
-        defaultDataSensitivity: 'low',
-        allowedSkills: ['project_source_export', 'documentation_drift_handling'],
-        allowedCommands: [
-          'git status', 'git diff', 'git add', 'git commit', 'git push',
-          'gh pr create', 'gh pr edit',
-        ],
-      },
-    };
+    return {};
   }
 }
 
